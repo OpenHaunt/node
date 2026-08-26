@@ -30,8 +30,14 @@ TXT records, populated from the module descriptor read at boot:
 | `modname` | `DMX512 Out` | Module name from EEPROM |
 | `modsn` | `9f8e7d6c` | Module serial from 24AA02UID |
 | `modrev` | `2` | Module hardware revision |
-| `caps` | `dmx,rdm` | Capability shortlist for UI filtering |
+| `caps` | `dmx,rdm,sacn` | Capability shortlist for UI filtering |
+| `mains` | `1` | Present and `1` when the module switches mains — descriptor bit 6 |
 | `name` | `Coffin Room DMX` | User-assigned friendly name |
+
+`mains` is duplicated from the module descriptor deliberately. A control application should be able to put a
+mains warning next to a node the moment it appears, and reading capability bit 6 over HTTP means the warning
+arrives a round trip after the device does. That is the wrong order for the one property where being early
+matters. Everything else in this table is a convenience; this one is a safety affordance.
 
 This means a control application can build a complete room inventory — what exists, what it can do, and which
 physical module is in which node — from discovery alone, with no per-device configuration.
@@ -89,6 +95,120 @@ section below.
 The show-control world uses OSC widely (QLab, TouchDesigner, Isadora). Worth supporting as a thin adapter onto
 the same internal command model, since integrating with an existing venue's tooling is often what decides
 whether hardware gets adopted.
+
+## Payloads
+
+The tables above name every endpoint and topic. What goes *inside* them is specified here, because two
+implementations that agree on a topic and disagree on its body fail in the least helpful way available: the
+message arrives, is parsed, and means nothing.
+
+These shapes come from [the-pult](https://github.com/RuegerEvents/the-pult), a control application that
+speaks this protocol end to end against a simulated node. They are offered as the specification, not as a
+fait accompli — where firmware wants something different, the firmware is right and this document should
+change.
+
+### `GET /api/v1/info`
+
+```json
+{
+  "v": "1",
+  "fw": "0.3.1",
+  "sn": "1a2b3c4d",
+  "name": "Coffin Room DMX",
+  "module": {
+    "type": "0x0001",
+    "name": "DMX512 Out",
+    "sn": "9f8e7d6c",
+    "rev": "2",
+    "flags": 64,
+    "caps": "dmx,rdm,sacn"
+  }
+}
+```
+
+`module.flags` is the capability bitfield from the module descriptor, verbatim. Bit 6 is the mains section.
+A control application reads it here to confirm what the `mains` TXT key claimed.
+
+### `POST /api/v1/config`
+
+Partial. Only the keys present are changed; everything else is left alone. Applied immediately and persisted
+across reboots.
+
+```json
+{
+  "mqtt": { "broker": "10.0.0.5:1883" },
+  "dmx":  { "protocol": "sacn", "universe": 5 }
+}
+```
+
+`dmx` is meaningful only on a node carrying `0x0001`. `protocol` is `sacn` or `artnet`.
+
+This is the only configuration a node ever receives, and it arrives when a control application adopts it. A
+node that has not been adopted has been asked for nothing, which is the design principle working: discovery
+requires no configuration, and configuration begins only when somebody decides to use the node.
+
+A node that reboots has forgotten this, and re-announcing itself over mDNS is the only notice a controller
+gets. Controllers should re-send config on every resolve for a node they have adopted; nodes should expect it.
+
+### `POST /api/v1/state`
+
+Outputs keyed by port number, as strings. Payloads are the per-module shapes below.
+
+```json
+{ "outputs": { "0": { "state": true } } }
+```
+
+`GET /api/v1/state` answers in the same shape, with every port the module has.
+
+### `openhaunt/<sn>/status`
+
+The literal strings `online` and `offline`. Not JSON — it is also the Last Will, and a will is more useful the
+simpler it is. Retained, so a controller that connects late still learns the truth.
+
+### `openhaunt/<sn>/input/<n>`
+
+Two shapes on one topic, because from a show's point of view a contact closing and a sensor reporting are the
+same event: a value the device produced.
+
+```json
+{ "state": true, "edge": "rising", "ts": 1699999999999 }
+{ "value": 21.5, "unit": "C", "ts": 1699999999999 }
+```
+
+`edge` is `rising` or `falling`. `ts` is the node's own clock in milliseconds — worth carrying because it is
+closer to when the thing happened than the moment a controller got round to reading its socket.
+
+For `0x0007`, ports 0, 1 and 2 are temperature (`C`), humidity (`%`) and air quality (`idx`).
+
+### `openhaunt/<sn>/output/<n>/set`
+
+| Module | Port | Payload |
+|---|---|---|
+| `0x0004` mains relay | 0 | `{ "state": true }` |
+| `0x0006` dry contact | 0–3 | `{ "state": true }` |
+| `0x0003` WS2812 | 0 | `{ "r": 255, "g": 128, "b": 0 }` — whole strip |
+| `0x0003` WS2812 | 1 | `{ "brightness": 0.5 }` — 0.0 to 1.0, whole strip |
+| `0x0005` OLED | 0 | `{ "text": "ACT ONE" }` |
+
+Per-pixel control of `0x0003` is deliberately absent. Addressing 300 pixels through MQTT at frame rate is the
+wrong shape, and the right one is probably a DMX or sACN universe mapped onto the strip. Left open until
+somebody needs it.
+
+### `openhaunt/<sn>/health`
+
+```json
+{ "uptime_s": 4210, "temp_c": 41.5, "poe_class": 3, "errors": [] }
+```
+
+Everything but `uptime_s` is optional. `errors` is a list of short machine-readable strings (`i2c`, `dmx-break`)
+rather than prose — a controller should be able to count and group them.
+
+### sACN to the DMX module
+
+`0x0001` listens on UDP 5568 for the universe it was given in `/api/v1/config`. **Unicast is expected** in
+addition to the multicast group, which is the argument in the next section taken to its conclusion: a
+controller that knows exactly where a node is, and which universe it wants, has no reason to make anything
+else on the network look at the packet. `caps` should list `sacn` so a controller knows before it tries.
 
 ## Bandwidth and the broadcast problem
 
