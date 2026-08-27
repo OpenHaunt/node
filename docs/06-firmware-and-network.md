@@ -1,10 +1,30 @@
 # 06 — Firmware & Network
 
-## Design principle
+## Design principles
 
 **A node is discovered, not configured.** The only thing an installer should have to do is plug in an Ethernet
 cable. Everything else — addressing, identification, capability negotiation — happens automatically. Any
 design that requires typing an IP address on a label has failed.
+
+**A node describes itself; a controller carries no module catalogue.** Only the device knows what it is and
+how it is best controlled. A node says what terminals it has — how many, which way each one flows, what kind
+of value it carries, what unit and what range — and a controller builds its idea of the device from that
+answer alone. It does not keep a table from module type id to "eight contacts" or "a colour and a
+brightness", and nothing in this document asks it to.
+
+The consequence is the point: a module newer than the controller works, a third-party module works, and a
+module whose firmware grows a port works, none of them requiring anybody to ship new controller software. The
+alternative — every controller carrying a copy of [05 — Module Catalog](05-module-catalog.md) — makes the
+catalogue a compatibility surface, and every entry in it a thing that can be out of date somewhere.
+
+The vocabulary is borrowed from **E1.73 UDR**, by way of [SHIFTY](https://github.com/oshifty/vision), which
+takes the same position: `access`, `dataType`, `unit`, `minimum`/`maximum`/`default` mean here what they mean
+there. Using an existing spelling is worth more than inventing a better one.
+
+The description is produced by the firmware's module driver from the descriptor's type id — the driver knows
+its own ports, and it is already bound at runtime by the module abstraction below. The 256-byte EEPROM in
+[04 — Module Interface](04-module-interface.md) is untouched: it stays an identity and a capability bitfield,
+not a schema, and nothing here needs it to grow.
 
 ## Discovery
 
@@ -41,6 +61,10 @@ matters. Everything else in this table is a convenience; this one is a safety af
 
 This means a control application can build a complete room inventory — what exists, what it can do, and which
 physical module is in which node — from discovery alone, with no per-device configuration.
+
+`mod` and `caps` are an inventory shortlist and nothing more: they are for filtering a list, grouping an
+inventory, and putting the mains warning up early. They are not the basis for control. What a node can
+actually be told to do comes from `ports` in `GET /api/v1/info`, below.
 
 ### Addressing
 
@@ -102,6 +126,11 @@ The tables above name every endpoint and topic. What goes *inside* them is speci
 implementations that agree on a topic and disagree on its body fail in the least helpful way available: the
 message arrives, is parsed, and means nothing.
 
+The shapes follow from the **port description**, not from the module. A node says a port is a `boolean` and
+that port carries `{ "state": … }`; it says `number` and the port carries `{ "value": … }`. There is one table
+of payloads, indexed by data type, and it is short. A controller that has read `ports` knows what to send
+without knowing what a `0x0003` is.
+
 These shapes come from [the-pult](https://github.com/RuegerEvents/the-pult), a control application that
 speaks this protocol end to end against a simulated node. They are offered as the specification, not as a
 fait accompli — where firmware wants something different, the firmware is right and this document should
@@ -114,20 +143,67 @@ change.
   "v": "1",
   "fw": "0.3.1",
   "sn": "1a2b3c4d",
-  "name": "Coffin Room DMX",
+  "name": "Coffin Room LED",
   "module": {
-    "type": "0x0001",
-    "name": "DMX512 Out",
+    "type": "0x0003",
+    "name": "WS2812",
     "sn": "9f8e7d6c",
     "rev": "2",
-    "flags": 64,
-    "caps": "dmx,rdm,sacn"
-  }
+    "flags": 0,
+    "caps": ""
+  },
+  "ports": [
+    { "port": 0, "name": "Strip colour", "access": "readwrite", "dataType": "color", "class": "color" },
+    { "port": 1, "name": "Brightness",   "access": "readwrite", "dataType": "number",
+      "unit": "percent", "minimum": 0, "maximum": 1, "default": 0, "class": "intensity" }
+  ]
 }
 ```
 
 `module.flags` is the capability bitfield from the module descriptor, verbatim. Bit 6 is the mains section.
 A control application reads it here to confirm what the `mains` TXT key claimed.
+
+#### `ports`
+
+**This is how a controller learns what the node can do.** One entry per terminal, in the node's own port
+numbering — the same `<n>` that appears in its topics and in `/api/v1/state`.
+
+| Field | Values | Notes |
+|---|---|---|
+| `port` | integer | The `<n>` in the topics and in `/state`. Required. |
+| `name` | string | Friendly, and shown to an operator. Required. |
+| `access` | `readonly` \| `readwrite` | UDR. `readonly` means the node produces the value — a controller **input**. `readwrite` means the controller drives it — an **output**. Required. |
+| `dataType` | `boolean` \| `number` \| `string` \| `color` | UDR's enum plus `color`, which UDR does not have. The one extension, and the only one. Required. |
+| `unit` | UDR unit name — `degree-celsius`, `percent`, `parts-per-million`, `unitless` | Numbers only. Optional. |
+| `minimum` / `maximum` | number | The range the port works in. Optional. |
+| `default` | number | Where the port sits before anything drives it; `0` or `1` on a boolean. Optional. |
+| `class` | see below | A hint at what the port *means*. Optional. |
+
+`class` is a small vocabulary a controller may recognise, for the places where it needs semantics rather than
+a value: drawing a temperature on a floor plan, wiring an intensity into a fader, knowing a colour is a
+colour. The words are `contact`, `switch`, `temperature`, `humidity`, `air-quality`, `intensity`, `color`,
+`text`.
+
+**A `class` a controller does not recognise, or an absent one, is not an error.** It means the port has no
+special meaning to that controller, which should then treat it as a parameter named after `name` and drive it
+by its `dataType`. This is what makes a module nobody has heard of usable rather than merely visible, and it
+is why `class` is a hint and not a required field: a node should feel free to declare a port that is exactly
+what it is and nothing the vocabulary covers.
+
+A controller that cannot get a description should refuse to adopt the node rather than guess. There is
+nothing to guess *from* — that is the design principle working.
+
+#### `dmx`
+
+Present only on a node that forwards a universe. Its presence is what tells a controller to allocate one and
+send `dmx` in `/api/v1/config`; its absence means there is none.
+
+```json
+"dmx": { "protocols": ["sacn"], "universes": 1 }
+```
+
+`protocols` lists what the node will accept, in the same words `/api/v1/config` takes. `universes` is how many
+it forwards.
 
 ### `POST /api/v1/config`
 
@@ -141,7 +217,9 @@ across reboots.
 }
 ```
 
-`dmx` is meaningful only on a node carrying `0x0001`. `protocol` is `sacn` or `artnet`.
+`dmx` is accepted only on a node whose description declares `dmx`; anywhere else it is meaningless and a node
+should say so rather than quietly forwarding nothing. `protocol` is one of the words that node's
+`dmx.protocols` listed.
 
 This is the only configuration a node ever receives, and it arrives when a control application adopts it. A
 node that has not been adopted has been asked for nothing, which is the design principle working: discovery
@@ -152,7 +230,8 @@ gets. Controllers should re-send config on every resolve for a node they have ad
 
 ### `POST /api/v1/state`
 
-Outputs keyed by port number, as strings. Payloads are the per-module shapes below.
+Outputs keyed by port number, as strings — the same numbering the description used. Payloads are the
+per-`dataType` shapes below.
 
 ```json
 { "outputs": { "0": { "state": true } } }
@@ -172,23 +251,52 @@ same event: a value the device produced.
 
 ```json
 { "state": true, "edge": "rising", "ts": 1699999999999 }
-{ "value": 21.5, "unit": "C", "ts": 1699999999999 }
+{ "value": 21.5, "unit": "degree-celsius", "ts": 1699999999999 }
 ```
 
-`edge` is `rising` or `falling`. `ts` is the node's own clock in milliseconds — worth carrying because it is
-closer to when the thing happened than the moment a controller got round to reading its socket.
+Which of the two a port publishes follows its `dataType`, exactly as it does for outputs: a `boolean` port
+carries `state`, a `number` port carries `value`.
 
-For `0x0007`, ports 0, 1 and 2 are temperature (`C`), humidity (`%`) and air quality (`idx`).
+`edge` is `rising` or `falling`. `unit` is the same UDR name the port's description gave, repeated on the
+reading so that a message is readable on its own. `ts` is the node's own clock in milliseconds — worth
+carrying because it is closer to when the thing happened than the moment a controller got round to reading its
+socket.
+
+Which port is which is not something a controller should have to know: the description said, and it said with
+names and units.
 
 ### `openhaunt/<sn>/output/<n>/set`
 
-| Module | Port | Payload |
-|---|---|---|
-| `0x0004` mains relay | 0 | `{ "state": true }` |
-| `0x0006` dry contact | 0–3 | `{ "state": true }` |
-| `0x0003` WS2812 | 0 | `{ "r": 255, "g": 128, "b": 0 }` — whole strip |
-| `0x0003` WS2812 | 1 | `{ "brightness": 0.5 }` — 0.0 to 1.0, whole strip |
-| `0x0005` OLED | 0 | `{ "text": "ACT ONE" }` |
+One shape per `dataType`, and that is the whole table:
+
+| `dataType` | Payload |
+|---|---|
+| `boolean` | `{ "state": true }` |
+| `number` | `{ "value": 0.5 }` — within the port's `minimum`/`maximum`, in its `unit` |
+| `color` | `{ "r": 255, "g": 128, "b": 0 }` — bytes |
+| `string` | `{ "text": "ACT ONE" }` |
+
+There is no `{ "brightness": … }`. A strip's brightness is a `number` port in `percent`, and it takes `value`
+like every other number.
+
+#### What the catalogue modules would say
+
+An example, not a contract. These are the descriptions the firmware drivers for [05](05-module-catalog.md)
+would produce, written out so there is something concrete to read — a controller must take them from the node
+and not from here.
+
+| Module | Ports |
+|---|---|
+| `0x0001` DMX512 out | none; `dmx: { protocols: ["sacn", "artnet"], universes: 1 }` |
+| `0x0002` Digital input | 0–7, `readonly` `boolean`, `class: contact` |
+| `0x0003` WS2812 | 0 `readwrite` `color` `class: color`; 1 `readwrite` `number` `percent` 0–1 `class: intensity` |
+| `0x0004` Mains relay | 0 `readwrite` `boolean` `class: switch` |
+| `0x0005` OLED | 0 `readwrite` `string` `class: text` |
+| `0x0006` Dry contact | 0–3, `readwrite` `boolean`, `class: switch` |
+| `0x0007` Environmental | 0 temperature `degree-celsius`; 1 humidity `percent`; 2 air quality `parts-per-million` — all `readonly` `number` |
+
+`0x0007`'s port mapping was an open question in this document's first draft. It stops being one: the node
+says, so nobody has to agree in advance.
 
 Per-pixel control of `0x0003` is deliberately absent. Addressing 300 pixels through MQTT at frame rate is the
 wrong shape, and the right one is probably a DMX or sACN universe mapped onto the strip. Left open until
@@ -205,10 +313,11 @@ rather than prose — a controller should be able to count and group them.
 
 ### sACN to the DMX module
 
-`0x0001` listens on UDP 5568 for the universe it was given in `/api/v1/config`. **Unicast is expected** in
-addition to the multicast group, which is the argument in the next section taken to its conclusion: a
-controller that knows exactly where a node is, and which universe it wants, has no reason to make anything
-else on the network look at the packet. `caps` should list `sacn` so a controller knows before it tries.
+A node that declared `dmx` listens on UDP 5568 for the universe it was given in `/api/v1/config`. **Unicast is
+expected** in addition to the multicast group, which is the argument in the next section taken to its
+conclusion: a controller that knows exactly where a node is, and which universe it wants, has no reason to
+make anything else on the network look at the packet. `dmx.protocols` says what it will accept; `caps` should
+list `sacn` too, so a controller can filter its inventory before it asks.
 
 ## Bandwidth and the broadcast problem
 
