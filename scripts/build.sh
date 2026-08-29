@@ -19,5 +19,11 @@ if ! command -v idf.py >/dev/null 2>&1; then
     . "$ROOT/scripts/env.sh"
 fi
 cd "$ROOT"
+# sdkconfig is generated from the defaults only when it does not exist yet, so
+# a change to sdkconfig.defaults or boards/*/sdkconfig.board needs --fresh.
+if [ "$1" = "--fresh" ]; then
+    rm -f "build/$BOARD/sdkconfig"
+    shift
+fi
 [ $# -eq 0 ] && set -- build
 exec idf.py -B "build/$BOARD" -DBOARD="$BOARD" -DIDF_TARGET="$TARGET" "$@"

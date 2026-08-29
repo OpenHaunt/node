@@ -1,0 +1,351 @@
+#include "oh_http.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <sys/param.h>
+
+#include "esp_heap_caps.h"
+#include "esp_http_server.h"
+#include "esp_log.h"
+#include "oh_app.h"
+#include "oh_board.h"
+#include "oh_clock.h"
+#include "oh_config.h"
+#include "oh_json.h"
+#include "oh_net.h"
+#include "oh_node.h"
+#include "oh_vmod.h"
+
+static const char *TAG = "oh_http";
+static httpd_handle_t s_server;
+
+extern const uint8_t index_html_start[] asm("_binary_index_html_start");
+extern const uint8_t index_html_end[] asm("_binary_index_html_end");
+
+/* ── Helpers ──────────────────────────────────────────────────────────── */
+
+static esp_err_t send_json(httpd_req_t *req, cJSON *json, const char *status)
+{
+    char *text = cJSON_PrintUnformatted(json);
+    cJSON_Delete(json);
+    if (!text) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    httpd_resp_set_status(req, status ? status : "200 OK");
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    esp_err_t err = httpd_resp_send(req, text, HTTPD_RESP_USE_STRLEN);
+    free(text);
+    return err;
+}
+
+static esp_err_t send_error(httpd_req_t *req, const char *status, const char *message)
+{
+    return send_json(req, oh_json_error(message), status);
+}
+
+/* Read a JSON body of up to `cap` bytes. Returns NULL (and answers) on trouble. */
+static cJSON *read_json(httpd_req_t *req, size_t cap)
+{
+    if (req->content_len == 0) {
+        return cJSON_CreateObject();
+    }
+    if (req->content_len > cap) {
+        send_error(req, "413 Payload Too Large", "body too large");
+        return NULL;
+    }
+    char *buf = malloc(req->content_len + 1);
+    if (!buf) {
+        send_error(req, "500 Internal Server Error", "out of memory");
+        return NULL;
+    }
+    size_t got = 0;
+    while (got < req->content_len) {
+        int n = httpd_req_recv(req, buf + got, req->content_len - got);
+        if (n <= 0) {
+            free(buf);
+            send_error(req, "400 Bad Request", "body incomplete");
+            return NULL;
+        }
+        got += n;
+    }
+    buf[got] = '\0';
+    cJSON *json = cJSON_Parse(buf);
+    free(buf);
+    if (!json) {
+        send_error(req, "400 Bad Request", "body is not JSON");
+    }
+    return json;
+}
+
+/* ── The protocol ─────────────────────────────────────────────────────── */
+
+static esp_err_t get_info(httpd_req_t *req)
+{
+    char name[OH_NAME_MAX];
+    oh_app_node_name(name, sizeof(name));
+    oh_node_identity_t id = {.sn = oh_app_sn(), .fw = oh_app_fw(), .name = name};
+    oh_node_lock();
+    cJSON *info = oh_json_info(oh_node_module(), &id);
+    oh_node_unlock();
+    return send_json(req, info, NULL);
+}
+
+static esp_err_t get_state(httpd_req_t *req)
+{
+    oh_node_lock();
+    cJSON *state = oh_json_state(oh_node_module(), oh_node_states());
+    oh_node_unlock();
+    return send_json(req, state, NULL);
+}
+
+static void apply_output(void *ctx, uint8_t port, const oh_value_t *value)
+{
+    (void)ctx;
+    oh_node_set_output(port, value, OH_SOURCE_HTTP);
+}
+
+static esp_err_t post_state(httpd_req_t *req)
+{
+    cJSON *body = read_json(req, 4096);
+    if (!body) {
+        return ESP_FAIL;
+    }
+    char err[OH_ERR_MAX];
+    /* The node lock is recursive: the callback's oh_node_set_output takes it
+     * again from this task, and nobody else can rebind the module meanwhile. */
+    oh_node_lock();
+    int n = oh_json_apply_outputs(body, oh_node_module(), apply_output, NULL, err);
+    oh_node_unlock();
+    cJSON_Delete(body);
+    if (n < 0) {
+        return send_error(req, "400 Bad Request", err);
+    }
+    return send_json(req, oh_json_ok(), NULL);
+}
+
+static esp_err_t get_config(httpd_req_t *req)
+{
+    return send_json(req, oh_config_to_json(), NULL);
+}
+
+static esp_err_t post_config(httpd_req_t *req)
+{
+    cJSON *body = read_json(req, 2048);
+    if (!body) {
+        return ESP_FAIL;
+    }
+    char err[OH_ERR_MAX];
+    uint32_t changed = 0;
+    oh_node_lock();
+    esp_err_t rc = oh_config_apply_json(body, oh_node_module(), err, &changed);
+    oh_node_unlock();
+    cJSON_Delete(body);
+    if (rc != ESP_OK) {
+        return send_error(req, "400 Bad Request", err);
+    }
+    cJSON *ok = oh_json_ok();
+    cJSON_AddNumberToObject(ok, "changed", changed);
+    return send_json(req, ok, NULL);
+}
+
+static esp_err_t post_identify(httpd_req_t *req)
+{
+    oh_node_identify(5000);
+    return send_json(req, oh_json_ok(), NULL);
+}
+
+static esp_err_t post_ota(httpd_req_t *req)
+{
+    return send_error(req, "501 Not Implemented", "OTA is not available in this build yet");
+}
+
+/* ── Beyond the protocol: what the web UI and the console need ────────── */
+
+static esp_err_t get_status(httpd_req_t *req)
+{
+    cJSON *o = cJSON_CreateObject();
+    cJSON_AddStringToObject(o, "sn", oh_app_sn());
+    cJSON_AddStringToObject(o, "fw", oh_app_fw());
+    cJSON_AddStringToObject(o, "board", oh_board_name());
+    cJSON_AddStringToObject(o, "hostname", oh_app_hostname());
+    char name[OH_NAME_MAX];
+    oh_app_node_name(name, sizeof(name));
+    cJSON_AddStringToObject(o, "name", name);
+
+    char ip[16], ssid[33], ap[24];
+    oh_net_ip(ip, sizeof(ip));
+    oh_net_ssid(ssid, sizeof(ssid));
+    oh_net_ap_ssid(ap, sizeof(ap));
+    cJSON *net = cJSON_AddObjectToObject(o, "network");
+    static const char *const states[] = {"down", "connecting", "up", "setup-ap"};
+    cJSON_AddStringToObject(net, "state", states[oh_net_state()]);
+    cJSON_AddStringToObject(net, "transport", oh_net_transport());
+    cJSON_AddStringToObject(net, "ip", ip);
+    cJSON_AddStringToObject(net, "ssid", ssid);
+    cJSON_AddNumberToObject(net, "rssi", oh_net_rssi());
+    cJSON_AddStringToObject(net, "setupAp", ap);
+
+    cJSON_AddStringToObject(o, "moduleSource", oh_app_module_source());
+    cJSON_AddNumberToObject(o, "uptime_s", oh_clock_uptime_s());
+    cJSON_AddBoolToObject(o, "clockSynced", oh_clock_is_unix());
+    cJSON_AddNumberToObject(o, "freeHeap", esp_get_free_heap_size());
+
+    char codes[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
+    size_t n = oh_node_errors(codes, OH_MAX_ERRORS);
+    cJSON *errors = cJSON_AddArrayToObject(o, "errors");
+    for (size_t i = 0; i < n; i++) {
+        cJSON_AddItemToArray(errors, cJSON_CreateString(codes[i]));
+    }
+    /* Each port's value with its timestamp, for the live table. */
+    cJSON *ports = cJSON_AddArrayToObject(o, "ports");
+    oh_node_lock();
+    const oh_module_t *m = oh_node_module();
+    const oh_port_state_t *st = oh_node_states();
+    for (int i = 0; i < m->n_ports; i++) {
+        cJSON *p = oh_json_value(&st[i].value);
+        cJSON_AddNumberToObject(p, "port", m->ports[i].port);
+        cJSON_AddNumberToObject(p, "ts", (double)st[i].ts_ms);
+        cJSON_AddItemToArray(ports, p);
+    }
+    oh_node_unlock();
+    return send_json(req, o, NULL);
+}
+
+static esp_err_t get_wifi_scan(httpd_req_t *req)
+{
+    return send_json(req, oh_net_wifi_scan(), NULL);
+}
+
+static esp_err_t get_module(httpd_req_t *req)
+{
+    cJSON *o = cJSON_CreateObject();
+    cJSON_AddStringToObject(o, "source", oh_app_module_source());
+    oh_node_lock();
+    cJSON_AddItemToObject(o, "module", oh_vmod_to_json(oh_node_module()));
+    oh_node_unlock();
+    size_t n;
+    const char *const *keys = oh_vmod_preset_keys(&n);
+    cJSON *presets = cJSON_AddArrayToObject(o, "presets");
+    for (size_t i = 0; i < n; i++) {
+        cJSON_AddItemToArray(presets, cJSON_CreateString(keys[i]));
+    }
+    const char *ids[16];
+    n = oh_driver_list(ids, 16);
+    cJSON *drivers = cJSON_AddArrayToObject(o, "drivers");
+    for (size_t i = 0; i < n; i++) {
+        cJSON_AddItemToArray(drivers, cJSON_CreateString(ids[i]));
+    }
+    return send_json(req, o, NULL);
+}
+
+/* {"preset":"led"} | {"clear":true} | a whole module description */
+static esp_err_t post_module(httpd_req_t *req)
+{
+    cJSON *body = read_json(req, 4096);
+    if (!body) {
+        return ESP_FAIL;
+    }
+    char err[OH_ERR_MAX] = "";
+    esp_err_t rc;
+    const cJSON *preset = cJSON_GetObjectItemCaseSensitive(body, "preset");
+    const cJSON *clear = cJSON_GetObjectItemCaseSensitive(body, "clear");
+    if (cJSON_IsString(preset)) {
+        rc = oh_app_set_preset(preset->valuestring, err);
+    } else if (cJSON_IsTrue(clear)) {
+        rc = oh_app_clear_vmod();
+    } else {
+        char *text = cJSON_PrintUnformatted(body);
+        rc = text ? oh_app_set_vmod_json(text, err) : ESP_ERR_NO_MEM;
+        free(text);
+    }
+    cJSON_Delete(body);
+    if (rc != ESP_OK) {
+        return send_error(req, "400 Bad Request", err[0] ? err : esp_err_to_name(rc));
+    }
+    return send_json(req, oh_json_ok(), NULL);
+}
+
+static esp_err_t post_reboot(httpd_req_t *req)
+{
+    esp_err_t err = send_json(req, oh_json_ok(), NULL);
+    oh_app_reboot(500);
+    return err;
+}
+
+static esp_err_t post_reset(httpd_req_t *req)
+{
+    esp_err_t err = send_json(req, oh_json_ok(), NULL);
+    oh_app_factory_reset();
+    return err;
+}
+
+static esp_err_t get_index(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "text/html; charset=utf-8");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
+    return httpd_resp_send(req, (const char *)index_html_start, index_html_end - index_html_start - 1);
+}
+
+/* Captive-portal probes from phones and laptops: send them to the page. */
+static esp_err_t redirect_root(httpd_req_t *req)
+{
+    httpd_resp_set_status(req, "302 Found");
+    httpd_resp_set_hdr(req, "Location", "http://192.168.4.1/");
+    return httpd_resp_send(req, NULL, 0);
+}
+
+static esp_err_t not_found(httpd_req_t *req, httpd_err_code_t code)
+{
+    (void)code;
+    /* Off the setup AP, anything unknown is a captive-portal probe. */
+    if (oh_net_state() == OH_NET_SETUP_AP && strncmp(req->uri, "/api/", 5) != 0) {
+        return redirect_root(req);
+    }
+    return send_error(req, "404 Not Found", "no such endpoint");
+}
+
+esp_err_t oh_http_start(void)
+{
+    httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
+    cfg.server_port = 80;
+    cfg.max_uri_handlers = 24;
+    cfg.stack_size = 8192;
+    cfg.lru_purge_enable = true;
+    cfg.recv_wait_timeout = 10;
+    cfg.send_wait_timeout = 10;
+    esp_err_t err = httpd_start(&s_server, &cfg);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "httpd: %s", esp_err_to_name(err));
+        return err;
+    }
+    const httpd_uri_t routes[] = {
+        {"/", HTTP_GET, get_index, NULL},
+        {"/api/v1/info", HTTP_GET, get_info, NULL},
+        {"/api/v1/state", HTTP_GET, get_state, NULL},
+        {"/api/v1/state", HTTP_POST, post_state, NULL},
+        {"/api/v1/config", HTTP_GET, get_config, NULL},
+        {"/api/v1/config", HTTP_POST, post_config, NULL},
+        {"/api/v1/identify", HTTP_POST, post_identify, NULL},
+        {"/api/v1/ota", HTTP_POST, post_ota, NULL},
+        {"/api/v1/status", HTTP_GET, get_status, NULL},
+        {"/api/v1/wifi/scan", HTTP_GET, get_wifi_scan, NULL},
+        {"/api/v1/module", HTTP_GET, get_module, NULL},
+        {"/api/v1/module", HTTP_POST, post_module, NULL},
+        {"/api/v1/reboot", HTTP_POST, post_reboot, NULL},
+        {"/api/v1/reset", HTTP_POST, post_reset, NULL},
+        /* Captive-portal detection URLs. */
+        {"/generate_204", HTTP_GET, redirect_root, NULL},
+        {"/hotspot-detect.html", HTTP_GET, redirect_root, NULL},
+        {"/connecttest.txt", HTTP_GET, redirect_root, NULL},
+        {"/ncsi.txt", HTTP_GET, redirect_root, NULL},
+    };
+    for (size_t i = 0; i < sizeof(routes) / sizeof(routes[0]); i++) {
+        httpd_register_uri_handler(s_server, &routes[i]);
+    }
+    httpd_register_err_handler(s_server, HTTPD_404_NOT_FOUND, not_found);
+    ESP_LOGI(TAG, "listening on :80");
+    return ESP_OK;
+}

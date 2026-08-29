@@ -1,12 +1,40 @@
-#include <stdio.h>
-
+/*
+ * Boot, in the order OpenHaunt/node doc 04 gives it: storage, the module
+ * (held in reset until it is known), then the network and everything that
+ * talks over it.
+ */
+#include "esp_event.h"
 #include "esp_log.h"
-#include "esp_mac.h"
 #include "nvs_flash.h"
-#include "oh_board.h"
-#include "oh_vmod.h"
+#include "oh_app.h"
+#include "oh_console.h"
+#include "oh_http.h"
+#include "oh_node.h"
+#include "oh_status.h"
 
-static const char *TAG = "oh";
+static const char *TAG = "main";
+
+static void on_port_changed(void *arg, esp_event_base_t base, int32_t id, void *data)
+{
+    (void)arg;
+    (void)base;
+    (void)id;
+    const oh_port_changed_t *c = data;
+    switch (c->value.type) {
+    case OH_DT_BOOLEAN:
+        ESP_LOGI(TAG, "port %u %s %s", c->port, c->is_input ? "->" : "<-", c->value.state ? "on" : "off");
+        break;
+    case OH_DT_NUMBER:
+        ESP_LOGI(TAG, "port %u %s %.3f", c->port, c->is_input ? "->" : "<-", c->value.value);
+        break;
+    case OH_DT_COLOR:
+        ESP_LOGI(TAG, "port %u <- rgb(%u,%u,%u)", c->port, c->value.color.r, c->value.color.g, c->value.color.b);
+        break;
+    case OH_DT_STRING:
+        ESP_LOGI(TAG, "port %u <- \"%s\"", c->port, c->value.text);
+        break;
+    }
+}
 
 void app_main(void)
 {
@@ -15,14 +43,12 @@ void app_main(void)
         ESP_ERROR_CHECK(nvs_flash_erase());
         ESP_ERROR_CHECK(nvs_flash_init());
     }
-    uint8_t mac[6];
-    esp_efuse_mac_get_default(mac);
-    ESP_LOGI(TAG, "OpenHaunt node fw %s on %s, sn %02x%02x%02x%02x", OH_FW_VERSION, oh_board_name(), mac[2], mac[3],
-             mac[4], mac[5]);
-    const oh_board_pins_t *pins = oh_board_pins();
-    ESP_LOGI(TAG, "pins: sda %d scl %d int %d fast0 %d button %d led %d", pins->i2c_sda, pins->i2c_scl, pins->mod_int,
-             pins->mod_fast0, pins->button, pins->status_led);
-    oh_module_t m;
-    oh_vmod_preset("contact", NULL, &m);
-    ESP_LOGI(TAG, "preset 0x%04x %s with %d ports", m.module.type, m.module.name, m.n_ports);
+
+    ESP_ERROR_CHECK(oh_app_init());
+    ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, OH_EVENT_PORT_CHANGED, on_port_changed, NULL));
+    ESP_ERROR_CHECK(oh_status_start());
+
+    ESP_ERROR_CHECK(oh_app_start_network());
+    ESP_ERROR_CHECK(oh_http_start());
+    ESP_ERROR_CHECK(oh_console_start());
 }

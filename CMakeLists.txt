@@ -11,6 +11,9 @@ endif()
 set(SDKCONFIG_DEFAULTS "sdkconfig.defaults;boards/${BOARD}/sdkconfig.board")
 set(SDKCONFIG "${CMAKE_BINARY_DIR}/sdkconfig")
 
+file(READ "${CMAKE_CURRENT_LIST_DIR}/version.txt" PROJECT_VER)
+string(STRIP "${PROJECT_VER}" PROJECT_VER)
+
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 idf_build_set_property(MINIMAL_BUILD ON)
 project(openhaunt-node)
