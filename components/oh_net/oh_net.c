@@ -31,6 +31,7 @@ static struct {
     esp_timer_handle_t sta_timeout; /* open the AP if the station is still down */
     esp_timer_handle_t reconnect;   /* retry the station */
     esp_timer_handle_t ap_close;    /* close the AP a while after the station got an IP */
+    esp_timer_handle_t eth_fallback; /* start Wi-Fi if Ethernet never comes up */
     bool sntp_started;
 } s;
 
@@ -85,6 +86,8 @@ static void sntp_start(void)
 #endif
 
 #if HAVE_WIFI
+
+static esp_err_t wifi_init(void);
 
 static void ap_open(void)
 {
@@ -170,6 +173,17 @@ static void on_ap_close(void *arg)
         ap_close();
     }
 }
+
+#ifdef CONFIG_OH_TRANSPORT_ETH_RMII
+static void on_eth_fallback(void *arg)
+{
+    (void)arg;
+    if (s.state != OH_NET_UP && !s.wifi_started) {
+        ESP_LOGW(TAG, "no Ethernet address; falling back to Wi-Fi");
+        wifi_init();
+    }
+}
+#endif
 
 static void schedule_reconnect(void)
 {
@@ -379,7 +393,13 @@ esp_err_t oh_net_init(const char *hostname)
         ESP_LOGE(TAG, "ethernet init failed: %s", esp_err_to_name(err));
     }
 #if HAVE_WIFI
-    return wifi_init();
+    /* Wi-Fi is the fallback, not a second transport: it starts only if the
+     * cable has not produced an address in time (or Ethernet failed to init). */
+    esp_timer_create_args_t t4 = {.callback = on_eth_fallback, .name = "eth_fallback"};
+    ESP_ERROR_CHECK(esp_timer_create(&t4, &s.eth_fallback));
+    esp_timer_start_once(s.eth_fallback,
+                         err == ESP_OK ? (uint64_t)CONFIG_OH_WIFI_STA_TIMEOUT_S * 1000000 : 1000000);
+    return ESP_OK;
 #else
     return err;
 #endif

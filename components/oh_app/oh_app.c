@@ -14,6 +14,7 @@
 #include "oh_drivers.h"
 #include "oh_module_eeprom.h"
 #include "oh_ota.h"
+#include "oh_sacn.h"
 #include "oh_net.h"
 #include "oh_node.h"
 
@@ -53,6 +54,9 @@ oh_vmod_pins_t oh_app_preset_pins(void)
     memcpy(p.outputs, b->preset_outputs, sizeof(p.outputs));
     p.strip = b->mod_fast0;
     p.mod_int = b->mod_int;
+    p.uart_tx = b->mod_uart_tx;
+    p.uart_rx = b->mod_uart_rx;
+    p.uart_de = b->mod_uart_de;
     return p;
 }
 
@@ -297,5 +301,5 @@ esp_err_t oh_app_start_network(void)
         return err;
     }
     oh_app_announce();
-    return ESP_OK;
+    return oh_sacn_start();
 }

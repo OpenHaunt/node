@@ -17,6 +17,7 @@
 #include "oh_vmod.h"
 #include "oh_module_eeprom.h"
 #include "oh_ota.h"
+#include "oh_sacn.h"
 #include "sdkconfig.h"
 #ifdef CONFIG_OH_DISPLAY
 #include "oh_display.h"
@@ -56,8 +57,9 @@ static int cmd_info(void)
     printf("module    0x%04x \"%s\" rev %s flags 0x%lx (%s)%s\n", m->module.type, m->module.name, m->module.rev,
            (unsigned long)m->module.flags, oh_app_module_source(), oh_module_switches_mains(m) ? "  MAINS" : "");
     if (m->has_dmx) {
-        printf("dmx       %s, %u universe(s), configured %s/%u\n", m->dmx.protocols[0], m->dmx.universes,
-               cfg.dmx_protocol, cfg.dmx_universe);
+        printf("dmx       %s, %u universe(s), configured %s/%u, %s, %lu frames\n", m->dmx.protocols[0],
+               m->dmx.universes, cfg.dmx_protocol, cfg.dmx_universe,
+               oh_sacn_listening() ? "listening" : "not listening", (unsigned long)oh_sacn_frames());
     }
     for (int i = 0; i < m->n_ports; i++) {
         const oh_port_desc_t *p = &m->ports[i];

@@ -36,6 +36,7 @@ typedef struct {
     int outputs[4]; /* free GPIOs for switches */
     int strip;      /* MOD_FAST0 or the board's strip pin */
     int mod_int;    /* MCP23017 interrupt */
+    int uart_tx, uart_rx, uart_de; /* the module UART, for the DMX gateway */
 } oh_vmod_pins_t;
 
 /* The catalogue modules as somewhere to start from, mirroring the sim's

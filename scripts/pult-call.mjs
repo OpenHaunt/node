@@ -8,7 +8,7 @@ const [, , op, a1, a2, ...rest] = process.argv;
 const url = process.env.PULT_URL || "ws://localhost:7700/ws";
 const ws = new WebSocket(url);
 const id = "cli-" + Date.now();
-const seg = (s) => (/^\d+$/.test(s) ? { Index: Number(s) } : { Key: s });
+const seg = (s) => (/^\d+$/.test(s) ? Number(s) : s);
 ws.onopen = () => {
   let msg;
   if (op === "call") msg = { type: "Call", payload: { method: a1, args: JSON.parse(a2 || "{}"), request_id: id } };

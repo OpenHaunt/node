@@ -122,6 +122,12 @@ bool oh_module_table_build(uint16_t type, oh_module_t *out)
     const oh_board_pins_t *pins = oh_board_pins();
     char params[OH_BINDING_PARAMS_MAX];
     switch (type) {
+    case 0x0001: {
+        snprintf(params, sizeof(params), "{\"driver\":\"dmx_uart\",\"ports\":[],\"uart\":1,\"tx\":%d,\"rx\":%d,\"de\":%d}",
+                 pins->mod_uart_tx, pins->mod_uart_rx, pins->mod_uart_de);
+        oh_module_add_binding(out, "dmx_uart", NULL, 0, params);
+        break;
+    }
     case 0x0002: {
         uint8_t ports[8] = {0, 1, 2, 3, 4, 5, 6, 7};
         snprintf(params, sizeof(params),

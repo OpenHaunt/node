@@ -16,6 +16,7 @@
 #include "oh_net.h"
 #include "oh_node.h"
 #include "oh_ota.h"
+#include "oh_sacn.h"
 #include "oh_vmod.h"
 
 static const char *TAG = "oh_http";
@@ -240,6 +241,12 @@ static esp_err_t get_status(httpd_req_t *req)
     cJSON_AddNumberToObject(o, "freeHeap", esp_get_free_heap_size());
     cJSON_AddStringToObject(o, "partition", oh_ota_running_partition());
     cJSON_AddBoolToObject(o, "pendingVerify", oh_ota_pending_verify());
+    if (oh_node_has_dmx()) {
+        cJSON *sacn = cJSON_AddObjectToObject(o, "sacn");
+        cJSON_AddBoolToObject(sacn, "listening", oh_sacn_listening());
+        cJSON_AddNumberToObject(sacn, "universe", oh_sacn_universe());
+        cJSON_AddNumberToObject(sacn, "frames", oh_sacn_frames());
+    }
 
     char codes[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
     size_t n = oh_node_errors(codes, OH_MAX_ERRORS);

@@ -93,7 +93,7 @@ static bool parse_binding(const cJSON *o, oh_module_t *m, char *err)
             }
             b.ports[b.n_ports++] = (uint8_t)item->valuedouble;
         }
-    } else {
+    } else if (!ports) {
         snprintf(err, OH_ERR_MAX, "binding %s needs \"port\" or \"ports\"", b.driver);
         return false;
     }
@@ -429,6 +429,12 @@ bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *ou
         strcpy(out->dmx.protocols[1], "artnet");
         out->dmx.n_protocols = 2;
         out->dmx.universes = 1;
+        if (pins->uart_tx >= 0) {
+            char params[OH_BINDING_PARAMS_MAX];
+            snprintf(params, sizeof(params), "{\"driver\":\"dmx_uart\",\"ports\":[],\"uart\":1,\"tx\":%d,\"rx\":%d,\"de\":%d}",
+                     pins->uart_tx, pins->uart_rx, pins->uart_de);
+            oh_module_add_binding(out, "dmx_uart", NULL, 0, params);
+        }
         return true;
     }
     return false;

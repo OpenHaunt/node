@@ -45,7 +45,9 @@ bool oh_module_add_binding(oh_module_t *m, const char *driver, const uint8_t *po
     oh_binding_t *b = &m->bindings[m->n_bindings];
     memset(b, 0, sizeof(*b));
     strncpy(b->driver, driver, OH_DRIVER_ID_MAX - 1);
-    memcpy(b->ports, ports, n_ports);
+    if (n_ports) {
+        memcpy(b->ports, ports, n_ports);
+    }
     b->n_ports = n_ports;
     if (params_json) {
         strncpy(b->params_json, params_json, OH_BINDING_PARAMS_MAX - 1);
