@@ -124,9 +124,9 @@ static void publish_health(void *arg)
     if (!s.client || !s.connected) {
         return;
     }
-    float temp = 0;
     const float *temp_p = NULL;
 #if SOC_TEMP_SENSOR_SUPPORTED
+    float temp = 0;
     if (s_tsens && temperature_sensor_get_celsius(s_tsens, &temp) == ESP_OK) {
         temp_p = &temp;
     }
