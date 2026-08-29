@@ -180,13 +180,28 @@ static void flush(void)
 
 /* ── Content ──────────────────────────────────────────────────────────── */
 
+/* A `percent` port declared over 0..1 carries a fraction (the catalogue's
+ * intensity does); one declared over 0..100 carries percent already. */
+static bool is_fraction_percent(const oh_port_desc_t *p)
+{
+    return strcmp(p->unit, "percent") == 0 && p->has_max && p->maximum <= 1.0f;
+}
+
 static const char *value_str(const oh_port_desc_t *p, const oh_value_t *v, char *buf, size_t cap)
 {
     switch (v->type) {
     case OH_DT_BOOLEAN:
         return v->state ? "ON" : "off";
     case OH_DT_NUMBER:
-        snprintf(buf, cap, "%.2f%s", v->value, strcmp(p->unit, "percent") == 0 ? "%" : "");
+        if (is_fraction_percent(p)) {
+            snprintf(buf, cap, "%.0f%%", v->value * 100.0f);
+        } else if (strcmp(p->unit, "percent") == 0) {
+            snprintf(buf, cap, "%.0f%%", v->value);
+        } else if (strcmp(p->unit, "degree-celsius") == 0) {
+            snprintf(buf, cap, "%.1fC", v->value);
+        } else {
+            snprintf(buf, cap, "%.2f", v->value);
+        }
         return buf;
     case OH_DT_COLOR:
         snprintf(buf, cap, "%02x%02x%02x", v->color.r, v->color.g, v->color.b);
@@ -270,7 +285,14 @@ static void render(void)
                  cols - 5 - 8, p->name);
         oh_fb_text(&s.fb, 0, y, 1, fg, bg, line);
         uint16_t vc = (p->type == OH_DT_BOOLEAN && st[i].value.state) ? ok : fg;
-        oh_fb_text(&s.fb, s.fb.w - (int)strlen(v) * OH_FONT_W, y, 1, vc, bg, v);
+        int vx = s.fb.w - (int)strlen(v) * OH_FONT_W;
+        oh_fb_text(&s.fb, vx, y, 1, vc, bg, v);
+        if (p->type == OH_DT_COLOR) {
+            /* The colour itself, as a swatch beside its hex. */
+            const oh_color_t *c = &st[i].value.color;
+            oh_fb_fill(&s.fb, vx - 30, y + 1, 24, ROW_H - 2, oh_rgb(90, 90, 90));
+            oh_fb_fill(&s.fb, vx - 29, y + 2, 22, ROW_H - 4, oh_rgb(c->r, c->g, c->b));
+        }
         y += ROW_H;
     }
     if (m->n_ports > rows_left) {
