@@ -1,0 +1,172 @@
+#include <stdlib.h>
+#include <string.h>
+
+#include "oh_vmod.h"
+#include "unity.h"
+
+void setUp(void) {}
+void tearDown(void) {}
+
+static const char *FOGGER =
+    "{ \"name\": \"Crypt fogger\", \"serial\": \"9f1c22\","
+    "  \"module\": { \"type\": \"0x0100\", \"name\": \"Fogger\", \"rev\": \"a\", \"flags\": 0, \"caps\": \"\" },"
+    "  \"ports\": ["
+    "    { \"port\": 0, \"name\": \"Fog output\", \"access\": \"readwrite\", \"dataType\": \"number\","
+    "      \"unit\": \"percent\", \"minimum\": 0, \"maximum\": 1, \"default\": 0, \"class\": \"intensity\" },"
+    "    { \"port\": 1, \"name\": \"Heater\", \"access\": \"readwrite\", \"dataType\": \"boolean\", \"default\": 0,"
+    "      \"class\": \"switch\" },"
+    "    { \"port\": 2, \"name\": \"Tank level\", \"access\": \"readonly\", \"dataType\": \"number\","
+    "      \"unit\": \"percent\", \"minimum\": 0, \"maximum\": 1 },"
+    "    { \"port\": 3, \"name\": \"Ready to fog\", \"access\": \"readonly\", \"dataType\": \"boolean\","
+    "      \"class\": \"contact\" } ],"
+    "  \"bindings\": [ { \"driver\": \"gpio_out\", \"port\": 1, \"gpio\": 18, \"invert\": true },"
+    "                  { \"driver\": \"gpio_in\", \"port\": 3, \"gpio\": 9, \"pull\": \"up\" } ],"
+    "  \"httpPort\": 8811, \"advertise\": true }";
+
+static void a_sim_config_file_loads(void)
+{
+    oh_module_t m;
+    char err[OH_ERR_MAX];
+    TEST_ASSERT_TRUE_MESSAGE(oh_vmod_parse(FOGGER, &m, err), err);
+    TEST_ASSERT_EQUAL_STRING("Crypt fogger", m.name);
+    TEST_ASSERT_EQUAL_HEX16(0x0100, m.module.type);
+    TEST_ASSERT_EQUAL_STRING("Fogger", m.module.name);
+    TEST_ASSERT_EQUAL(4, m.n_ports);
+    TEST_ASSERT_EQUAL(OH_ACCESS_READONLY, m.ports[2].access);
+    TEST_ASSERT_EQUAL(OH_DT_NUMBER, m.ports[2].type);
+    TEST_ASSERT_TRUE(m.ports[2].has_max);
+    TEST_ASSERT_FALSE(m.ports[2].has_default);
+    TEST_ASSERT_EQUAL_STRING("", m.ports[2].class_);
+    TEST_ASSERT_FALSE(m.has_dmx);
+    TEST_ASSERT_EQUAL(2, m.n_bindings);
+    TEST_ASSERT_EQUAL_STRING("gpio_out", m.bindings[0].driver);
+    TEST_ASSERT_EQUAL(1, m.bindings[0].ports[0]);
+    TEST_ASSERT_NOT_NULL(strstr(m.bindings[0].params_json, "\"gpio\":18"));
+    TEST_ASSERT_EQUAL(OH_MOD_SRC_VIRTUAL, m.source);
+}
+
+static void a_config_written_by_hand_may_leave_out_everything_optional(void)
+{
+    oh_module_t m;
+    char err[OH_ERR_MAX];
+    TEST_ASSERT_TRUE(oh_vmod_parse("{\"module\": {\"type\": 4, \"name\": \"Relay\"}}", &m, err));
+    TEST_ASSERT_EQUAL_HEX16(4, m.module.type);
+    TEST_ASSERT_EQUAL_STRING("a", m.module.rev);
+    TEST_ASSERT_EQUAL(0, m.n_ports);
+    TEST_ASSERT_TRUE(oh_module_is_empty(&m));
+}
+
+static void problems_are_named(void)
+{
+    oh_module_t m;
+    char err[OH_ERR_MAX];
+
+    TEST_ASSERT_FALSE(oh_vmod_parse("not json", &m, err));
+    TEST_ASSERT_NOT_NULL(strstr(err, "not JSON"));
+
+    TEST_ASSERT_FALSE(oh_vmod_parse("{\"module\": {\"type\": \"0x0001\", \"name\": \"X\"}, \"ports\": ["
+                                    "{\"port\": 0, \"name\": \"One\", \"access\": \"readwrite\", \"dataType\": \"boolean\"},"
+                                    "{\"port\": 0, \"name\": \"Two\", \"access\": \"readwrite\", \"dataType\": \"boolean\"}]}",
+                                    &m, err));
+    TEST_ASSERT_NOT_NULL(strstr(err, "numbered 0"));
+
+    TEST_ASSERT_FALSE(oh_vmod_parse("{\"module\": {\"type\": \"0x0001\", \"name\": \"X\"}, \"ports\": ["
+                                    "{\"port\": 0, \"name\": \"One\", \"access\": \"sideways\", \"dataType\": \"boolean\"}]}",
+                                    &m, err));
+    TEST_ASSERT_NOT_NULL(strstr(err, "sideways"));
+
+    TEST_ASSERT_FALSE(oh_vmod_parse("{\"module\": {\"type\": \"0x0001\", \"name\": \"X\"}, \"ports\": ["
+                                    "{\"port\": 0, \"name\": \"One\", \"access\": \"readonly\", \"dataType\": \"vibes\"}]}",
+                                    &m, err));
+    TEST_ASSERT_NOT_NULL(strstr(err, "vibes"));
+
+    TEST_ASSERT_FALSE(oh_vmod_parse("{\"module\": {\"type\": \"zzz\", \"name\": \"X\"}}", &m, err));
+    TEST_ASSERT_NOT_NULL(strstr(err, "type"));
+
+    TEST_ASSERT_FALSE(oh_vmod_parse("{\"module\": {\"type\": 1, \"name\": \"X\"},"
+                                    "\"bindings\": [{\"driver\": \"gpio_in\", \"port\": 4}]}",
+                                    &m, err));
+    TEST_ASSERT_NOT_NULL(strstr(err, "not declared"));
+
+    TEST_ASSERT_FALSE(oh_vmod_parse("{\"module\": {\"type\": 1, \"name\": \"X\"}, \"ports\": ["
+                                    "{\"port\": 0, \"name\": \"One\", \"access\": \"readonly\", \"dataType\": \"boolean\"}],"
+                                    "\"bindings\": [{\"driver\": \"gpio_in\", \"port\": 0},"
+                                    "{\"driver\": \"gpio_in\", \"ports\": [0]}]}",
+                                    &m, err));
+    TEST_ASSERT_NOT_NULL(strstr(err, "bound twice"));
+}
+
+static void every_preset_numbers_its_ports_from_zero_and_round_trips(void)
+{
+    size_t n;
+    const char *const *keys = oh_vmod_preset_keys(&n);
+    oh_vmod_pins_t pins = {.inputs = {9, 10, 11, -1, -1, -1, -1, -1}, .outputs = {18, 19, 20, 21}, .strip = 4,
+                           .mod_int = 5};
+    for (size_t i = 0; i < n; i++) {
+        oh_module_t m;
+        TEST_ASSERT_TRUE_MESSAGE(oh_vmod_preset(keys[i], &pins, &m), keys[i]);
+        for (int p = 0; p < m.n_ports; p++) {
+            TEST_ASSERT_EQUAL_MESSAGE(p, m.ports[p].port, keys[i]);
+        }
+        cJSON *json = oh_vmod_to_json(&m);
+        char *text = cJSON_PrintUnformatted(json);
+        cJSON_Delete(json);
+        oh_module_t again;
+        char err[OH_ERR_MAX];
+        TEST_ASSERT_TRUE_MESSAGE(oh_vmod_parse(text, &again, err), err);
+        free(text);
+        TEST_ASSERT_EQUAL_MESSAGE(m.module.type, again.module.type, keys[i]);
+        TEST_ASSERT_EQUAL_MESSAGE(m.n_ports, again.n_ports, keys[i]);
+        TEST_ASSERT_EQUAL_MESSAGE(m.n_bindings, again.n_bindings, keys[i]);
+        TEST_ASSERT_EQUAL_MESSAGE(m.has_dmx, again.has_dmx, keys[i]);
+        for (int p = 0; p < m.n_ports; p++) {
+            TEST_ASSERT_EQUAL_MEMORY(&m.ports[p], &again.ports[p], sizeof(oh_port_desc_t));
+        }
+    }
+    TEST_ASSERT_FALSE(oh_vmod_preset("toaster", &pins, NULL));
+}
+
+static void only_the_gateway_forwards_a_universe_and_only_the_relay_switches_mains(void)
+{
+    oh_module_t m;
+    oh_vmod_preset("dmx", NULL, &m);
+    TEST_ASSERT_TRUE(m.has_dmx);
+    TEST_ASSERT_EQUAL(0, m.n_ports);
+    TEST_ASSERT_TRUE(oh_module_dmx_accepts(&m, "sacn"));
+    TEST_ASSERT_TRUE(oh_module_dmx_accepts(&m, "artnet"));
+    TEST_ASSERT_FALSE(oh_module_dmx_accepts(&m, "osc"));
+    TEST_ASSERT_FALSE(oh_module_switches_mains(&m));
+    oh_vmod_preset("relay", NULL, &m);
+    TEST_ASSERT_TRUE(oh_module_switches_mains(&m));
+    TEST_ASSERT_FALSE(m.has_dmx);
+    TEST_ASSERT_FALSE(oh_module_dmx_accepts(&m, "sacn"));
+}
+
+static void presets_bind_the_pins_the_board_offers(void)
+{
+    oh_vmod_pins_t pins = {.inputs = {9, -1, -1, -1, -1, -1, -1, -1}, .outputs = {18, -1, -1, -1}, .strip = -1,
+                           .mod_int = -1};
+    oh_module_t m;
+    oh_vmod_preset("input", &pins, &m);
+    TEST_ASSERT_EQUAL(8, m.n_ports);
+    TEST_ASSERT_EQUAL(1, m.n_bindings);
+    TEST_ASSERT_EQUAL_STRING("gpio_in", m.bindings[0].driver);
+    oh_vmod_preset("led", &pins, &m);
+    TEST_ASSERT_EQUAL(2, m.n_ports);
+    TEST_ASSERT_EQUAL(0, m.n_bindings); /* no strip pin: software ports only */
+    oh_vmod_preset("contact", &pins, &m);
+    TEST_ASSERT_EQUAL(4, m.n_ports);
+    TEST_ASSERT_EQUAL(1, m.n_bindings);
+}
+
+int main(void)
+{
+    UNITY_BEGIN();
+    RUN_TEST(a_sim_config_file_loads);
+    RUN_TEST(a_config_written_by_hand_may_leave_out_everything_optional);
+    RUN_TEST(problems_are_named);
+    RUN_TEST(every_preset_numbers_its_ports_from_zero_and_round_trips);
+    RUN_TEST(only_the_gateway_forwards_a_universe_and_only_the_relay_switches_mains);
+    RUN_TEST(presets_bind_the_pins_the_board_offers);
+    return UNITY_END();
+}
