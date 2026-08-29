@@ -12,6 +12,8 @@
 #include "oh_board.h"
 #include "oh_config.h"
 #include "oh_drivers.h"
+#include "oh_module_eeprom.h"
+#include "oh_ota.h"
 #include "oh_net.h"
 #include "oh_node.h"
 
@@ -84,7 +86,34 @@ esp_err_t oh_app_select_module(void)
         return ESP_ERR_NO_MEM;
     }
     esp_err_t rc;
-    /* 1. The ID EEPROM (base board): not yet — phase 5. */
+    /* 1. The ID EEPROM on the module bus. The module stays in reset until it
+     *    is known and within budget. */
+    oh_desc_result_t result;
+    uint32_t power_mw;
+    rc = oh_eeprom_describe(m, &result, &power_mw);
+    if (rc == ESP_OK) {
+        fill_module_sn(m);
+        oh_node_error_clear("power-budget");
+        oh_node_error_clear("descriptor");
+        rc = bind_and_announce(m);
+        oh_module_reset_release();
+        free(m);
+        return rc;
+    }
+    if (rc == ESP_ERR_INVALID_SIZE) {
+        /* Described, over budget: report it, drive nothing, keep it in reset. */
+        m->n_bindings = 0;
+        fill_module_sn(m);
+        rc = bind_and_announce(m);
+        oh_node_error_set("power-budget");
+        free(m);
+        return rc;
+    }
+    if (rc == ESP_ERR_INVALID_CRC || rc == ESP_ERR_INVALID_VERSION) {
+        oh_node_error_set("descriptor");
+    } else {
+        oh_node_error_clear("descriptor");
+    }
     /* 2. A stored virtual module. */
     char *json = NULL;
     if (oh_config_vmod_get(&json) == ESP_OK && json) {
@@ -241,6 +270,7 @@ void oh_app_factory_reset(void)
 
 esp_err_t oh_app_init(void)
 {
+    oh_module_reset_hold();
     uint8_t mac[6];
     esp_efuse_mac_get_default(mac);
     snprintf(s_sn, sizeof(s_sn), "%02x%02x%02x%02x", mac[2], mac[3], mac[4], mac[5]);
@@ -251,6 +281,7 @@ esp_err_t oh_app_init(void)
     ESP_ERROR_CHECK(oh_node_init());
     oh_drivers_register_all();
     ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, OH_EVENT_CONFIG_CHANGED, on_config_changed, NULL));
+    ESP_ERROR_CHECK(oh_ota_start());
     return oh_app_select_module();
 }
 

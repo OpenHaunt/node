@@ -15,6 +15,8 @@
 #include "oh_net.h"
 #include "oh_node.h"
 #include "oh_vmod.h"
+#include "oh_module_eeprom.h"
+#include "oh_ota.h"
 #include "sdkconfig.h"
 #ifdef CONFIG_OH_DISPLAY
 #include "oh_display.h"
@@ -247,6 +249,60 @@ static int cmd_out(int argc, char **argv)
     return err == ESP_OK ? 0 : 1;
 }
 
+static int cmd_eeprom(int argc, char **argv)
+{
+    if (argc >= 2 && strcmp(argv[1], "read") == 0) {
+        if (!oh_eeprom_present()) {
+            printf("nothing answers at 0x50\n");
+            return 1;
+        }
+        uint8_t raw[OH_EEPROM_SIZE];
+        esp_err_t err = oh_eeprom_read(raw);
+        if (err != ESP_OK) {
+            printf("read: %s\n", esp_err_to_name(err));
+            return 1;
+        }
+        oh_eeprom_descriptor_t d;
+        oh_desc_result_t r = oh_descriptor_parse(raw, sizeof(raw), &d);
+        char name[17], vendor[17], uid[17];
+        oh_descriptor_field(d.name, 16, name, sizeof(name));
+        oh_descriptor_field(d.vendor, 16, vendor, sizeof(vendor));
+        printf("descriptor: %s\n", oh_descriptor_result_str(r));
+        printf("  type 0x%04x rev %u  \"%s\" by \"%s\"\n", d.module_type, d.hw_revision, name, vendor);
+        printf("  power %u/%u/%u mA (12V/5V/3V3) = %lu mW  flags 0x%04x\n", d.power_ma_12v, d.power_ma_5v,
+               d.power_ma_3v3, (unsigned long)oh_descriptor_power_mw(&d), d.capability_flags);
+        printf("  uid %s\n", oh_descriptor_uid_hex(raw, sizeof(raw), uid, sizeof(uid)) ? uid : "(blank)");
+        for (int i = 0; i < 0x40; i += 16) {
+            printf("  %02x:", i);
+            for (int j = 0; j < 16; j++) {
+                printf(" %02x", raw[i + j]);
+            }
+            printf("\n");
+        }
+        return 0;
+    }
+    if (argc >= 9 && strcmp(argv[1], "write") == 0) {
+        oh_eeprom_descriptor_t d = {0};
+        d.module_type = (uint16_t)strtol(argv[2], NULL, 0);
+        d.hw_revision = (uint8_t)atoi(argv[3]);
+        d.power_ma_12v = (uint16_t)atoi(argv[4]);
+        d.power_ma_5v = (uint16_t)atoi(argv[5]);
+        d.power_ma_3v3 = (uint16_t)atoi(argv[6]);
+        d.capability_flags = (uint16_t)strtol(argv[7], NULL, 0);
+        strncpy(d.name, argv[8], sizeof(d.name));
+        if (argc >= 10) {
+            strncpy(d.vendor, argv[9], sizeof(d.vendor));
+        }
+        esp_err_t err = oh_eeprom_write_descriptor(&d);
+        printf("%s\n", err == ESP_OK ? "written; reboot to bind it" : esp_err_to_name(err));
+        return err == ESP_OK ? 0 : 1;
+    }
+    printf("usage: oh eeprom read\n"
+           "       oh eeprom write <type> <rev> <mA12> <mA5> <mA3v3> <flags> \"<name>\" [\"<vendor>\"]\n"
+           "       e.g. oh eeprom write 0x0003 1 0 500 20 0x08 \"WS2812\" \"OpenHaunt\"\n");
+    return 1;
+}
+
 static int cmd_oh(int argc, char **argv)
 {
     if (argc < 2 || strcmp(argv[1], "help") == 0) {
@@ -258,6 +314,8 @@ static int cmd_oh(int argc, char **argv)
                "oh in <port> <value>          pretend an input happened\n"
                "oh out <port> <value>         drive an output\n"
                "oh display rot <0-3>          turn the screen (boards with one)\n"
+               "oh eeprom read | write ...     the module ID EEPROM\n"
+               "oh ota [confirm]               which slot runs, confirm a new image\n"
                "oh identify | reboot | reset\n");
         return 0;
     }
@@ -291,6 +349,18 @@ static int cmd_oh(int argc, char **argv)
         return 1;
     }
 #endif
+    if (strcmp(sub, "eeprom") == 0) {
+        return cmd_eeprom(argc - 1, argv + 1);
+    }
+    if (strcmp(sub, "ota") == 0) {
+        if (argc >= 3 && strcmp(argv[2], "confirm") == 0) {
+            printf("%s\n", esp_err_to_name(oh_ota_confirm()));
+            return 0;
+        }
+        printf("running from %s%s\n", oh_ota_running_partition(),
+               oh_ota_pending_verify() ? " (not yet confirmed: oh ota confirm)" : "");
+        return 0;
+    }
     if (strcmp(sub, "identify") == 0) {
         oh_node_identify(5000);
         return 0;

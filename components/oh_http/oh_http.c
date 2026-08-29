@@ -6,6 +6,7 @@
 
 #include "esp_heap_caps.h"
 #include "esp_http_server.h"
+#include "esp_ota_ops.h"
 #include "esp_log.h"
 #include "oh_app.h"
 #include "oh_board.h"
@@ -14,6 +15,7 @@
 #include "oh_json.h"
 #include "oh_net.h"
 #include "oh_node.h"
+#include "oh_ota.h"
 #include "oh_vmod.h"
 
 static const char *TAG = "oh_http";
@@ -157,9 +159,53 @@ static esp_err_t post_identify(httpd_req_t *req)
     return send_json(req, oh_json_ok(), NULL);
 }
 
+/* Raw image body -> the other app slot -> reboot. */
 static esp_err_t post_ota(httpd_req_t *req)
 {
-    return send_error(req, "501 Not Implemented", "OTA is not available in this build yet");
+    if (req->content_len < 64 * 1024) {
+        return send_error(req, "400 Bad Request", "that is not a firmware image");
+    }
+    oh_ota_session_t *ota;
+    esp_err_t err = oh_ota_begin(req->content_len, &ota);
+    if (err != ESP_OK) {
+        return send_error(req, "500 Internal Server Error", esp_err_to_name(err));
+    }
+    char *buf = malloc(4096);
+    if (!buf) {
+        oh_ota_abort(ota);
+        return send_error(req, "500 Internal Server Error", "out of memory");
+    }
+    size_t got = 0;
+    while (got < req->content_len) {
+        int n = httpd_req_recv(req, buf, 4096);
+        if (n <= 0) {
+            free(buf);
+            oh_ota_abort(ota);
+            return send_error(req, "400 Bad Request", "upload interrupted");
+        }
+        err = oh_ota_write(ota, buf, n);
+        if (err != ESP_OK) {
+            free(buf);
+            oh_ota_abort(ota);
+            return send_error(req, "400 Bad Request", err == ESP_ERR_OTA_VALIDATE_FAILED
+                                                          ? "not a valid image for this chip"
+                                                          : esp_err_to_name(err));
+        }
+        got += n;
+    }
+    free(buf);
+    char version[32];
+    err = oh_ota_end(ota, version, sizeof(version));
+    if (err != ESP_OK) {
+        return send_error(req, "400 Bad Request",
+                          err == ESP_ERR_OTA_VALIDATE_FAILED ? "image failed validation" : esp_err_to_name(err));
+    }
+    cJSON *ok = oh_json_ok();
+    cJSON_AddStringToObject(ok, "version", version);
+    cJSON_AddNumberToObject(ok, "size", (double)got);
+    err = send_json(req, ok, NULL);
+    oh_app_reboot(1000);
+    return err;
 }
 
 /* ── Beyond the protocol: what the web UI and the console need ────────── */
@@ -192,6 +238,8 @@ static esp_err_t get_status(httpd_req_t *req)
     cJSON_AddNumberToObject(o, "uptime_s", oh_clock_uptime_s());
     cJSON_AddBoolToObject(o, "clockSynced", oh_clock_is_unix());
     cJSON_AddNumberToObject(o, "freeHeap", esp_get_free_heap_size());
+    cJSON_AddStringToObject(o, "partition", oh_ota_running_partition());
+    cJSON_AddBoolToObject(o, "pendingVerify", oh_ota_pending_verify());
 
     char codes[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
     size_t n = oh_node_errors(codes, OH_MAX_ERRORS);
