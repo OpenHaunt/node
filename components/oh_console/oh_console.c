@@ -16,6 +16,9 @@
 #include "oh_node.h"
 #include "oh_vmod.h"
 #include "sdkconfig.h"
+#ifdef CONFIG_OH_DISPLAY
+#include "oh_display.h"
+#endif
 
 static const char *TAG = "oh_console";
 
@@ -254,6 +257,7 @@ static int cmd_oh(int argc, char **argv)
                "oh vmod show | presets | preset <key> | set '<json>' | clear\n"
                "oh in <port> <value>          pretend an input happened\n"
                "oh out <port> <value>         drive an output\n"
+               "oh display rot <0-3>          turn the screen (boards with one)\n"
                "oh identify | reboot | reset\n");
         return 0;
     }
@@ -276,6 +280,17 @@ static int cmd_oh(int argc, char **argv)
     if (strcmp(sub, "out") == 0) {
         return cmd_out(argc - 1, argv + 1);
     }
+#ifdef CONFIG_OH_DISPLAY
+    if (strcmp(sub, "display") == 0) {
+        if (argc >= 4 && strcmp(argv[2], "rot") == 0) {
+            oh_display_set_rotation(atoi(argv[3]));
+            printf("rotation %d\n", oh_display_rotation());
+            return 0;
+        }
+        printf("usage: oh display rot <0-3>   (current %d)\n", oh_display_rotation());
+        return 1;
+    }
+#endif
     if (strcmp(sub, "identify") == 0) {
         oh_node_identify(5000);
         return 0;

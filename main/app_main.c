@@ -9,8 +9,13 @@
 #include "oh_app.h"
 #include "oh_console.h"
 #include "oh_http.h"
+#include "oh_mqtt.h"
 #include "oh_node.h"
 #include "oh_status.h"
+#include "sdkconfig.h"
+#ifdef CONFIG_OH_DISPLAY
+#include "oh_display.h"
+#endif
 
 static const char *TAG = "main";
 
@@ -47,8 +52,14 @@ void app_main(void)
     ESP_ERROR_CHECK(oh_app_init());
     ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, OH_EVENT_PORT_CHANGED, on_port_changed, NULL));
     ESP_ERROR_CHECK(oh_status_start());
+#ifdef CONFIG_OH_DISPLAY
+    if (oh_display_start() != ESP_OK) {
+        oh_node_error_set("display");
+    }
+#endif
 
     ESP_ERROR_CHECK(oh_app_start_network());
     ESP_ERROR_CHECK(oh_http_start());
+    ESP_ERROR_CHECK(oh_mqtt_start());
     ESP_ERROR_CHECK(oh_console_start());
 }
