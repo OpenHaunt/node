@@ -48,6 +48,13 @@ static int cmd_info(void)
     printf("network   %s %s%s%s%s%s\n", oh_net_transport(), ip, ssid[0] ? "  ssid " : "", ssid,
            ap[0] ? "  setup AP " : "", ap);
     printf("clock     %s, up %lu s\n", oh_clock_is_unix() ? "NTP" : "since boot", (unsigned long)oh_clock_uptime_s());
+    /* A shape is timed against this, so a missing or large offset is the first
+     * thing to look at when a strip breathes out of step with the console. */
+    if (oh_clock_console_locked()) {
+        printf("console   %+lld ms offset\n", (long long)oh_clock_console_offset_ms());
+    } else {
+        printf("console   no clock yet; shapes run on this node's own\n");
+    }
     oh_config_t cfg;
     oh_config_get(&cfg);
     printf("broker    %s\n", cfg.mqtt_broker[0] ? cfg.mqtt_broker : "(none: not adopted)");
@@ -251,6 +258,69 @@ static int cmd_out(int argc, char **argv)
     return err == ESP_OK ? 0 : 1;
 }
 
+/*
+ * `oh effect <port> <shape> <hz> [phase]`, or `oh effect <port> clear`.
+ *
+ * Bench work: it puts a shape on a port with no console anywhere, which is how
+ * you tell a wiring fault from a protocol one.
+ */
+static int cmd_effect(int argc, char **argv)
+{
+    if (argc < 3) {
+        printf("usage: oh effect <port> <sine|triangle|square|saw-up|saw-down> <hz> [phase]\n"
+               "       oh effect <port> clear\n");
+        return 1;
+    }
+    const uint8_t port = (uint8_t)atoi(argv[1]);
+    oh_port_desc_t desc;
+    if (oh_node_get(port, &desc, NULL) != ESP_OK) {
+        printf("no port %u\n", port);
+        return 1;
+    }
+
+    oh_effect_t effect;
+    memset(&effect, 0, sizeof(effect));
+
+    if (strcmp(argv[2], "clear") == 0) {
+        esp_err_t err = oh_node_set_effect(port, &effect);
+        printf("%s\n", err == ESP_OK ? "cleared" : esp_err_to_name(err));
+        return err == ESP_OK ? 0 : 1;
+    }
+    if (!oh_shape_parse(argv[2], &effect.shape)) {
+        printf("unknown shape \"%s\"\n", argv[2]);
+        return 1;
+    }
+
+    effect.rate_hz = (argc >= 4) ? strtof(argv[3], NULL) : 1.0f;
+    effect.phase01 = (argc >= 5) ? strtof(argv[4], NULL) : 0.0f;
+    effect.width = 0.5f;
+    effect.t0_ms = oh_clock_console_now_ms();
+    effect.active = true;
+
+    /* Between this port's own nothing and everything, since the bench is not
+     * going to type out a pair of endpoints. */
+    effect.low.type = effect.high.type = desc.type;
+    switch (desc.type) {
+    case OH_DT_NUMBER:
+        effect.high.value = desc.has_max ? desc.maximum : 1.0f;
+        effect.low.value = desc.has_min ? desc.minimum : 0.0f;
+        break;
+    case OH_DT_BOOLEAN:
+        effect.high.state = true;
+        break;
+    case OH_DT_COLOR:
+        effect.high.color = (oh_color_t){255, 255, 255};
+        break;
+    default:
+        printf("a %s port has nothing between two values to trace\n", oh_datatype_str(desc.type));
+        return 1;
+    }
+
+    esp_err_t err = oh_node_set_effect(port, &effect);
+    printf("%s\n", err == ESP_OK ? "tracing" : esp_err_to_name(err));
+    return err == ESP_OK ? 0 : 1;
+}
+
 static int cmd_eeprom(int argc, char **argv)
 {
     if (argc >= 2 && strcmp(argv[1], "read") == 0) {
@@ -315,6 +385,7 @@ static int cmd_oh(int argc, char **argv)
                "oh vmod show | presets | preset <key> | set '<json>' | clear\n"
                "oh in <port> <value>          pretend an input happened\n"
                "oh out <port> <value>         drive an output\n"
+               "oh effect <port> <shape> <hz> [phase] | <port> clear\n"
                "oh display rot <0-3>          turn the screen (boards with one)\n"
                "oh eeprom read | write ...     the module ID EEPROM\n"
                "oh ota [confirm]               which slot runs, confirm a new image\n"
@@ -339,6 +410,9 @@ static int cmd_oh(int argc, char **argv)
     }
     if (strcmp(sub, "out") == 0) {
         return cmd_out(argc - 1, argv + 1);
+    }
+    if (strcmp(sub, "effect") == 0) {
+        return cmd_effect(argc - 1, argv + 1);
     }
 #ifdef CONFIG_OH_DISPLAY
     if (strcmp(sub, "display") == 0) {

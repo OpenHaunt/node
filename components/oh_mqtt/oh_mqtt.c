@@ -148,11 +148,75 @@ static void publish_health(void *arg)
 
 /* ── Receiving ────────────────────────────────────────────────────────── */
 
-/* openhaunt/<sn>/output/<n>/set */
-static void on_message(const char *topic, size_t topic_len, const char *data, size_t data_len)
+/* One `openhaunt/clock` message: what time the console thinks it is. */
+static void on_clock(const char *data, size_t data_len, bool retained)
 {
+    cJSON *json = cJSON_ParseWithLength(data, data_len);
+    const cJSON *t = cJSON_GetObjectItemCaseSensitive(json, "t");
+    const cJSON *seq = cJSON_GetObjectItemCaseSensitive(json, "seq");
+    if (cJSON_IsNumber(t) && cJSON_IsNumber(seq)) {
+        oh_clock_console_feed((int64_t)t->valuedouble, (uint64_t)seq->valuedouble, retained);
+        ESP_LOGD(TAG, "console offset %lld ms", (long long)oh_clock_console_offset_ms());
+    }
+    cJSON_Delete(json);
+}
+
+/* openhaunt/<sn>/output/<n>/{set,effect} */
+static void on_port_message(unsigned port, const char *verb, const char *data, size_t data_len)
+{
+    oh_port_desc_t desc;
+    oh_port_state_t state;
+    if (oh_node_get((uint8_t)port, &desc, &state) != ESP_OK) {
+        ESP_LOGW(TAG, "%s on unknown port %u", verb, port);
+        return;
+    }
+    cJSON *json = cJSON_ParseWithLength(data, data_len);
+    if (!json) {
+        ESP_LOGW(TAG, "port %u: payload is not JSON", port);
+        return;
+    }
+
+    if (strcmp(verb, "effect") == 0) {
+        oh_effect_t effect;
+        char err[OH_ERR_MAX] = "";
+        if (oh_effect_parse(desc.type, json, &effect, err)) {
+            oh_node_set_effect((uint8_t)port, &effect);
+        } else {
+            ESP_LOGW(TAG, "port %u: %.60s", port, err);
+        }
+        cJSON_Delete(json);
+        return;
+    }
+
+    oh_value_t v;
+    if (!oh_json_value_parse(desc.type, json, &v)) {
+        ESP_LOGW(TAG, "port %u: payload does not fit a %s port", port, oh_datatype_str(desc.type));
+        cJSON_Delete(json);
+        return;
+    }
+    /* Timing rides beside the value rather than wrapping it, so a `set` with none
+     * of the keys takes the path it always has. */
+    oh_transition_t timed;
+    const oh_value_t from = state.valid ? state.value : v;
+    if (oh_transition_parse(json, &from, &v, oh_clock_console_now_ms(), &timed)) {
+        oh_node_set_transition((uint8_t)port, &timed);
+    } else {
+        oh_node_set_output((uint8_t)port, &v, OH_SOURCE_MQTT);
+    }
+    cJSON_Delete(json);
+}
+
+static void on_message(const char *topic, size_t topic_len, const char *data, size_t data_len, bool retained)
+{
+    /* The clock is not under this node's prefix, so it is matched first and whole. */
+    const size_t clock_len = strlen(OH_CLOCK_TOPIC);
+    if (topic_len == clock_len && strncmp(topic, OH_CLOCK_TOPIC, clock_len) == 0) {
+        on_clock(data, data_len, retained);
+        return;
+    }
+
     size_t plen = strlen(s.prefix);
-    if (topic_len < plen + 12 || strncmp(topic, s.prefix, plen) != 0 || strncmp(topic + plen, "/output/", 8) != 0) {
+    if (topic_len < plen + 8 || strncmp(topic, s.prefix, plen) != 0 || strncmp(topic + plen, "/output/", 8) != 0) {
         return;
     }
     const char *p = topic + plen + 8;
@@ -162,23 +226,22 @@ static void on_message(const char *topic, size_t topic_len, const char *data, si
         port = port * 10 + (unsigned)(*p - '0');
         p++;
     }
-    if (port > 255 || end - p != 4 || strncmp(p, "/set", 4) != 0) {
+    if (port > 255 || p == end || *p != '/') {
         return;
     }
-    oh_port_desc_t desc;
-    if (oh_node_get((uint8_t)port, &desc, NULL) != ESP_OK) {
-        ESP_LOGW(TAG, "set on unknown port %u", port);
+    /* The trailing segment decides which of the two this is. Copied out because the
+     * topic is not null-terminated. */
+    char verb[12];
+    const size_t verb_len = (size_t)(end - p - 1);
+    if (verb_len == 0 || verb_len >= sizeof(verb)) {
         return;
     }
-    cJSON *json = cJSON_ParseWithLength(data, data_len);
-    oh_value_t v;
-    if (!json || !oh_json_value_parse(desc.type, json, &v)) {
-        ESP_LOGW(TAG, "port %u: payload does not fit a %s port", port, oh_datatype_str(desc.type));
-        cJSON_Delete(json);
+    memcpy(verb, p + 1, verb_len);
+    verb[verb_len] = 0;
+    if (strcmp(verb, "set") != 0 && strcmp(verb, "effect") != 0) {
         return;
     }
-    cJSON_Delete(json);
-    oh_node_set_output((uint8_t)port, &v, OH_SOURCE_MQTT);
+    on_port_message(port, verb, data, data_len);
 }
 
 static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
@@ -192,8 +255,15 @@ static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
         s.connected = true;
         esp_mqtt_client_publish(s.client, s.status_topic, "online", 0, 1, true);
         char topic[80];
-        snprintf(topic, sizeof(topic), "%s/output/+/set", s.prefix);
+        /* Both verbs, not just `set`: a port can be handed a shape as well as a
+         * value. */
+        snprintf(topic, sizeof(topic), "%s/output/+/+", s.prefix);
         esp_mqtt_client_subscribe(s.client, topic, 1);
+        /* Not under this node's prefix. The console publishes one clock for every
+         * node on the broker, because the whole point is that they agree with each
+         * other about when a cycle started. Retained, so this subscribe brings the
+         * answer with it rather than waiting up to a second for the next tick. */
+        esp_mqtt_client_subscribe(s.client, OH_CLOCK_TOPIC, 1);
         backlog_flush();
         publish_health(NULL);
         oh_node_post(OH_EVENT_MQTT_CONNECTED, NULL, 0);
@@ -208,7 +278,7 @@ static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
         break;
     case MQTT_EVENT_DATA:
         if (e->current_data_offset == 0 && e->total_data_len == e->data_len) {
-            on_message(e->topic, e->topic_len, e->data, e->data_len);
+            on_message(e->topic, e->topic_len, e->data, e->data_len, e->retain);
         }
         break;
     case MQTT_EVENT_ERROR:
@@ -253,6 +323,10 @@ static void client_start(void)
         .credentials.client_id = client_id,
         .session.keepalive = 10,
         .session.last_will = {.topic = s.status_topic, .msg = "offline", .qos = 1, .retain = true},
+        /* A sixteen-step colour chase is a couple of kilobytes of JSON. The
+         * default RX buffer is 1 KiB, and the fragment check below drops anything
+         * that arrives in pieces — silently, which is the worst way to lose a cue. */
+        .buffer.size = 4096,
         .network.reconnect_timeout_ms = 2000,
         .network.disable_auto_reconnect = false,
         .task.priority = 5,

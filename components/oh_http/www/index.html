@@ -114,11 +114,15 @@ function render(){if(!info||!status)return;
  const n=status.network;$('hNet').textContent=n.state==='up'?n.transport+' '+n.ip:n.state==='setup-ap'?'setup AP '+n.setupAp:n.state;$('hNet').className='pill '+(n.state==='up'?'ok':'bad');
  const rows=[['Serial',info.sn],['Firmware',info.fw+' on '+status.board],['Hostname',status.hostname+'.local'],['Network',n.transport+' '+n.ip+(n.ssid?' · '+n.ssid+' '+n.rssi+' dBm':'')+(n.setupAp?' · setup AP '+n.setupAp+' open':'')],
   ['Module',info.module.type+' '+info.module.name+' rev '+info.module.rev+' ('+status.moduleSource+')'+(info.module.flags&64?' ⚠ mains':'')],['MQTT broker',cfg?.mqtt?.broker||'— not adopted'],
-  ['Uptime',Math.floor(status.uptime_s/3600)+'h '+Math.floor(status.uptime_s%3600/60)+'m '+status.uptime_s%60+'s'],['Clock',status.clockSynced?'NTP synced':'since boot (no NTP)'],['Free heap',(status.freeHeap/1024).toFixed(0)+' kB']];
+  ['Uptime',Math.floor(status.uptime_s/3600)+'h '+Math.floor(status.uptime_s%3600/60)+'m '+status.uptime_s%60+'s'],['Clock',status.clockSynced?'NTP synced':'since boot (no NTP)'],
+  // A shape is timed against the console's clock, so a missing or large offset is
+  // the first thing to look at when a port is moving out of step with the console.
+  ['Console clock',status.clockLocked?(status.consoleOffsetMs>=0?'+':'')+status.consoleOffsetMs+' ms offset':'no sample yet — shapes run on this node\'s own clock'],
+  ['Free heap',(status.freeHeap/1024).toFixed(0)+' kB']];
  if(info.dmx)rows.push(['DMX',info.dmx.protocols.join(', ')+' · '+info.dmx.universes+' universe'+(cfg?.dmx?' · universe '+cfg.dmx.universe:'')]);
  $('tStatus').innerHTML=rows.map(r=>`<tr><th>${r[0]}</th><td class="v">${esc(r[1])}</td></tr>`).join('');
  const st={};status.ports.forEach(p=>st[p.port]=p);
- $('tPorts').innerHTML='<tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr>'+(info.ports.length?info.ports.map(p=>`<tr><td>${p.port}</td><td>${esc(p.name)}${p.class?' <span class="pill">'+p.class+'</span>':''}</td><td>${p.access==='readonly'?'in':'out'} ${p.dataType}${p.unit?' '+p.unit:''}</td><td class="v">${st[p.port]?fmt(st[p.port],p)+' <span style="color:var(--mut)">'+since(st[p.port].ts)+'</span>':''}</td><td>${p.access==='readwrite'?control(p,st[p.port]):''}</td></tr>`).join(''):'<tr><td colspan=5 style="color:var(--mut)">No ports: this node describes nothing and will not be adopted. Pick a module.</td></tr>');
+ $('tPorts').innerHTML='<tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr>'+(info.ports.length?info.ports.map(p=>`<tr><td>${p.port}</td><td>${esc(p.name)}${p.class?' <span class="pill">'+p.class+'</span>':''}</td><td>${p.access==='readonly'?'in':'out'} ${p.dataType}${p.unit?' '+p.unit:''}</td><td class="v">${st[p.port]?fmt(st[p.port],p)+' <span style="color:var(--mut)">'+since(st[p.port].ts)+'</span>':''}${status.effects&&status.effects[p.port]?' <span class="pill">'+esc(status.effects[p.port])+'</span>':''}</td><td>${p.access==='readwrite'?control(p,st[p.port]):''}</td></tr>`).join(''):'<tr><td colspan=5 style="color:var(--mut)">No ports: this node describes nothing and will not be adopted. Pick a module.</td></tr>');
  $('errs').textContent=status.errors.length?status.errors.join(', '):'none';$('errs').className='msg '+(status.errors.length?'bad':'ok');
  $('fwCur').textContent=info.fw;$('board').textContent=status.board;$('modSrc').textContent=status.moduleSource;
  if(info.dmx){$('dmxCard').style.display='';$('dmxProto').innerHTML=info.dmx.protocols.map(p=>`<option>${p}</option>`).join('');}}

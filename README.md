@@ -12,6 +12,23 @@ sACN for the DMX gateway. It is tested against
 [the-pult](https://github.com/RuegerEvents/the-pult), which adopts and drives
 nodes over exactly that.
 
+**Ports that animate themselves.** A port may say in `/info` which shapes it can
+trace — `"effects": { "shapes": [...], "steps": true, "transitions": true }` — and a
+console that sees it sends one descriptor on `openhaunt/<sn>/output/<n>/effect`
+instead of a value forty times a second, or a `set` carrying `fade_ms` instead of a
+hundred and twenty samples of a fade. Phases are timed against `openhaunt/clock`,
+which the console publishes retained once a second for every node on the broker.
+A port that advertises nothing is driven exactly as before: absence is the default
+and nothing is negotiated. These three additions are ours and are being fed back into
+docs/06, the way task 11's assumptions were.
+
+Two things worth knowing about it. A plain `set` always cancels whatever the port was
+tracing, which is what makes the protocol robust to reordering: the console stops an
+effect with a clear *and* a value, and either order leaves the port in the right
+place. And a node upgraded in the field keeps the module description it had stored,
+so it does not start advertising until the module is re-applied — `oh vmod preset
+<key>`, or a fresh EEPROM read.
+
 ## Boards
 
 | `BOARD` | Hardware | Transport | Status |

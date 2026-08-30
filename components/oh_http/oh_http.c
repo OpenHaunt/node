@@ -104,10 +104,33 @@ static esp_err_t get_state(httpd_req_t *req)
     return send_json(req, state, NULL);
 }
 
-static void apply_output(void *ctx, uint8_t port, const oh_value_t *value)
+/*
+ * A value, with or without a time to reach it by.
+ *
+ * The timing rides beside an ordinary payload rather than wrapping one, so a body
+ * with no `fade_ms` takes exactly the path it always has: this looks for the keys,
+ * finds none, and applies the value.
+ */
+static void apply_output(void *ctx, uint8_t port, const oh_value_t *value, const cJSON *payload)
 {
     (void)ctx;
+    oh_port_desc_t desc;
+    oh_port_state_t state;
+    oh_transition_t timed;
+
+    const bool known = oh_node_get(port, &desc, &state) == ESP_OK;
+    const oh_value_t from = known && state.valid ? state.value : *value;
+    if (oh_transition_parse(payload, &from, value, oh_clock_console_now_ms(), &timed)) {
+        oh_node_set_transition(port, &timed);
+        return;
+    }
     oh_node_set_output(port, value, OH_SOURCE_HTTP);
+}
+
+static void apply_effect(void *ctx, uint8_t port, const oh_effect_t *effect)
+{
+    (void)ctx;
+    oh_node_set_effect(port, effect);
 }
 
 static esp_err_t post_state(httpd_req_t *req)
@@ -120,7 +143,7 @@ static esp_err_t post_state(httpd_req_t *req)
     /* The node lock is recursive: the callback's oh_node_set_output takes it
      * again from this task, and nobody else can rebind the module meanwhile. */
     oh_node_lock();
-    int n = oh_json_apply_outputs(body, oh_node_module(), apply_output, NULL, err);
+    int n = oh_json_apply_outputs(body, oh_node_module(), apply_output, apply_effect, NULL, err);
     oh_node_unlock();
     cJSON_Delete(body);
     if (n < 0) {
@@ -238,9 +261,33 @@ static esp_err_t get_status(httpd_req_t *req)
     cJSON_AddStringToObject(o, "moduleSource", oh_app_module_source());
     cJSON_AddNumberToObject(o, "uptime_s", oh_clock_uptime_s());
     cJSON_AddBoolToObject(o, "clockSynced", oh_clock_is_unix());
+    /* What this node thinks the console's clock reads, relative to its own. A shape
+     * is timed against this, so a large or missing offset is the first thing to look
+     * at when a strip is breathing out of step with the console driving it. */
+    cJSON_AddBoolToObject(o, "clockLocked", oh_clock_console_locked());
+    cJSON_AddNumberToObject(o, "consoleOffsetMs", oh_clock_console_offset_ms());
     cJSON_AddNumberToObject(o, "freeHeap", esp_get_free_heap_size());
     cJSON_AddStringToObject(o, "partition", oh_ota_running_partition());
     cJSON_AddBoolToObject(o, "pendingVerify", oh_ota_pending_verify());
+    /* Which ports are running something of their own, so a glance at /status says
+     * whether the node is being driven or is getting on with it. */
+    oh_module_t module;
+    oh_node_module_copy(&module);
+    cJSON *tracing = NULL;
+    for (int i = 0; i < module.n_ports; i++) {
+        char summary[40];
+        oh_node_motion_summary(module.ports[i].port, summary, sizeof(summary));
+        if (!summary[0]) {
+            continue;
+        }
+        if (!tracing) {
+            tracing = cJSON_AddObjectToObject(o, "effects");
+        }
+        char key[8];
+        snprintf(key, sizeof(key), "%u", module.ports[i].port);
+        cJSON_AddStringToObject(tracing, key, summary);
+    }
+
     if (oh_node_has_dmx()) {
         cJSON *sacn = cJSON_AddObjectToObject(o, "sacn");
         cJSON_AddBoolToObject(sacn, "listening", oh_sacn_listening());

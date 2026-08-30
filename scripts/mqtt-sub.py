@@ -3,6 +3,7 @@
 
     scripts/mqtt-sub.py 192.168.11.184:1883 'openhaunt/#' --seconds 30
     scripts/mqtt-sub.py host:port 'openhaunt/+/output/+/set' --pub openhaunt/0c181818/output/0/set '{"state":true}'
+    scripts/mqtt-sub.py host:port 'openhaunt/#' --retain --pub openhaunt/clock '{"t":1756550400123,"seq":1}'
 """
 import argparse, socket, struct, sys, time
 
@@ -47,6 +48,9 @@ ap.add_argument("topic", nargs="?", default="openhaunt/#")
 ap.add_argument("--seconds", type=float, default=20)
 ap.add_argument("--pub", nargs=2, action="append", default=[], metavar=("TOPIC", "PAYLOAD"))
 ap.add_argument("--client", default="oh-mqtt-sub")
+# The console's clock is retained, so injecting one by hand has to be too: without
+# the flag a node that subscribes afterwards never sees it.
+ap.add_argument("--retain", action="store_true", help="publish with the retain flag set")
 a = ap.parse_args()
 
 host, _, port = a.broker.rpartition(":")
@@ -58,8 +62,8 @@ if kind != 0x20 or body[1] != 0:
     sys.exit("connect refused: %r" % (body,))
 sock.sendall(packet(0x82, struct.pack("!H", 1) + enc_str(a.topic) + bytes([1])))
 for topic, payload in a.pub:
-    sock.sendall(packet(0x30, enc_str(topic) + payload.encode()))
-    print("> %s %s" % (topic, payload))
+    sock.sendall(packet(0x30 | (0x01 if a.retain else 0), enc_str(topic) + payload.encode()))
+    print("> %s %s%s" % (topic, payload, " (retained)" if a.retain else ""))
 deadline = time.time() + a.seconds
 last_ping = time.time()
 while time.time() < deadline:

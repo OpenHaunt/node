@@ -7,6 +7,7 @@
 #include "esp_err.h"
 #include "esp_event.h"
 #include "oh_driver.h"
+#include "oh_effect.h"
 #include "oh_module.h"
 
 #ifdef __cplusplus
@@ -28,7 +29,20 @@ typedef enum {
     OH_EVENT_CONFIG_CHANGED, /* uint32_t bitmask of OH_CFG_* */
     OH_EVENT_OTA_STARTED,
     OH_EVENT_OTA_FINISHED,
+    /*
+     * A port tracing a shape moved. No data, and rate-limited to 4 Hz.
+     *
+     * Deliberately not `OH_EVENT_PORT_CHANGED`: the renderer writes forty times a
+     * second per port, and posting one of those per write would flood the event
+     * loop and redraw the display on every frame. Anything that needs to know
+     * every single value a port took has to read the store, not listen.
+     */
+    OH_EVENT_RENDERED,
 } oh_event_id_t;
+
+/* How often the renderer walks the ports. 25 ms is 40 Hz: finer than DMX's refresh
+ * and far finer than an eye. */
+#define OH_RENDER_INTERVAL_MS 25
 
 typedef enum {
     OH_SOURCE_DRIVER = 0, /* an input the hardware produced */
@@ -69,8 +83,25 @@ bool oh_node_has_dmx(void);
 bool oh_node_is_headless(void);
 
 /* Drive an output. Validates access and type, clamps, writes the driver,
- * updates the store and posts OH_EVENT_PORT_CHANGED. */
+ * updates the store and posts OH_EVENT_PORT_CHANGED.
+ *
+ * Also cancels whatever the port was tracing: a console that has decided to send a
+ * value has taken the port back, and a shape still running underneath would
+ * overwrite it on the very next render tick. */
 esp_err_t oh_node_set_output(uint8_t port, const oh_value_t *value, oh_source_t source);
+
+/* Drive an output over a stated time, starting at a stated moment on the console's
+ * clock. Cancels any effect on the port, exactly as a plain set does. */
+esp_err_t oh_node_set_transition(uint8_t port, const oh_transition_t *transition);
+
+/* Hand a port a shape to trace on its own. `effect->active` false clears it, which
+ * leaves the port wherever the shape had got to — the console follows a clear with
+ * a value precisely because this node has no opinion about where that should be. */
+esp_err_t oh_node_set_effect(uint8_t port, const oh_effect_t *effect);
+
+/* A one-line account of what a port is tracing, for /status and the console. Empty
+ * when it is simply holding a value. */
+void oh_node_motion_summary(uint8_t port, char *out, size_t cap);
 
 /* Pretend an input happened (console, tests). Goes through the same path as
  * a driver's callback. */

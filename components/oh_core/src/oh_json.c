@@ -334,7 +334,8 @@ int oh_json_apply_outputs(const cJSON *body, const oh_module_t *m, oh_json_outpu
         oh_effect_t probe;
         char why[OH_ERR_MAX] = "";
         if (!oh_effect_parse(p->type, entry, &probe, why)) {
-            snprintf(err, OH_ERR_MAX, "port %u: %s", port, why);
+            /* Bounded: `why` is itself OH_ERR_MAX, and the prefix has to fit too. */
+            snprintf(err, OH_ERR_MAX, "port %u: %.80s", port, why);
             return -1;
         }
     }

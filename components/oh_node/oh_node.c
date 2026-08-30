@@ -41,6 +41,10 @@ static struct {
     uint8_t n_bindings;
     char errors[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
     size_t n_errors;
+    /* What each port is doing that a single value cannot describe. Static, indexed
+     * like `states`, and never allocated on the rendering path. */
+    oh_effect_t effects[OH_MAX_PORTS];
+    oh_transition_t transitions[OH_MAX_PORTS];
 } s;
 
 void oh_node_lock(void)
@@ -179,6 +183,10 @@ esp_err_t oh_node_bind(const oh_module_t *module)
     unbind_all();
     oh_node_error_clear("driver");
     s.module = *module;
+    /* A new module's ports are not the old one's. Whatever was being traced was
+     * being traced on hardware that is no longer there. */
+    memset(s.effects, 0, sizeof(s.effects));
+    memset(s.transitions, 0, sizeof(s.transitions));
     for (int i = 0; i < s.module.n_ports; i++) {
         oh_value_default(&s.module.ports[i], &s.states[i].value);
         s.states[i].ts_ms = oh_clock_now_ms();
@@ -275,25 +283,43 @@ bool oh_node_is_headless(void)
 
 /* ── Writing ──────────────────────────────────────────────────────────── */
 
-esp_err_t oh_node_set_output(uint8_t port, const oh_value_t *value, oh_source_t source)
+/*
+ * Check that this port exists, is an output, and takes this type of value.
+ *
+ * The same three questions for a value, a timed move and a shape: a console that
+ * may not drive a port may not animate it either.
+ */
+static esp_err_t writable(uint8_t port, oh_datatype_t type, int *idx_out)
 {
-    oh_node_lock();
     int idx = oh_module_port_index(&s.module, port);
     if (idx < 0) {
-        oh_node_unlock();
         return ESP_ERR_NOT_FOUND;
     }
-    const oh_port_desc_t *p = &s.module.ports[idx];
-    if (oh_port_is_input(p)) {
-        oh_node_unlock();
+    if (oh_port_is_input(&s.module.ports[idx])) {
         return ESP_ERR_NOT_SUPPORTED;
     }
-    if (value->type != p->type) {
-        oh_node_unlock();
+    if (type != s.module.ports[idx].type) {
         return ESP_ERR_INVALID_ARG;
     }
+    *idx_out = idx;
+    return ESP_OK;
+}
+
+/*
+ * Clamp, write the driver, update the store. Caller holds the lock.
+ *
+ * Deliberately posts no event. `oh_node_set_output` does that, because something
+ * asked it to; the renderer calls this forty times a second per port and posting
+ * from there would flood the event loop, log at INFO and redraw the display on
+ * every frame. Any later code path that wants "every change" has to know that a
+ * port tracing a shape does not produce them.
+ */
+static esp_err_t write_locked(int idx, const oh_value_t *value, oh_value_t *wrote)
+{
+    const oh_port_desc_t *p = &s.module.ports[idx];
     oh_value_t v = *value;
     oh_value_clamp(p, &v);
+
     esp_err_t err = ESP_OK;
     if (s.bound_by[idx] >= 0) {
         bound_t *b = &s.bindings[s.bound_by[idx]];
@@ -301,20 +327,114 @@ esp_err_t oh_node_set_output(uint8_t port, const oh_value_t *value, oh_source_t 
             err = b->driver->write(b->inst, s.local_index[idx], &v);
         }
     }
-    oh_port_changed_t changed = {.port = port, .value = v, .source = source, .is_input = false};
     if (err == ESP_OK) {
         s.states[idx].value = v;
         s.states[idx].ts_ms = oh_clock_now_ms();
         s.states[idx].valid = true;
+        if (wrote) {
+            *wrote = v;
+        }
+    }
+    return err;
+}
+
+/* Stop tracing and stop fading. Caller holds the lock. */
+static void clear_motion_locked(int idx)
+{
+    s.effects[idx].active = false;
+    s.transitions[idx].active = false;
+}
+
+esp_err_t oh_node_set_output(uint8_t port, const oh_value_t *value, oh_source_t source)
+{
+    oh_node_lock();
+    int idx;
+    esp_err_t err = writable(port, value->type, &idx);
+    if (err != ESP_OK) {
+        oh_node_unlock();
+        return err;
+    }
+    /* A value takes the port back from whatever was animating it. */
+    clear_motion_locked(idx);
+
+    oh_value_t wrote;
+    err = write_locked(idx, value, &wrote);
+    oh_port_changed_t changed = {.port = port, .value = wrote, .source = source, .is_input = false};
+    if (err == ESP_OK) {
         changed.ts_ms = s.states[idx].ts_ms;
     }
     oh_node_unlock();
+
     if (err == ESP_OK) {
         oh_node_post(OH_EVENT_PORT_CHANGED, &changed, sizeof(changed));
     } else {
         ESP_LOGW(TAG, "write port %u: %s", port, esp_err_to_name(err));
     }
     return err;
+}
+
+esp_err_t oh_node_set_transition(uint8_t port, const oh_transition_t *transition)
+{
+    oh_node_lock();
+    int idx;
+    esp_err_t err = writable(port, transition->to.type, &idx);
+    if (err == ESP_OK) {
+        clear_motion_locked(idx);
+        s.transitions[idx] = *transition;
+        /* Where it starts from is where the port is now, whatever the console
+         * believed when it sent this. */
+        if (s.states[idx].valid) {
+            s.transitions[idx].from = s.states[idx].value;
+        }
+    }
+    oh_node_unlock();
+    return err;
+}
+
+esp_err_t oh_node_set_effect(uint8_t port, const oh_effect_t *effect)
+{
+    oh_node_lock();
+    int idx = oh_module_port_index(&s.module, port);
+    if (idx < 0) {
+        oh_node_unlock();
+        return ESP_ERR_NOT_FOUND;
+    }
+    if (oh_port_is_input(&s.module.ports[idx])) {
+        oh_node_unlock();
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+    /* Clearing leaves the port exactly where the shape had got to. */
+    clear_motion_locked(idx);
+    if (effect->active) {
+        s.effects[idx] = *effect;
+    }
+    oh_node_unlock();
+
+    ESP_LOGI(TAG, "port %u %s", port, effect->active ? "traces a shape" : "stops tracing");
+    return ESP_OK;
+}
+
+void oh_node_motion_summary(uint8_t port, char *out, size_t cap)
+{
+    if (!out || cap == 0) {
+        return;
+    }
+    out[0] = 0;
+    oh_node_lock();
+    const int idx = oh_module_port_index(&s.module, port);
+    if (idx >= 0) {
+        if (s.effects[idx].active) {
+            const oh_effect_t *e = &s.effects[idx];
+            if (e->n_steps > 0) {
+                snprintf(out, cap, "%u steps, %.2f Hz", e->n_steps, (double)e->rate_hz);
+            } else {
+                snprintf(out, cap, "%s %.2f Hz", oh_shape_str(e->shape), (double)e->rate_hz);
+            }
+        } else if (s.transitions[idx].active) {
+            snprintf(out, cap, "fade %u ms", (unsigned)s.transitions[idx].duration_ms);
+        }
+    }
+    oh_node_unlock();
 }
 
 /* ── Errors ───────────────────────────────────────────────────────────── */
@@ -382,6 +502,75 @@ void oh_node_identify(uint32_t duration_ms)
 
 /* ── Init ─────────────────────────────────────────────────────────────── */
 
+/* ── Rendering ────────────────────────────────────────────────────────────── */
+
+/*
+ * Trace whatever the ports have been handed, on this node's own initiative.
+ *
+ * Nothing on the network says anything while this runs. That is the whole point:
+ * a chase that was forty MQTT messages a second is one message and then silence.
+ *
+ * Priority 6: above MQTT and the sensor tasks at 5, so a strip does not stutter
+ * while a health message goes out, and below the DMX UART at 9 and the input tasks,
+ * because a missed frame is visible and a late breath is not.
+ */
+static void render_task(void *arg)
+{
+    (void)arg;
+    TickType_t last = xTaskGetTickCount();
+    int64_t last_display_ms = 0;
+
+    for (;;) {
+        vTaskDelayUntil(&last, pdMS_TO_TICKS(OH_RENDER_INTERVAL_MS));
+
+        /* One reading per pass, so every port on this node places itself at the
+         * same instant rather than smeared across the loop. */
+        const int64_t now = oh_clock_console_now_ms();
+        bool moved = false;
+
+        oh_node_lock();
+        for (int idx = 0; idx < s.module.n_ports; idx++) {
+            oh_value_t want;
+            bool finished = false;
+
+            if (s.effects[idx].active) {
+                if (!oh_effect_sample(&s.effects[idx], now, &want)) {
+                    continue;
+                }
+            } else if (s.transitions[idx].active) {
+                if (!oh_transition_sample(&s.transitions[idx], now, &want, &finished)) {
+                    continue;
+                }
+            } else {
+                continue;
+            }
+
+            /* A square wave is the same answer for twenty ticks running, and a
+             * driver write is not free. */
+            if (!s.states[idx].valid || !oh_value_equal(&s.states[idx].value, &want)) {
+                write_locked(idx, &want, NULL);
+                moved = true;
+            }
+            /* A fade that has arrived is over. An effect never is. */
+            if (finished) {
+                s.transitions[idx].active = false;
+                moved = true;
+            }
+        }
+        oh_node_unlock();
+
+        /* At most four times a second: a display redrawn at the rate a strip
+         * breathes is a display on fire. */
+        /* The display marks itself dirty on any OH_EVENT, so this *is* the redraw
+         * rate: four times a second, not the forty the renderer runs at. A numeric
+         * readout redrawn at 40 Hz is a display on fire, and unreadable besides. */
+        if (moved && now - last_display_ms >= 250) {
+            last_display_ms = now;
+            oh_node_post(OH_EVENT_RENDERED, NULL, 0);
+        }
+    }
+}
+
 esp_err_t oh_node_init(void)
 {
     s.lock = xSemaphoreCreateRecursiveMutex();
@@ -396,6 +585,9 @@ esp_err_t oh_node_init(void)
         return err;
     }
     if (xTaskCreate(node_task, "oh_node", 4096, NULL, 10, NULL) != pdPASS) {
+        return ESP_ERR_NO_MEM;
+    }
+    if (xTaskCreate(render_task, "oh_render", 4096, NULL, 6, NULL) != pdPASS) {
         return ESP_ERR_NO_MEM;
     }
     return ESP_OK;
