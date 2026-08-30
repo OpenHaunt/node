@@ -1,5 +1,7 @@
 #include "oh_vmod.h"
 
+#include "oh_curve.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,6 +69,27 @@ static bool parse_port(const cJSON *o, oh_port_desc_t *p, char *err)
     if (cJSON_IsNumber(n = cJSON_GetObjectItemCaseSensitive(o, "default"))) {
         p->default_value = (float)n->valuedouble;
         p->has_default = 1;
+    }
+    /* The same block `oh_json_port_desc` writes out, read back in, so a module
+     * description round-trips through the vmod file and the EEPROM unchanged.
+     * Its absence leaves `effects` at zero, which is what firmware that has never
+     * heard of any of this looks like. */
+    const cJSON *effects = cJSON_GetObjectItemCaseSensitive(o, "effects");
+    if (cJSON_IsObject(effects)) {
+        const cJSON *shapes = cJSON_GetObjectItemCaseSensitive(effects, "shapes");
+        const cJSON *shape = NULL;
+        cJSON_ArrayForEach(shape, shapes) {
+            oh_shape_t which;
+            if (cJSON_IsString(shape) && oh_shape_parse(shape->valuestring, &which)) {
+                p->effects |= oh_effect_shape_bit((int)which);
+            }
+        }
+        if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(effects, "steps"))) {
+            p->effects |= OH_EFFECT_STEPS;
+        }
+        if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(effects, "transitions"))) {
+            p->effects |= OH_EFFECT_TRANSITIONS;
+        }
     }
     return true;
 }
@@ -353,6 +376,7 @@ bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *ou
             oh_port_desc_t p = oh_port_new(n, name, OH_ACCESS_READWRITE, OH_DT_BOOLEAN);
             oh_port_set_default(&p, 0);
             oh_port_set_class(&p, "switch");
+            oh_port_set_effects(&p, OH_EFFECT_SQUARE | OH_EFFECT_STEPS);
             oh_module_add_port(out, &p);
             if (pins->outputs[n] >= 0) {
                 bind1(out, "gpio_out", n, ",\"gpio\":%d", pins->outputs[n]);
@@ -365,6 +389,10 @@ bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *ou
         oh_port_desc_t p = oh_port_new(0, "Relay", OH_ACCESS_READWRITE, OH_DT_BOOLEAN);
         oh_port_set_default(&p, 0);
         oh_port_set_class(&p, "switch");
+        /* Two states: it can be chopped and it can be stepped, and there is nothing
+         * in between for a sine to trace or a fade to cross. Saying so honestly is
+         * what stops a console handing it one it would ignore in silence. */
+        oh_port_set_effects(&p, OH_EFFECT_SQUARE | OH_EFFECT_STEPS);
         oh_module_add_port(out, &p);
         if (pins->outputs[0] >= 0) {
             bind1(out, "gpio_out", 0, ",\"gpio\":%d", pins->outputs[0]);
@@ -373,14 +401,20 @@ bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *ou
     }
     if (strcmp(key, "led") == 0) {
         begin(out, 0x0003, "LED Strip", "", OH_MODULE_FLAG_FAST0);
+        /* The module that can do the lot: both ports take any shape, a step list
+         * and a timed move. A strip is where an operator most wants a chase, and
+         * it is the one driver here fast enough to be worth handing one to. */
+        const uint8_t everything = OH_EFFECT_ALL_SHAPES | OH_EFFECT_STEPS | OH_EFFECT_TRANSITIONS;
         oh_port_desc_t c = oh_port_new(0, "Strip colour", OH_ACCESS_READWRITE, OH_DT_COLOR);
         oh_port_set_class(&c, "color");
+        oh_port_set_effects(&c, everything);
         oh_module_add_port(out, &c);
         oh_port_desc_t b = oh_port_new(1, "Brightness", OH_ACCESS_READWRITE, OH_DT_NUMBER);
         oh_port_set_unit(&b, "percent");
         oh_port_set_range(&b, 0, 1);
         oh_port_set_default(&b, 0);
         oh_port_set_class(&b, "intensity");
+        oh_port_set_effects(&b, everything);
         oh_module_add_port(out, &b);
         if (pins->strip >= 0) {
             uint8_t ports[2] = {0, 1};

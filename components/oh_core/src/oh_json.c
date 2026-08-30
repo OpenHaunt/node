@@ -1,5 +1,8 @@
 #include "oh_json.h"
 
+#include "oh_curve.h"
+#include "oh_effect.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -51,6 +54,21 @@ cJSON *oh_json_port_desc(const oh_port_desc_t *p)
     }
     if (p->class_[0]) {
         cJSON_AddStringToObject(o, "class", p->class_);
+    }
+    /* What this port can trace for itself, in the same place it describes
+     * everything else about itself. Absent is the default and means the console
+     * renders every value and streams it, so a port that sets nothing here is
+     * indistinguishable from firmware that has never heard of effects. */
+    if (p->effects) {
+        cJSON *effects = cJSON_AddObjectToObject(o, "effects");
+        cJSON *shapes = cJSON_AddArrayToObject(effects, "shapes");
+        for (int i = 0; i < OH_SHAPE_COUNT; i++) {
+            if (p->effects & oh_effect_shape_bit(i)) {
+                cJSON_AddItemToArray(shapes, cJSON_CreateString(oh_shape_str((oh_shape_t)i)));
+            }
+        }
+        cJSON_AddBoolToObject(effects, "steps", (p->effects & OH_EFFECT_STEPS) != 0);
+        cJSON_AddBoolToObject(effects, "transitions", (p->effects & OH_EFFECT_TRANSITIONS) != 0);
     }
     return o;
 }
@@ -255,7 +273,8 @@ static bool port_key(const char *key, uint8_t *port)
     return true;
 }
 
-int oh_json_apply_outputs(const cJSON *body, const oh_module_t *m, oh_json_output_fn fn, void *ctx, char *err)
+int oh_json_apply_outputs(const cJSON *body, const oh_module_t *m, oh_json_output_fn fn, oh_json_effect_fn effect_fn,
+                          void *ctx, char *err)
 {
     const cJSON *outputs = cJSON_GetObjectItemCaseSensitive(body, "outputs");
     if (!cJSON_IsObject(outputs)) {
@@ -289,6 +308,37 @@ int oh_json_apply_outputs(const cJSON *body, const oh_module_t *m, oh_json_outpu
             return -1;
         }
     }
+    /* An `effects` map beside `outputs`, validated in the same first pass so the
+     * body is still applied whole or not at all. Absent means a body that looks
+     * exactly like every one this node has ever been sent. */
+    const cJSON *effects = cJSON_GetObjectItemCaseSensitive(body, "effects");
+    if (effects && !cJSON_IsObject(effects)) {
+        snprintf(err, OH_ERR_MAX, "\"effects\" must be an object");
+        return -1;
+    }
+    cJSON_ArrayForEach(entry, effects) {
+        uint8_t port;
+        if (!port_key(entry->string, &port)) {
+            snprintf(err, OH_ERR_MAX, "\"%s\" is not a port number", entry->string ? entry->string : "");
+            return -1;
+        }
+        const oh_port_desc_t *p = oh_module_find_port(m, port);
+        if (!p) {
+            snprintf(err, OH_ERR_MAX, "no port %u", port);
+            return -1;
+        }
+        if (oh_port_is_input(p)) {
+            snprintf(err, OH_ERR_MAX, "port %u is readonly", port);
+            return -1;
+        }
+        oh_effect_t probe;
+        char why[OH_ERR_MAX] = "";
+        if (!oh_effect_parse(p->type, entry, &probe, why)) {
+            snprintf(err, OH_ERR_MAX, "port %u: %s", port, why);
+            return -1;
+        }
+    }
+
     int applied = 0;
     cJSON_ArrayForEach(entry, outputs) {
         uint8_t port;
@@ -297,7 +347,22 @@ int oh_json_apply_outputs(const cJSON *body, const oh_module_t *m, oh_json_outpu
         oh_value_t v;
         oh_json_value_parse(p->type, entry, &v);
         oh_value_clamp(p, &v);
-        fn(ctx, port, &v);
+        /* The timing rides beside an ordinary payload rather than wrapping one, so
+         * this is the same value either way: the callback decides whether to jump
+         * to it or walk there. */
+        fn(ctx, port, &v, entry);
+        applied++;
+    }
+    cJSON_ArrayForEach(entry, effects) {
+        uint8_t port;
+        port_key(entry->string, &port);
+        const oh_port_desc_t *p = oh_module_find_port(m, port);
+        oh_effect_t effect;
+        char why[OH_ERR_MAX] = "";
+        oh_effect_parse(p->type, entry, &effect, why);
+        if (effect_fn) {
+            effect_fn(ctx, port, &effect);
+        }
         applied++;
     }
     return applied;

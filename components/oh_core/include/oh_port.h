@@ -16,6 +16,11 @@
 extern "C" {
 #endif
 
+/* How much room an error message gets. Here rather than in `oh_json.h` because
+ * both the JSON layer and the effect parser fill one, and the effect parser cannot
+ * include the JSON header without a cycle. */
+#define OH_ERR_MAX 96
+
 #define OH_MAX_PORTS 16
 #define OH_NAME_MAX 32
 #define OH_UNIT_MAX 24
@@ -48,7 +53,30 @@ typedef struct {
     uint8_t has_min : 1;
     uint8_t has_max : 1;
     uint8_t has_default : 1;
+    /*
+     * What this port can do without being sent every value, as a bit set of
+     * `OH_EFFECT_*` below. Zero — the default — means the console renders and
+     * streams, which is what every node did before any of this existed, so
+     * firmware that never sets it behaves exactly as it always has.
+     *
+     * Bit-packed rather than a struct because this descriptor is memcpy'd whole
+     * through the vmod round trip and stored in EEPROM, and a byte is a byte.
+     */
+    uint8_t effects;
 } oh_port_desc_t;
+
+/* Shapes this port can trace, and the two other things it may be able to do. */
+#define OH_EFFECT_SINE (1u << 0)
+#define OH_EFFECT_TRIANGLE (1u << 1)
+#define OH_EFFECT_SQUARE (1u << 2)
+#define OH_EFFECT_SAW_UP (1u << 3)
+#define OH_EFFECT_SAW_DOWN (1u << 4)
+#define OH_EFFECT_STEPS (1u << 5)
+#define OH_EFFECT_TRANSITIONS (1u << 6)
+
+/* Every shape, for a port that can trace the lot. */
+#define OH_EFFECT_ALL_SHAPES                                                                                 \
+    (OH_EFFECT_SINE | OH_EFFECT_TRIANGLE | OH_EFFECT_SQUARE | OH_EFFECT_SAW_UP | OH_EFFECT_SAW_DOWN)
 
 typedef struct {
     uint8_t r, g, b;
@@ -93,6 +121,10 @@ void oh_port_set_unit(oh_port_desc_t *p, const char *unit);
 void oh_port_set_class(oh_port_desc_t *p, const char *cls);
 void oh_port_set_range(oh_port_desc_t *p, float minimum, float maximum);
 void oh_port_set_default(oh_port_desc_t *p, float value);
+void oh_port_set_effects(oh_port_desc_t *p, uint8_t effects);
+
+/* The bit for one shape index, or 0 for an index this build does not know. */
+uint8_t oh_effect_shape_bit(int shape_index);
 
 #ifdef __cplusplus
 }

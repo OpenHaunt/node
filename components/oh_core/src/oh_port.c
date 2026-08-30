@@ -156,3 +156,21 @@ void oh_port_set_default(oh_port_desc_t *p, float value)
     p->default_value = value;
     p->has_default = 1;
 }
+
+void oh_port_set_effects(oh_port_desc_t *p, uint8_t effects)
+{
+    p->effects = effects;
+}
+
+uint8_t oh_effect_shape_bit(int shape_index)
+{
+    /* Indexed by `oh_shape_t`, but without including `oh_curve.h`: this file is
+     * about what a port is, and the shapes it names are a fact about the wire. */
+    static const uint8_t BITS[] = {
+        OH_EFFECT_SINE, OH_EFFECT_TRIANGLE, OH_EFFECT_SQUARE, OH_EFFECT_SAW_UP, OH_EFFECT_SAW_DOWN,
+    };
+    if (shape_index < 0 || shape_index >= (int)(sizeof(BITS) / sizeof(BITS[0]))) {
+        return 0;
+    }
+    return BITS[shape_index];
+}

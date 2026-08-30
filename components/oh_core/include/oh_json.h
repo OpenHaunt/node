@@ -6,13 +6,12 @@
 #pragma once
 
 #include "cJSON.h"
+#include "oh_effect.h"
 #include "oh_module.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define OH_ERR_MAX 96
 
 typedef struct {
     const char *sn;   /* node serial, 8 hex */
@@ -38,12 +37,19 @@ cJSON *oh_json_input_event(const oh_port_desc_t *p, const oh_value_t *v, int64_t
 cJSON *oh_json_health(uint32_t uptime_s, const float *temp_c, const int *poe_class, const char *const *errors,
                       size_t n_errors);
 
-/* Walk {"outputs":{...}} calling `fn` for every entry that names a writable
- * port with a well-formed payload. Returns the number applied, or -1 with
- * `err` filled when the body is malformed or names a port that cannot be
- * written (the whole body is validated before anything is applied). */
-typedef void (*oh_json_output_fn)(void *ctx, uint8_t port, const oh_value_t *value);
-int oh_json_apply_outputs(const cJSON *body, const oh_module_t *m, oh_json_output_fn fn, void *ctx, char *err);
+/* Walk {"outputs":{...}} and {"effects":{...}} calling `fn` and `effect_fn` for
+ * every entry that names a writable port with a well-formed payload. Returns the
+ * number applied, or -1 with `err` filled when the body is malformed or names a
+ * port that cannot be written (the whole body is validated before anything is
+ * applied — an `effects` map that will not parse rejects the `outputs` beside it).
+ *
+ * `payload` is the raw entry the value came from, so a caller that wants the
+ * timing keys riding beside it can reach them without parsing twice.
+ * `effect_fn` may be NULL on a build that cannot render one. */
+typedef void (*oh_json_output_fn)(void *ctx, uint8_t port, const oh_value_t *value, const cJSON *payload);
+typedef void (*oh_json_effect_fn)(void *ctx, uint8_t port, const oh_effect_t *effect);
+int oh_json_apply_outputs(const cJSON *body, const oh_module_t *m, oh_json_output_fn fn, oh_json_effect_fn effect_fn,
+                          void *ctx, char *err);
 
 /* Small helpers shared with the config code. */
 bool oh_json_copy_string(const cJSON *obj, const char *key, char *out, size_t out_len);
