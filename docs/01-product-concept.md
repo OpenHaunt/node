@@ -21,16 +21,18 @@ be re-pulled every time the room changes.
 **One cable per effect.** Ethernet carries both the power and the data. Plug the node in, it appears on the
 network, tells you what it is and what it can do, and you wire it into your show logic.
 
-**One base board, many personalities.** The base board is always the same: PoE, network, processor, storage,
-module connector. What the node *does* is determined entirely by the module clipped onto it. This means:
+**One mainboard, many personalities.** The mainboard is always the same: network, processor, storage, and
+the connectors to the other two boards. How much power the node has is determined by the power board, and
+what the node *does* is determined by the IO board. This means:
 
-- one PCB design to maintain, certify and stock
-- one firmware image that adapts to the attached module at runtime
-- module development is cheap and low-risk — a new module is a small board, not a new product
-- a failed effect is repaired by swapping a €8 module, not a €60 device
+- one mainboard design to maintain, certify and stock
+- one ESP32 firmware image that adapts to the fitted boards at runtime
+- IO board development is cheap and low-risk, since a new IO board is a small board, not a new product
+- PoE class becomes a stocking decision instead of a respin
+- a failed effect is repaired by swapping a small board, not a whole device
 
 **Discoverable, not configured.** Nodes are found via mDNS, not by writing IP addresses on masking tape. The
-node reports its module type, serial number and capabilities, so the control software can build the room map
+node reports its board types, serial numbers and capabilities, so the control software can build the room map
 itself.
 
 ## Target applications
@@ -46,7 +48,7 @@ Consequences for the design:
 - **PoE is the killer feature.** No mains spurs to run into a wooden maze structure, no wall warts to hide.
 - **The device must fail visibly and safely.** An effect that silently stops is worse than one that flags itself.
 - **Latency matters.** A scare that fires 300 ms late is not a scare. See
-  [06 — Firmware & Network](06-firmware-and-network.md).
+  [08 — Firmware & Network](08-firmware-and-network.md).
 
 ### Escape rooms
 
@@ -66,52 +68,91 @@ Small theatre, museum installations, themed retail, film and photo studio props.
 shape: many small networked effects, no dedicated control infrastructure, and a strong preference for
 something that just appears on the network.
 
-## The two-part architecture
+## The three-board architecture
 
-This is the central design decision of the project.
+This is the central design decision of the project. It was two boards until the power and IO requirements
+pulled apart far enough to justify a third.
 
 ```
-        ┌─────────────────────────────┐        ┌──────────────────────────┐
-        │      BASE BOARD             │        │        MODULE            │
-   ═══▶ │  PoE · Ethernet · ESP32     │ ◀────▶ │  Sensor or actuator      │
- RJ45   │  Flash · Module connector   │        │  ID EEPROM               │
-        │  SELV only, always          │        │  Isolation if needed     │
-        └─────────────────────────────┘        └──────────────────────────┘
-              one design, one BOM,                   many designs,
-              one certification                      each small and cheap
+   ┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐
+   │  MAINBOARD       │   │  POWER BOARD     │   │  IO BOARD        │
+═▶ │  etherCON        │──▶│  PoE tap         │   │  RP2354          │
+   │  magnetics       │   │  Silvertel PD    │   │  application I/O │
+   │  ESP32 · PHY     │◀──│  24/12/5/3V3     │   │  ID over link    │
+   │  flash · network │   │  eFuse · metering│   │  isolation if    │
+   │                  │──────── rails ──────────▶│  needed          │
+   │                  │◀─────── link ───────────▶│                  │
+   └──────────────────┘   └──────────────────┘   └──────────────────┘
+     one design            a few variants          many designs
+     one certification     af / at / bt            each small and cheap
 ```
 
-### Why split it
+### Why three and not one
 
-**Certification economics.** The base board is a networked SELV device: one EMC assessment, one radio module
-approval inherited from the Wi-Fi module, one product file. A module that switches 400 V three-phase falls
-under a completely different regulatory regime. Keeping them physically separate means the mains variant does
-not drag the entire product line into the Low Voltage Directive. See
-[07 — Compliance & Safety](07-compliance-and-safety.md).
+**Certification economics.** The mainboard and the power board together are a networked SELV device: one
+EMC assessment, one radio approval inherited from the Espressif module, one product file. An IO board that
+switches 400 V three-phase falls under a completely different regime. Keeping them physically separate
+means the mains variant does not drag the whole product line into the Low Voltage Directive.
 
-**Board area.** A single board that could do everything would need the DMX isolation slot, the mains creepage
-distances, the LED power stage and the connector variety simultaneously. It would be large, expensive, and
-mostly unpopulated in any given installation.
+**Board area.** One board that could do everything would need the DMX isolation slot, the mains creepage
+distances, the LED power stage and the connector variety at once. It would be large, expensive, and mostly
+unpopulated in any given installation.
 
-**Development velocity.** A new module is a two-layer board with a connector, an EEPROM and the actual
+**Development velocity.** A new IO board is a small board with a connector, an RP2354 and the actual
 circuit. It can be designed, ordered and tested in a fortnight. A new complete device cannot.
 
-**Inventory.** Base boards are fungible. If a DMX effect becomes a light effect, you swap the module.
+**Field repair.** A failed effect is fixed by swapping a small board, not a whole device.
+
+### Why the power board is separate
+
+That is the part that is new, and it comes down to one observation: **PoE class is not a property of the
+node, it is a property of the effect.** A reed switch needs 2 W. A pixel run needs 60 W. Those are the same
+product doing different jobs, and in the two-board design they were different products, because moving from
+802.3af to 802.3at was a base board respin. Different PD module footprint, different magjack rating,
+different thermal design.
+
+Splitting power out makes class a stocking decision. The same mainboard runs a 12 W af node and a 71 W bt
+node.
+
+The catch is that this only works if the parts you cannot swap are specified for the hardest case from the
+start. The ethernet connector and its magnetics live on the mainboard, and they are what fix the range's
+rated for 802.3bt Type 4, the top of the standard. Every node carries that front end, including the ones
+that will never draw more than 3 W. A few dollars of insurance against a respin of the one board that must
+not be respun, and it means PoE class stays entirely a power board decision.
+
+### Why the IO board has its own processor
+
+In the two-board design the connector carried raw ESP32 peripherals and the ESP32 did all the I/O work
+itself. Giving each IO board an RP2354 buys three things.
+
+The interface stops leaking the host's constraints. Most of the old interface document was rules about
+ESP32 strapping pins, because a third-party board could pull the wrong line and prevent the node booting.
+A link that carries a serial protocol cannot do that.
+
+Timing stops being shared. The ESP32 can stall for 50 ms on a flash erase, absorb a burst of broadcast
+Art-Net, or reboot for an OTA update, and the outputs hold their state throughout.
+
+And the IO board gets 12 PIO state machines, which turns WS2812, DMX, servo timing and encoder reading from
+things that compete for one timed output line into concurrent local programs.
+
+The link is USB, and deliberately so: IO boards have to keep working on the next generation of mainboard
+without redesign. See D20 and D33.
+
+The cost is a second firmware image and a second update path. That is real work, not a free lunch.
 
 ### What lives where
 
-| On the base board | On modules |
-|---|---|
-| PoE extraction and isolation | All application-specific I/O |
-| Ethernet PHY and MAC | All connectors facing the outside world (except RJ45) |
-| Processor, RAM, flash | Any additional isolation barrier |
-| Voltage rails (12 V / 5 V / 3.3 V) | Module identification EEPROM |
-| mDNS, web UI, OTA, protocol stacks | Module-specific driver metadata |
-| Status LEDs, config button | |
+| Mainboard | Power board | IO board |
+|---|---|---|
+| etherCON and all magnetics | PoE detection and classification | Application I/O of every kind |
+| Every impedance-controlled trace | The isolation barrier | All outward-facing connectors except the etherCON |
+| ESP32-S3, W5500, external flash | 24 V / 12 V / 5 V / 3.3 V | Any additional isolation barrier |
+| mDNS, web UI, OTA, protocol stacks | Per-rail eFuse and metering | Local timing and failsafe behaviour |
+| Status display on the Halo ring | Descriptor EEPROM | Self-description over the link |
 
-**DMX is a module, not a base function.** This was deliberated and settled: although the project started as a
-DMX node, making DMX a module keeps the base board small and means nodes that only read a button do not carry
-an isolated RS-485 transceiver and an XLR connector they will never use.
+**DMX is an IO board, not a mainboard function.** This was deliberated and settled early: although the
+project started as a DMX node, making DMX an IO board keeps the mainboard small and means nodes that only
+read a button do not carry an isolated RS-485 transceiver and an XLR connector they will never use.
 
 ## Non-goals
 
@@ -119,9 +160,10 @@ Stating these explicitly so they don't creep back in:
 
 - **Not a safety device.** Nothing commanded over a network is a safety function. An OpenHaunt Node must never
   be the thing that makes an installation safe for people to work on. See
-  [07 — Compliance & Safety](07-compliance-and-safety.md).
+  [09 — Compliance & Safety](09-compliance-and-safety.md).
 - **Not a lighting console.** It executes cues, it does not author them.
 - **Not battery or wireless powered.** PoE is the premise. Wi-Fi exists as a fallback and configuration path,
   not as the primary transport.
-- **Not a pixel driver at scale.** A module can drive a reasonable run of WS2812s, but this is not a
-  replacement for a dedicated pixel controller with a beefy power supply.
+- **Not a pixel driver at scale.** With a Type 4 power board an IO board can drive a genuinely useful run
+  of WS2812s, roughly 350 pixels at full white against the 55 the af-only design allowed. It is still not a
+  replacement for a dedicated pixel controller with its own supply, and long runs still want injection.
