@@ -66,7 +66,7 @@ Follow the majority, and mention the outlier rather than copying it.
 custom symbol is only worth it when nothing standard fits.
 
 ```bash
-K="/Applications/KiCad 11 Nightly/KiCad.app/Contents/SharedSupport"
+K="/Applications/KiCad/KiCad.app/Contents/SharedSupport"
 grep -oE '\(symbol "<name>[^"]*"' "$K/symbols/<Lib>.kicad_sym"
 ls "$K/footprints/<Lib>.pretty/" | grep -i <pattern>
 ```
@@ -108,12 +108,16 @@ numbers directly** rather than trusting a keyword search to enumerate it.
 
 ## KiCad
 
-The project is saved by **KiCad 10.99 (nightly)**. `/Applications/KiCad/` holds 10.0.6, whose
-`kicad-cli` **cannot open these files** and reports only "Failed to load schematic".
+The project is saved in the **KiCad 10.0 file format** (downgraded from a 10.99 nightly on
+2026-09-07). `/Applications/KiCad/` holds 10.0.6 and opens it. The nightly opens it too, but
+**saving from the nightly re-upgrades the format** (footprint `transform` blocks instead of `at`,
+stackup `dielectric_model`, geometric `constraint` blocks, bold stroke semantics), after which 10.0.6
+reports only "Failed to load schematic". The same applies to footprints in the LRV library: one file
+in nightly format makes KiCad 10 refuse the whole library.
 
 ```bash
 export LRV_CUSTOM_LIBS=/Users/hannes/source/ffp/kicad-custom-libs
-K="/Applications/KiCad 11 Nightly/KiCad.app/Contents/MacOS/kicad-cli"
+K="/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli"
 "$K" sch export netlist --format kicadsexpr -o /tmp/net.net <project>.kicad_sch
 ```
 
