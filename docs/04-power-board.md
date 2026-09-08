@@ -13,17 +13,24 @@ Silvertel's SMT **`MTB`** and **`LPB`** families cover the whole range. Every va
 The 56 mm through-hole SIL module the two-board design was built around is gone, and so is the question of
 whether to use it.
 
-| Variant | 24 V module | 12 V module | Standard | PD budget | Module out | Size | Eff |
+| Variant | 24 V module | 12 V module | Standard | PD budget | **Design for** | Size | Eff |
 |---|---|---|---|---|---|---|---|
-| `PWR-AF` | AG9924-MTB | AG9912-MTB | 802.3af | 12.95 W | 12 W | 21 × 14 × 13 | 87 % |
-| `PWR-AT` | AG5724-LPB | AG5712-LPB | 802.3at | 25.5 W | 30 W | 33 × 22 × 13 | 88.5 % |
-| `PWR-BT3` | AG59624-LPB | AG59612-LPB | bt Type 3 | 51 W | 51 W | 40 × 25 × 15.8 | 93 to 94 % |
-| `PWR-BT4` | AG59824-LPB | AG59812-LPB | bt Type 4 | **71.3 W** | 100 W | 50.6 × 30 × 14.7 | 94 to 95 % |
+| `PWR-AF` | AG9924-MTB | AG9912-MTB | 802.3af | 12.95 W | **12 W @70 °C** | 21 × 14 × 13 | 87 % |
+| `PWR-AT` | AG5724-LPB | AG5712-LPB | 802.3at | 25.5 W | **24 W** | 33 × 22 × 13 | 88.5 % |
+| `PWR-BT3` | AG59624-LPB | AG59612-LPB | bt Type 3 | 51 W | **48 W** | 40 × 25 × 15.8 | 93 to 94 % |
+| `PWR-BT4` | AG59824-LPB | AG59812-LPB | bt Type 4 | **71.3 W** | **67 W** | 50.6 × 30 × 14.7 | 94 to 95 % |
 
-**PD budget is the standard's guaranteed power at the PD. Module out is the converter's own rating.** They
-are not the same and the gap is widest at the top: the AG59824-LPB is a 100 W converter, but a compliant
-Class 8 link guarantees 71.3 W. **Budget on the standard.** The extra converter capability is headroom for
-a generous PSE, not power you may design around.
+**Three numbers, and only the third is a design figure.** The PD budget is what the standard guarantees at
+the PD. The module rating (12 / 30 / 60 / 100 W) is what the converter can peak at. **"Design for" is
+Silvertel's own continuous recommendation**, and it is below both: "24W continuous, 30W peak" for the
+Ag5700; "should be designed for a maximum continuous output power of 48W" for the Ag59600; 67 W for the
+Ag59800 "where cabling and PSE cannot be specified", which in a haunt is always.
+
+**90 to 100 W is not obtainable over PoE.** 90 W leaves the PSE, 71.3 W reaches the PD, 67 W is what
+Silvertel stands behind. A node that needs more is a DC-input power board, not a PoE one.
+
+**The af module derates with temperature, and only at 12 V.** Ag9912-MTB drops 12 W → **9 W** between 70
+and 85 °C; Ag9924-MTB holds 12 W flat.
 
 Stock at DigiKey, checked 2026-09-06: AG9912-MTB 2018, AG9924-MTB 2188, AG5712-LPB 1310, AG5724-LPB 959,
 AG59612-LPB 288, **AG59624-LPB 8**, **AG59812-LPB 0**, AG59824-LPB 278. The bt parts are the thin ones and
@@ -51,9 +58,13 @@ change.
 
 ### Outline: only the mating edge is fixed
 
-**D31 relaxed this.** With the boards coplanar rather than stacked, power board variants do **not** have to
-share an outline. What must match is the position of J1 and J2 on the mating edge, and the mounting holes
-that take the mechanical load. Everything beyond that edge is free.
+**D31 relaxed this, D35 tightened it again by half.** With the boards coplanar rather than stacked, power
+board variants do **not** have to share a full outline. What must match is the position of J1 and J2 on the
+edge facing the mainboard, **J3 on the edge facing the IO board**, and the mounting holes that take the
+mechanical load.
+
+Because J3 has to line up with J4 on the mainboard, **the power board's width is fixed and only its depth
+is free.** A `PWR-AF` may be shallow but not narrow.
 
 So a `PWR-AF` carrying a 21 × 14 mm module can be a small board, and `PWR-BT4` with a 50.6 × 30 mm module
 can be a large one. Under the earlier stacked design both had to be sized for the largest module, which
@@ -68,16 +79,27 @@ demanding variant even on a node fitted with the cheapest one.
 ## Input side
 
 ```
-J1 ──▶ TCT  ┐
-       RCT  ├──▶ Silvertel PD module ──▶ isolated output
-       SP45 │     · detection signature
-       SP78 ┘     · classification
-                  · integrated bridge rectifiers
-                  · 1500 V isolation
+J1 ──▶ TCT  ┐                ┌── L1 L2 L3 ──┐
+       RCT  ├──▶ BR1, BR2 ──▶┤              ├──▶ Silvertel PD module ──▶ isolated output
+       SP45 │    (discrete)  └── L4 L5 L6 ──┘     · detection signature
+       SP78 ┘                                     · fixed classification
+                                                  · 1500 V isolation
 ```
 
-Four conductors, each up to **960 mA** at Type 4. The bridge rectifiers inside the module sort out polarity
-and mode, so J1 has no orientation requirement beyond getting the pairs to the right pins.
+Four conductors, each up to **960 mA** at Type 4. Two bridge rectifiers sort out polarity and mode, so J1
+has no orientation requirement beyond getting the pairs to the right pins.
+
+**Correction: the bridges are not inside the module.** An earlier version of this document said they were.
+The Ag59800 block diagram and its Figure 15 show `BR1` and `BR2` as discrete parts ahead of `VIN+`/`VIN−`,
+and the pin description says those pins "connect to the output of the POE input bridge rectifiers". One
+bridge per pairset, each carrying the full 960 mA. The other families use identical wording and should be
+checked individually rather than assumed.
+
+**Silvertel's reference input stage** (Figure 15) also carries six ferrites, three in each leg —
+`MPZ2012S102A` in 0805 — and **two 4.7 nF / 2000 V capacitors deliberately bridging the isolation barrier**
+for EMC. That is the one sanctioned exception to "nothing crosses the barrier", and it has to appear in the
+clearance drawing rather than being discovered at layout. Würth `885342211008` is the part and it is
+already in Part-DB.
 
 Everything on the input side of the module's transformer is **Domain 1** and must hold isolation-grade
 clearance from every rail, the I2C, and the ground pour. Keep the barrier a straight line across the board.
@@ -89,16 +111,29 @@ a board clearance question, not a connector one.
 
 This is where the variants earn their keep, and it matters more than it sounds.
 
-The Ag9700 family presents a **Class 0 signature by default**, which makes the switch reserve **15.4 W per
-port** for a device drawing 1.3 to 4 W. On a 370 W switch that is roughly 24 nodes instead of 90. For a
-product whose scaling story is "hang another one next to it", that is the difference between a design that
-scales and one that does not.
+**Every SMT module in the range is fixed-class. Classification programming is not available.** This was
+assumed for a long time and it is wrong — see the correction in D13.
 
-Use the classification-programmable variant on every power board and set the class from the real budget.
-A `PWR-AF` feeding a reed switch board should be declaring Class 1, not Class 0.
+| Module | Class | Reserves |
+|---|---|---|
+| Ag9900-MTB | fixed **Class 0** | 15.4 W |
+| Ag5700-LPB | fixed Type 2 **Class 4** | 30 W |
+| Ag59600-LPB | fixed Type 3 **Class 6** | 60 W |
+| Ag59800-LPB | fixed Type 4 **Class 8** | 90 W |
 
-The declared class also goes in the descriptor EEPROM, so the node can report over MQTT what it asked the
-switch to reserve. Compare that against the metered draw and PoE budget exhaustion stops being a mystery.
+The consequence is the one the old text warned about: a `PWR-AF` node drawing 3 W still reserves 15.4 W, so
+roughly 24 nodes on a 370 W switch instead of 90. It is worse at the top — `PWR-BT3` reserves 60 W, six
+ports on that same switch. **The high variants are therefore what you fit because the load needs them,
+never a default.** The programmable-class part is the through-hole Ag9700, which D29 retired.
+
+**What the bt modules give instead is `TYP2-DET` and `TYP3-DET`.** These flag which PSE type actually
+turned up, so a `PWR-BT3` on an at switch knows it has 25.5 W rather than 51 W and can say so. They pull low
+from `VIN+` and therefore sit in Domain 1: they reach the mainboard through an optocoupler, which is
+Silvertel's own arrangement and the sanctioned way across the barrier.
+
+The declared class goes in the descriptor EEPROM and the detected type is read at boot, so the node can
+report over MQTT both what it asked the switch to reserve and what it actually got. Compare that against
+the metered draw and PoE budget exhaustion stops being a mystery.
 
 ## Output side
 
@@ -128,9 +163,13 @@ For `PWR-AF` the parts from the two-board design carry over unchanged: **AP63205
 the PD module's switcher and, on some IO boards, an isolated DC/DC. Two more fixed-tone 1.1 MHz emitters
 would be an avoidable EMC problem.
 
-**The `PWR-BT3` and `PWR-BT4` regulators are not yet selected.** A 2 A part is not enough when 71 W is
-available, and on a
-24 V-input build the step-down ratio is larger. Current per rail, and therefore the regulator selection,
+**The `PWR-BT3` and `PWR-BT4` regulators are not yet selected.** A 2 A part is not enough when 67 W is
+available, and on a 24 V-input build the step-down ratio is larger.
+
+**`PWR-BT4` is a 24 V board**, because the 12 V AG59812-LPB is unavailable and because 24 V halves the
+secondary current — 4.2 A instead of 8.4 A at the module, and 2.8 A instead of 5.6 A on J3 at full load.
+That means three bucks (24→12, 24→5, 24→3.3) rather than two, and it makes the 24 V eFuse mandatory rather
+than optional. Current per rail, and therefore the regulator selection,
 follows from the IO board catalogue rather than from the PD module. See Q4 in
 [11 — Open Questions](11-open-questions.md).
 

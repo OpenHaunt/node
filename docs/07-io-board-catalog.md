@@ -141,8 +141,18 @@ Latency is the design driver. A scare that fires late is not a scare.
 
 **This board is the reason 802.3bt was worth the money.** On the af budget, 60 mA per RGB pixel at full
 white meant roughly 55 pixels before the node browned out, which is not a length of LED strip anybody wants.
-On `PWR-BT` the 5 V rail has about 49 W behind it, roughly 270 pixels at full white, and PIO can drive
+On `PWR-BT` the 5 V rail has about 45 W behind it, roughly 250 pixels at full white, and PIO can drive
 several strings concurrently rather than the one RMT channel the old interface exposed.
+
+**The 24 V rail changes what this board should be.** 5 V WS2812 is limited by volt drop along the strip long
+before it is limited by the node's budget, which is why long runs need injection at all. 24 V addressable
+strip — WS2811 in three-LED groups, or 24 V COB — draws a fifth of the current for the same power and is
+what long runs actually use. At 67 W a 24 V rail is 2.8 A where 5 V would be 13.4 A: the difference between
+a header and a bus bar.
+
+**So this board wants both**: 5 V for short dense runs, 24 V for long ones, with the strip type selected by
+jumper and declared in `rails_required`. That makes it the one board in the catalogue that sets
+`capability_flags` bit 7, and the reason `PWR-BT4` is a 24 V build.
 
 The constraint moves from "one fast line and 10 W" to "how many amps do you want", which is a much better
 problem. Long runs still want external injection, both for volt drop along the strip and to keep the

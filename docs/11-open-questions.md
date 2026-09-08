@@ -118,14 +118,32 @@ connectors** `NE8MC6-MO` or `NKE6S*`.
 
 These were two questions in the two-board design and they have become one, because the answers conflict.
 
-**Thermal — much improved by D31.** A fully loaded `PWR-BT4` node pulls 71.3 W through a sealed box and
-essentially all of it becomes heat. Efficiency decides where it lands, not how much there is: at 93.8 % the
-AG59824-LPB keeps 4.4 W on the power board and the rest spreads across the IO board's output devices.
+**Thermal — much improved by D31, then made harder again by the enclosure.** A fully loaded `PWR-BT4` node
+pulls 71.3 W through a sealed box and essentially all of it becomes heat. Efficiency decides where it
+lands, not how much there is: at 93.8 % the AG59824-LPB keeps 4.4 W on the power board and the rest
+spreads across the IO board's output devices.
 
 **Coplanar boards changed the shape of this problem.** Stacked, the power board sat in the middle wrapped
 by the other two. Edge to edge, all three lie flat and can couple straight into the enclosure floor, and
-the mounting screws that take the connector strain are also the thermal path. What remains is ordinary
-design work: choose the interface material, size the floor, verify by measurement.
+the mounting screws that take the connector strain are also the thermal path.
+
+**But the enclosure is now 3D-printed, and that removes the floor as a heatsink.** PLA is around
+0.13 W/mK against aluminium's ~200. The conducted path this section assumed does not exist in plastic, and
+~8 W on a `PWR-BT4` board has to leave a closed box some other way.
+
+Three consequences, none of them blocking but all of them real:
+
+- **PLA is out.** Its glass transition is around 60 °C and the interior will plausibly reach that. PETG is
+  marginal; ABS, ASA or PC are the realistic choices.
+- **The module needs its own path out** — a heatsink with vents, or a metal insert in the floor. A metal
+  insert brings back exactly the bonding conflict below, so decide the two together.
+- **Derating bites.** The af module drops 12 W → 9 W between 70 and 85 °C at 12 V, and a hot enclosure
+  spends the difference. The 24 V part holds 12 W flat, which is a thermal argument for 24 V even on the
+  smallest variant.
+
+**The good news is that 3D printing settles the bonding half.** A plastic enclosure has no conductive path
+between boards, so `CHASSIS` cannot bridge to the power board through the mounting hardware and nylon
+standoffs make the question disappear. What is left is genuinely thermal.
 
 **Chassis bonding — now a population option rather than an open question.** PoE provides no protective
 earth, so the chassis floats unless deliberately referenced. The mainboard carries `CHASSIS` as its own net
@@ -144,21 +162,36 @@ IO board's own cable shields, is still open and belongs to whichever IO board in
 **This has to be an explicit, documented scheme per enclosure variant.** It is the hardest remaining
 mechanical question and it should be answered before any enclosure is chosen.
 
-### Q10 — Board arrangement — RESOLVED
+### Q10 — Board arrangement — RESOLVED, then re-answered
 
-**Mainboard, power board, IO board, in that order.**
+**Mainboard and power board side by side, IO board across the back of both.** See D35.
 
 ```
-   MAINBOARD ═══ POWER BOARD ═══ IO BOARD
-   etherCON                      XLR, terminals
+   ┌───────────────┬──────────────┐
+   │   MAINBOARD   │ POWER BOARD  │
+   │  ◀ etherCON   │   J1 · J2    │
+   └───────┬───────┴──────┬───────┘
+        J4 │           J3 │
+   ┌───────┴──────────────┴───────┐
+   │          IO BOARD            │
+   └──────────────────────────────┘
 ```
 
-Two things fell out of it. The IO board's supply no longer crosses the mainboard, which matters because a
-WS2812 board at 40 W and 5 V draws 8 A and the 2.54 mm contacts are rated 3 A. And both boards with
-outward-facing connectors end up at an edge, with the one that needs nothing from outside in the middle.
+**The earlier answer was a row: mainboard, power board, IO board.** Its reasoning stands and is why the
+power board still sits between the other two electrically — a WS2812 board at 40 W and 5 V draws 8 A, and
+2.54 mm contacts are rated 3 A, so the IO board's supply must not cross the mainboard. What the row could
+not fix was the other direction: **the power board had to pass six signals through, USB among them**, and
+D31 flagged that as needing rework for generation 2.
 
-The price is that the power board passes six signals through, USB among them. See D31 for the conditions
-that puts on the layout, and for why generation 2 has to revisit it.
+Putting the IO board across the back of both gives each board a direct connection to what it actually
+exchanges. Both original goals survive, the passthrough disappears, and nothing has to be stacked.
+
+**What it introduced:** a ground triangle instead of a chain, and a fixed spacing between J3 and J4 that
+every IO board and every power board variant has to honour. Both are recorded in D35 and `06`.
+
+**A stacked power board was considered and rejected** — thermally it discards D31's main argument, and
+T1's 8.8 mm exceeds what a paired WR-PHD socket and header give (about 7.9 mm), so it would also have
+needed an elevated socket as a special part.
 
 ### Q11 — XLR: 3-pin or 5-pin?
 

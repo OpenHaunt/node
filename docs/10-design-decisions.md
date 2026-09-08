@@ -293,6 +293,26 @@ reserve **15.4 W per port** for a device drawing 1.3–4 W. On a 370 W switch th
 of 90. For a product whose scaling story is "hang another one next to it", the **-FL** variant with
 programmable classification is worth the premium.
 
+**Correction, 2026-09-07: classification programming is not available with the parts D29 selected.** All
+three SMT families are fixed-class, and none of them has an RCLASS pin:
+
+| Module | Class |
+|---|---|
+| Ag9900-MTB | fixed **Class 0** — 5 pins, no class pin at all |
+| Ag5700-LPB | fixed Type 2 **Class 4**, requests 30 W |
+| Ag59600-LPB | fixed Type 3 **Class 6**, requests 60 W |
+| Ag59800-LPB | fixed Type 4 **Class 8**, requests 90 W |
+
+The programmable-class part is the Ag9700, which is the through-hole SIL module D29 retired. So this
+entry's own worst case is now designed in: a 3 W `PWR-AF` node reserves 15.4 W. It is worse at the top —
+`PWR-BT3` reserves 60 W per port, six ports on a 370 W switch — which makes the high variants something you
+fit **because** the load needs them, never a default.
+
+**What replaces it:** the bt modules carry `TYP2-DET` and `TYP3-DET` outputs, so the node can report which
+PSE type it actually got and derate its own budget at runtime. That is the opposite direction from
+classification programming — it does not reduce what the switch reserves — but it does make the mismatch
+visible instead of silent. See D35 and `06`.
+
 ---
 
 ## D14 — SM712 always fitted; PPTC and series resistors as unpopulated footprints
@@ -398,6 +418,10 @@ why losing the stack made it unnecessary rather than merely optional.
 
 **Also amended by D28:** the envelope, where it still applies, is sized for the 40 × 25 × 15.8 mm
 AG596xx-LPB rather than the 70 × 35 mm Ag5800.
+
+**Amended again by D35.** With the IO board across the back of both other boards, `J3` has to line up with
+`J4`, so the power board's **width is fixed** even though its depth is free. A `PWR-AF` may be shallow but
+not narrow. That is less freedom than D31 promised and more than D18 originally allowed.
 
 **Why:** one mainboard outline, one enclosure, one stack height, and a class change that is genuinely only
 a board swap. Two envelopes would mean two enclosures and a modularity story that only holds within a size
@@ -718,12 +742,28 @@ stay 10/100. It is simply how bt-rated magnetics are sold.
 
 **Decided.** Every power board uses a surface-mount Silvertel module. `MTB` at af, `LPB` at at and bt.
 
-| Variant | 12 V | 24 V | Standard | Out | Size | Eff |
-|---|---|---|---|---|---|---|
-| `PWR-AF` | AG9912-MTB | AG9924-MTB | af | 12 W | 21 × 14 × 13 | 87 % |
-| `PWR-AT` | AG5712-LPB | AG5724-LPB | at | 30 W | 33 × 22 × 13 | 88.5 % |
-| `PWR-BT3` | AG59612-LPB | AG59624-LPB | bt Type 3 | 51 W | 40 × 25 × 15.8 | 93 to 94 % |
-| `PWR-BT4` | AG59812-LPB | AG59824-LPB | bt Type 4 | 71.3 W | 50.6 × 30 × 14.7 | 94 to 95 % |
+| Variant | 12 V | 24 V | Standard | **Design for** | Peak | Size | Eff |
+|---|---|---|---|---|---|---|---|
+| `PWR-AF` | AG9912-MTB | AG9924-MTB | af | **12 W @70 °C** | — | 21 × 14 × 13 | 87 % |
+| `PWR-AT` | AG5712-LPB | AG5724-LPB | at | **24 W** | 30 W | 33 × 22 × 13 | 88.5 % |
+| `PWR-BT3` | AG59612-LPB | AG59624-LPB | bt Type 3 | **48 W** | 60 W | 40 × 25 × 15.8 | 93 to 94 % |
+| `PWR-BT4` | AG59812-LPB | AG59824-LPB | bt Type 4 | **67 W** | 100 W | 50.6 × 30 × 14.7 | 94 to 95 % |
+
+**"Design for" is Silvertel's own figure, and it is below both the module rating and the standard's PD
+budget.** An earlier version of this table carried the module ratings (30 / 51 / 71.3 W) and was optimistic
+by up to 4 W per variant. The datasheets say: the Ag5700 is "24W continuous, 30W peak"; the Ag59600
+"should be designed for a maximum continuous output power of 48W"; the Ag59800 "be designed for a maximum
+continuous output power of 67W" wherever cabling and PSE cannot be specified — which in a haunt is always.
+
+**90 to 100 W is not obtainable over PoE.** 90 W is what a Type 4 PSE puts on the cable, 71.3 W survives to
+the PD, and 67 W is what Silvertel will stand behind. The 100 W on the AG59812/24 label is the converter's
+rating. A node that genuinely needs 90 W is a DC-input power board, not a PoE one.
+
+**The af module derates with temperature, and only at 12 V.** Ag9912-MTB drops 12 W → **9 W** between 70
+and 85 °C; Ag9924-MTB holds 12 W flat. In a sealed enclosure that is not hypothetical, and it is an
+argument for 24 V even on the smallest variant.
+
+**All four families are fixed-class.** See the correction in D13.
 
 **This closes the old "SIL or SMT?" question outright.** The two-board design was built around the
 Ag9712-2BR, a 56 × 18 × 14 mm through-hole SIL module that defined the board outline and had to be
@@ -741,9 +781,15 @@ a 12 V module does not. Both are legitimate.
 power board, on a part lying flat, rather than the 10.5 W an earlier draft put into a DIL Ag5800 standing
 proud of it. The rest spreads across the IO board.
 
-**Sourcing note, checked 2026-09-06.** The bt stock is oddly split: at Type 3 the 12 V AG59612-LPB has 288
-and the 24 V AG59624-LPB has 8; at Type 4 the 12 V AG59812-LPB has 0 and the 24 V AG59824-LPB has 278.
-Check before committing a variant.
+**Sourcing note, re-checked 2026-09-07.** AG9912-MTB 2018, AG9924-MTB 2188, AG5712-LPB 1310, AG5724-LPB
+959, AG59612-LPB 288, **AG59624-LPB 0** (8 the day before), **AG59812-LPB 0**, AG59824-LPB 278. Both
+unavailable parts are bt, and they sit on opposite voltages, so **Type 4 is only buildable at 24 V**.
+
+**The bridge rectifiers are not inside the module.** `04` claimed they were. The Ag59800 block diagram and
+its Figure 15 show `BR1` and `BR2` as discrete parts ahead of `VIN+`/`VIN−`, and the pin description says
+the pins "connect to the output of the POE input bridge rectifiers". J1 keeps its polarity freedom, but two
+bridges are components on the power board. The other families use the same wording and need checking
+individually.
 
 **Ag5800 and Ag6800 both appear in earlier drafts and neither should be used.** Ag5800 is the through-hole
 predecessor. Ag6800 is a PSE module, the thing in the switch.
@@ -779,10 +825,11 @@ shields. See Q9 in [11](11-open-questions.md).
 
 ## D31 — Coplanar boards with right-angle connectors, not a stack
 
-**Decided.** The three boards sit edge to edge in one plane, joined by right-angle connectors, and screwed
-flat to a base plate. They are not stacked on standoffs.
+**Decided, and still the basis of the mechanics. The arrangement *within* the plane was changed by D35** —
+the boards are no longer in a row. Everything below about coplanar rather than stacked stands unchanged;
+what D35 replaces is the ordering, and with it the six signals this entry hands to the power board.
 
-**Order: mainboard, power board, IO board.**
+**Was: mainboard, power board, IO board, in a row.**
 
 ```
    MAINBOARD ═══ POWER BOARD ═══ IO BOARD
@@ -987,3 +1034,62 @@ connector or the pinout would have to change. And **Art-Net broadcast over Wi-Fi
 and multicast frames are sent at the lowest basic rate, typically 1 to 6 Mbit/s, not at the nominal data
 rate. A wireless node is fine for MQTT events and a few channels, and unusable as a DMX receiver in a
 broadcast rig. That limitation belongs in the product documentation, not in a footnote.
+
+---
+
+## D35 — Mainboard and power board side by side, IO board across the back of both
+
+**Decided.** The three boards stay coplanar (D31), but not in a row. Mainboard and power board sit side by
+side; the IO board lies across the back edge of both and plugs into each of them directly.
+
+```
+   ┌───────────────┬──────────────┐
+   │   MAINBOARD   │ POWER BOARD  │
+   │  ◀ etherCON   │   J1 · J2    │
+   └───────┬───────┴──────┬───────┘
+        J4 │           J3 │
+   ┌───────┴──────────────┴───────┐
+   │          IO BOARD            │
+   └──────────────────────────────┘
+```
+
+**Why: it gets the link off the power board without stacking.** D31's row put the power board between the
+other two, so `USB_D±`, `IO_nRESET`, `IO_BOOTSEL` and `IO_ATTN` had to cross a board carrying several
+switching regulators and two more connectors. D31 itself flagged that as needing rework for generation 2's
+high-speed USB. Here the mainboard reaches the IO board directly on `J4`, and the power board reaches it
+directly on `J3`. Both of D31's original goals survive: the IO board's supply still never crosses the
+mainboard, and both outward-facing boards still sit at an enclosure wall.
+
+**A stacked power board was considered and rejected.** Bridging the power board over the mainboard and into
+the IO board's area achieved the same routing, and cost more than it was worth:
+
+- **Thermal.** The power board is the hot one, ~8 W at BT4, and it would sit directly over the ESP32 and the
+  W5500. That is D31's headline argument thrown away.
+- **Isolation becomes three-dimensional.** Domain 1 above Domain 2 copper turns a visible line into a
+  volume, and the number to prove is creepage around a standoff rather than a gap you can see.
+- **The transformer sets the stack height.** T1 is 8.8 mm. The paired WR-PHD socket and header give about
+  **7.9 mm** — the socket body stands 5.4 mm above the board and the header's insulator adds 2.54 mm — so the
+  standard parts do not fit and an elevated socket (Samtec ESQ, 11.05 mm) becomes a special part with a
+  custom footprint.
+- **The IO board gains a height keep-out** under the overhang, a new clause in an interface that must not
+  change once boards ship.
+
+**What it costs.**
+
+**The connectors go at the middle of the shared edge.** `J4` at the mainboard's inner corner and `J3` at the
+power board's inner corner, close together, so the IO board may be as narrow as it likes and docks in the
+middle. Placed at the outer corners instead, every IO board would have to be as wide as the two boards
+together — a lot of empty copper on a reed-switch board. **This is a contract item; fix it before layout.**
+
+**The power board's width is fixed** by `J3` having to meet `J4`. Depth stays free. See D18.
+
+**The ground topology becomes a triangle.** Mainboard → power → IO → mainboard is now a loop, where D31's
+row was a chain. `J4`'s ground is the USB reference while `J3` carries the rail return, and an LED board's
+current will divide between them. **`J3` must win on copper, not on intent**: wide, low-impedance return on
+`J3`, signal-reference grounds on `J4`. A third-party IO board designer cannot infer this, so it belongs in
+`06`.
+
+**Consequences for the connectors:** `J3` loses everything but rails and ground and is sized for current
+rather than pin count. `J2` loses the five signals it was passing through. **`J4` is new.** `J1` is
+untouched.
+

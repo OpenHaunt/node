@@ -3,21 +3,34 @@
 The contracts between the three boards. This is the most important document in the repository: once boards
 exist in the field, these interfaces cannot change without splitting the ecosystem.
 
-Three connectors, deliberately different from one another so that no two can be confused or cross-mated.
+Four connectors, deliberately different from one another so that no two can be confused or cross-mated.
 
 | Ref | Between | Pins | Domain | Carries |
 |---|---|---|---|---|
 | `J1` | Mainboard → Power board | 2×2 | **1** | The four PoE taps, un-isolated |
-| `J2` | Mainboard ↔ Power board | 2×10 | 2 | 3.3 V, 5 V, I2C, alert, enable, **USB and IO control passed through** |
-| `J3` | Power board → IO board | 2×10 | 2 | All four rails, plus the signals passed through from J2 |
+| `J2` | Mainboard ↔ Power board | 2×10 | 2 | 3.3 V, 5 V, I2C, alert, enable, PSE type |
+| `J3` | Power board → IO board | 2×10 | 2 | **Rails and ground only** |
+| `J4` | Mainboard ↔ IO board | 2×5 | 2 | **USB and IO control, direct** |
 
-**The boards run mainboard → power board → IO board** (D31). The mainboard carries J1 and J2; the power
-board carries all three. The IO board's supply never crosses the mainboard, and the mainboard's USB and IO
-control signals reach the IO board by passing through the power board.
+**Mainboard and power board sit side by side; the IO board lies across the back of both** (D35). The
+mainboard carries J1, J2 and J4; the power board carries J1, J2 and J3; the IO board carries J3 and J4.
 
-All connectors are Würth right-angle parts at 2.54 mm, 3 A, 250 V: `613004243121` and `613020243121` for
-the sockets, `61300421021` and `61302021021` for the pin headers. **A 2×2 cannot enter a 2×10, so J1 is
-un-mateable with the other two by geometry alone.**
+Nothing passes through a board that has no business with it. The IO board's supply never crosses the
+mainboard, and the mainboard's USB and control signals never cross the power board.
+
+All connectors are Würth right-angle parts at 2.54 mm, 3 A, 250 V. **A 2×2 cannot enter a 2×5 or a 2×10, so
+J1 is un-mateable with the others by geometry alone.** J3 and J4 are the same size and sit next to each
+other, so they need a key — see Mechanics.
+
+### The ground topology is a triangle, and that is new
+
+Mainboard → power → IO → mainboard is a loop. D31's row was a chain with one return path; this is not.
+`J4` carries the USB reference ground, `J3` carries the rail return, and an LED board's current will divide
+between them according to impedance rather than intent.
+
+**`J3` must win on copper.** Wide, short, low-impedance return on `J3`; the grounds on `J4` are signal
+reference and nothing else. An IO board designer cannot infer this from the pinout, so it is stated here
+and it is part of the contract.
 
 ## Reference designator scheme
 
@@ -108,7 +121,7 @@ physically impossible.
 ## J2 — Power board to mainboard
 
 **Würth 613020243121, 2×10, 2.54 mm, 3 A per contact.** Supply for the mainboard, the metering and
-identification bus, two control lines, and the signals the power board passes on to the IO board.
+identification bus, two control lines, and the PSE type the power board detected.
 
 | Pin | Row A | Pin | Row B |
 |---:|---|---:|---|
@@ -116,24 +129,29 @@ identification bus, two control lines, and the signals the power board passes on
 | 3 | `GND` | 4 | `GND` |
 | 5 | `+5V` | 6 | `GND` |
 | 7 | `GND` | 8 | `GND` |
-| 9 | `USB_D−` | 10 | `GND` |
-| 11 | `USB_D+` | 12 | `GND` |
+| 9 | `TYP2_DET` | 10 | `GND` |
+| 11 | `TYP3_DET` | 12 | `GND` |
 | 13 | `GND` | 14 | `I2C_SDA` |
-| 15 | `IO_nRESET` | 16 | `I2C_SCL` |
-| 17 | `IO_BOOTSEL` | 18 | `PWR_ALERT` |
-| 19 | `IO_ATTN` | 20 | `PWR_EN` |
+| 15 | *reserved* | 16 | `I2C_SCL` |
+| 17 | *reserved* | 18 | `PWR_ALERT` |
+| 19 | *reserved* | 20 | `PWR_EN` |
 
 **Only two rails reach the mainboard.** `+3V3` for the processor, ethernet and logic, roughly 350 mA, and
 `+5V` for the two Halo LEDs and their level shifter, roughly 50 mA. 24 V and 12 V never touch the
 mainboard — the power board sends them straight to the IO board over J3.
 
-**The USB pair is on 9 and 11**, adjacent in one row so both traces leave on the same side and stay
-symmetric, with ground on 7 and 13 beside them and on 10 and 12 opposite. Route it as a **90 Ω
-differential pair** on both boards. It has two connectors and a board crossing to survive before it
-reaches the RP2354.
+**`TYP2_DET` and `TYP3_DET` are new, and they are opto outputs.** The bt PD modules pull these pins low
+from `VIN+`, so they sit in Domain 1 and reach Domain 2 through an optocoupler on the power board, which is
+Silvertel's own reference arrangement. Two GPIOs plus pull-ups on the mainboard, and the node can tell
+whether it is on an af, at or bt PSE and derate its budget accordingly. On an af power board both read
+inactive, which is the correct answer.
 
-**`IO_nRESET`, `IO_BOOTSEL` and `IO_ATTN` pass straight through the power board** to J3. They are none of
-its business electrically, but the topology puts it in the path. See D31.
+**Pins 15, 17 and 19 held `IO_nRESET`, `IO_BOOTSEL` and `IO_ATTN`** until D35 moved them to J4. They stay
+reserved rather than being reallocated: the connector is a contract, and a spare contact is worth more than
+a tidier table. D34's `esp-hosted` SPI sketch is the obvious claimant.
+
+**The USB pair has left this connector.** It is on J4 now, straight from the mainboard to the IO board, and
+it no longer crosses a board carrying switching regulators. See D35.
 
 ### I2C address map
 
@@ -168,7 +186,7 @@ At EEPROM address `0x00`, little-endian.
 | 0x04 | 1 | `descriptor_version` | Starts at 1 |
 | 0x05 | 2 | `board_type` | Registered ID, see the table below |
 | 0x07 | 1 | `hw_revision` | |
-| 0x08 | 1 | `poe_standard` | 1 = af, 2 = at, 3 = bt Type 4, 4 = bt Type 4 |
+| 0x08 | 1 | `poe_standard` | 1 = af, 2 = at, 3 = bt Type 3, 4 = bt Type 4 |
 | 0x09 | 1 | `declared_class` | The class signature presented to the PSE, 0 to 8 |
 | 0x0A | 2 | `total_budget_mW` | Power available to the node after the PD module |
 | 0x0C | 1 | `rails_present` | Bitfield: 0 = 3V3, 1 = 5V, 2 = 12V, 3 = 24V |
@@ -188,53 +206,104 @@ At EEPROM address `0x00`, little-endian.
 `total_budget_mW` is the honest figure after the PD module's own losses, not the standard's headline
 number. For `PWR-AF` that is about 11,500 mW, not 12,950.
 
+**On a bt board it is the maximum, not the current value.** The module declares a fixed class and the PSE
+may be smaller than that class, so the real budget is only known once `TYP2_DET` and `TYP3_DET` have been
+read. Firmware takes the lower of the descriptor figure and what the detect pins imply, and enforces that.
+A `PWR-BT3` on an at switch is a 25.5 W node and must behave like one.
+
 **These fields are the contract, not the topology.** A `PWR-BT` built on a 24 V module and one built on a
 12 V module are different boards with different `rails_present`, and firmware handles both without knowing
 which is which. That is deliberate: it lets a variant pick whatever PD module suits it.
 
-| `board_type` | Variant |
-|---:|---|
-| `0x0001` | `PWR-AF` |
-| `0x0002` | `PWR-AT` |
-| `0x0003` | `PWR-BT` |
+| `board_type` | Variant | Module | Rails |
+|---:|---|---|---|
+| `0x0001` | `PWR-AF` | AG9912-MTB or AG9924-MTB | 3V3, 5V, 12V *or* 24V |
+| `0x0002` | `PWR-AT` | AG5712/5724-LPB | 3V3, 5V, 12V *or* 24V |
+| `0x0003` | `PWR-BT3` | AG59612/59624-LPB | 3V3, 5V, 12V *or* 24V |
+| `0x0004` | `PWR-BT4` | AG59824-LPB | 3V3, 5V, 12V, 24V |
+
+`0x0003` was `PWR-BT` before the range split into Type 3 and Type 4. Nothing has shipped, so it is
+reassigned rather than deprecated — but once a board exists in the field this table is append-only.
 
 ---
 
-## J3 — Mainboard to IO board
+## J3 — Power board to IO board
 
-**Würth 613020243121, 2×10, 2.54 mm, 3 A per contact.** On the power board. All four rails plus the
-signals passed through from J2.
+**Würth 613020243121 socket on the IO board, 61302021021 pin header on the power board. 2×10, 2.54 mm,
+3 A per contact.** **Rails and ground, nothing else.**
 
-| Pin | Signal | Dir | Description |
-|---:|---|:---:|---|
-| 1 | `+24V` | → | May be absent. Ask before using |
-| 2 | `+12V` | → | May be absent |
-| 3 | `GND` | — | |
-| 4 | `+5V` | → | |
-| 5 | `+3V3` | → | Always present. Logic reference |
-| 6 | `GND` | — | **Link guard.** Keep this pin, do not repurpose |
-| 7 | `USB_DM` | ↔ | **USB D−.** 90 Ω differential pair with pin 8 |
-| 8 | `USB_DP` | ↔ | **USB D+.** Mainboard is host, IO board is device |
-| 9 | `GND` | — | **Link guard.** Keep this pin, do not repurpose |
-| 10 | `IO_nRESET` | → | Active low to the RP2354 `RUN` pin. Pull-down on the mainboard |
-| 11 | `IO_BOOTSEL` | → | Active low. Forces the ROM USB bootloader |
-| 12 | `IO_ATTN` | ← | Open drain, active low. IO board wants attention |
-| 13 | `SWCLK` | → | Debug. **Not an ESP32 pin**, see below |
-| 14 | `SWDIO` | ↔ | Debug. **Not an ESP32 pin**, see below |
-| 15 | `GND` | — | |
-| 16 | *reserved* | — | Do not connect. Reserved for a second link pair |
+| Pin | Row A | Pin | Row B |
+|---:|---|---:|---|
+| 1 | `+24V` | 2 | `GND` |
+| 3 | `+12V` | 4 | `GND` |
+| 5 | `+12V` | 6 | `GND` |
+| 7 | `+5V` | 8 | `GND` |
+| 9 | `+5V` | 10 | `GND` |
+| 11 | `+5V` | 12 | `GND` |
+| 13 | `+5V` | 14 | `GND` |
+| 15 | `+3V3` | 16 | `GND` |
+| 17 | `GND` | 18 | `GND` |
+| 19 | `GND` | 20 | `GND` |
 
-Keying: pin 1 marked on both boards, plus a mechanical key. **A reversed IO board must not destroy
-anything.**
+`+24V` and `+12V` may be absent — ask the descriptor before using them. `+3V3` is always present and is the
+logic reference.
+
+**This connector is sized for current, not pin count**, which is the point of D35, and the contact count
+follows from a decision recorded in Q4: **each rail must be able to deliver nearly the whole budget on its
+own**, not a fixed share of it. At 65 W that is 2.7 A on 24 V, 5 A on 12 V and 10 A on 5 V, so the low
+rails need parallel contacts while 24 V needs one.
+
+**Row B is ground throughout, and the twelve ground contacts are shared rather than assigned.** Only one
+rail is ever near full load, so its return uses all of them. This is why the ground side is not sized per
+rail: the constraint is the worst single rail, not the sum.
+
+**3V3 is deliberately not in this scheme.** It is the logic supply, capped at 3 A. Full budget on 3.3 V
+would be 18 A, which nobody draws through a 2.54 mm connector.
+
+**The rails share one budget and are not additive.** An IO board drawing 500 mA at 5 V has consumed 2.7 W
+of the total, not half of a separate 5 V allowance.
+
+Keying: pin 1 marked on both boards, plus a mechanical key. J3 is 2×10 and J4 is 2×5, so they can no
+longer be cross-mated by geometry — but they still sit next to each other on the same edge, so keep the
+pin-1 marking unambiguous on both.
+
+---
+
+## J4 — Mainboard to IO board
+
+**Würth 613010243121 socket on the mainboard, 61301021021 pin header on the IO board. 2×5, 2.54 mm.**
+The whole logical interface, straight between the two boards that care about it.
+
+| Pin | Row A | Pin | Row B |
+|---:|---|---:|---|
+| 1 | `GND` | 2 | `GND` |
+| 3 | `USB_D−` | 4 | `GND` |
+| 5 | `USB_D+` | 6 | `GND` |
+| 7 | `IO_nRESET` | 8 | `IO_ATTN` |
+| 9 | `IO_BOOTSEL` | 10 | `GND` |
+
+**The USB pair is on 3 and 5**, adjacent in one row so both traces leave on the same side and stay
+symmetric, with ground on 1 and 7 beside them and on 4 and 6 opposite.
+
+**These grounds are signal reference only.** The rail return belongs on J3. See the triangle warning at the
+top of this document.
+
+**SWD is not here.** D31 put the SWD header on the IO board next to the RP2354, where it is directly
+accessible because the IO board sits at an enclosure wall. D35 does not change that, and an earlier version
+of this document contradicted D31 by routing `SWCLK`/`SWDIO` through to a mainboard header. **The IO board
+carries its own SWD header.** See Q19 in [11 — Open Questions](11-open-questions.md).
 
 ### The link pins
 
-Pins 7 and 8 carry **USB full-speed** from rev A. They are adjacent with a ground either side, routed as a
+Pins 3 and 5 carry **USB full-speed** from rev A. They are adjacent with a ground either side, routed as a
 **90 Ω differential pair** on both boards.
 
 **This is the interface that must not change.** The IO boards are the growing half of the catalogue, and a
 generation 2 mainboard has to run generation 1 IO boards unmodified. That is why the link is USB now rather
 than a UART with a migration path. See D20.
+
+D35 improved its odds considerably. The pair no longer crosses the power board and two extra connectors, so
+generation 2's concern — high-speed USB at 480 Mbit/s over that path — is largely answered in advance.
 
 The speed matches on both ends and stays matched: the RP2354 is USB 1.1 full-speed, the ESP32-S3 host is
 full-speed, and a future high-speed host reaches the same device through a hub.
@@ -254,15 +323,6 @@ usually what you want in a product. Lift the resistor when you need the log.
 `IO_BOOTSEL` is only useful once the link is USB. It is routed from rev A anyway, because a phase-2
 mainboard then has the ROM bootloader available as a rescue path for a bricked IO board, and the alternative
 is opening the enclosure with an SWD probe.
-
-### SWD is a passthrough, not an ESP32 peripheral
-
-**Pins 13 and 14 do not connect to the ESP32.** Its pin budget is full and it has nothing useful to do with
-SWD anyway. They run from J3 straight to a 4-pin debug header on the mainboard, alongside GND and 3.3 V.
-
-The point is physical access. The RP2354's resident bootloader has to be programmed once over SWD at
-production test, and if it ever fails in the field the recovery is also over SWD. Routing it through the
-mainboard means both are done at one header, rather than unbolting the IO board to reach a test pad on it. See Q19 in [11 — Open Questions](11-open-questions.md).
 
 ### IO board identification
 
@@ -322,6 +382,8 @@ a mains board is visually distinguishable in the control software.
     ├─ invalid or absent → no power board, or a broken one.
     │                      Run on 3.3 V, network up, report fault, stop here
     └─ valid → continue
+ 3a. Read TYP2_DET and TYP3_DET. Derate total_budget_mW to the PSE actually
+     present, and report it if it is below the board's own rating
  4. Configure the metering from the descriptor's shunt constants
  5. Assert PWR_EN. Remaining rails come up in sequence
  6. Verify each declared rail is actually present and in tolerance
@@ -347,16 +409,29 @@ nothing useful to do in the window before I2C comes up.
 
 ## Mechanics
 
-**The three boards sit coplanar, edge to edge, joined by right-angle connectors.** They are not stacked.
+**The three boards sit coplanar, joined by right-angle connectors.** They are not stacked. **Mainboard and
+power board sit side by side; the IO board lies across the back of both** (D35).
 
 ```
-   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-   │  POWER BOARD │═══│  MAINBOARD   │═══│  IO BOARD    │
-   │              │J1 │  etherCON ▶  │J3 │              │
-   │              │J2 │              │   │              │
-   └──────────────┘   └──────────────┘   └──────────────┘
+   ┌───────────────┬──────────────┐
+   │   MAINBOARD   │ POWER BOARD  │
+   │  ◀ etherCON   │   J1 · J2    │
+   └───────┬───────┴──────┬───────┘
+        J4 │           J3 │
+   ┌───────┴──────────────┴───────┐
+   │          IO BOARD            │
+   └──────────────────────────────┘
         all three flat against the enclosure floor
 ```
+
+**J3 and J4 go at the middle of the shared edge**, close to the seam between mainboard and power board.
+Placed at the outer corners instead, every IO board would have to span the full width of both boards, which
+is a great deal of empty copper on a reed-switch board. **This is a contract item, not a layout
+preference** — it fixes how narrow an IO board is allowed to be, for the life of the ecosystem.
+
+**The IO board must reach both connectors at once**, so their spacing is fixed on all three boards and one
+of the three needs mounting-hole clearance to let the assembly settle. Same rule as before, one more
+interface to satisfy.
 
 ### Why coplanar rather than stacked
 
@@ -398,17 +473,24 @@ so the assembly settles itself as the screws go in.
 
 ### Connector pairs
 
-| Interface | Layout | Mainboard, socket | Mating board, pin header |
-|---|---|---|---|
-| `J1` | **2×2** | `613004243121` | `61300421021` |
-| `J2` | **2×10** | `613020243121` | `61302021021` |
-| `J3` | **2×10** | `613020243121` | `61302021021` |
+| Interface | Layout | Socket | Pin header | Socket on |
+|---|---|---|---|---|
+| `J1` | **2×2** | `613004243121` | `61300421021` | Mainboard |
+| `J2` | **2×10** | `613020243121` | `61302021021` | Mainboard |
+| `J3` | **2×10** | `613020243121` | `61302021021` | IO board |
+| `J4` | **2×5** | `613010243121` | `61301021021` | Mainboard |
 
-**J1 is 2×2 rather than 1×4, and J2/J3 are 2×10**, because those are the sizes the right-angle socket
-range actually offers. There is no 2×8 socket at all.
+**The right-angle socket range has gaps the pin header range does not.** There is no 2×8 and **no 2×7**
+(`613014243121` does not exist), which is why J2 stays 2×10 with three reserved contacts rather than
+shrinking to fit its nine signals. J1 is 2×2 rather than 1×4 for the same reason.
 
-Sourcing note: `613020243121` showed zero DigiKey stock on 2026-09-06 while the matching pin header had
-1525. Check other distributors before committing.
+**J3 puts the socket on the IO board**, breaking the socket-on-mainboard rule deliberately: the power board
+is the one carrying live rails, so the exposed pins belong on the board that is dead until `PWR_EN`. The
+same reasoning that put sockets on the mainboard puts this one on the IO board.
+
+Sourcing, checked 2026-09-07: `613010243121` 2288, `61301021021` 972, `613004243121` and `61300421021`
+in stock. `613020243121` showed zero DigiKey stock on 2026-09-06 while the matching pin header had 1525 —
+check other distributors before committing to J2.
 
 **Right-angle footprints are not interchangeable between manufacturers.** Unlike vertical headers, the hole
 positions relative to the body are vendor-specific, and Würth specifies **Ø1.1 ±0.20** against KiCad's
