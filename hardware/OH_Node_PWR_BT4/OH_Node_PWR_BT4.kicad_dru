@@ -1,0 +1,58 @@
+(version 1.1)
+#----------------------------------------------------------------------------------------------------
+# AISLER custom DRC rules.
+# Make Hardware less Hard. 
+#----------------------------------------------------------------------------------------------------
+# We created these custom rules to warn you if your design hits our manufacturing bounderies. 
+# You can disable the custom rules by commenting them out, though we advise against it.  
+# These rules are valid as of May 2024, please check for updated ones on our forum.
+# Please also note that these rules do not catch every single manufacturing limit. 
+# If you are not certain please check the documentation on our website. 
+#----------------------------------------------------------------------------------------------------
+
+# As our tooling is finite we only support certain trough hole sizes. 
+# Please keep the plated trough holes below 5.6mm in diameter. 
+# We provide a community post for more details: 
+# https://community.aisler.net/t/plated-and-non-plated-holes/50
+
+(rule "Max Drill Hole Size PTH"
+    (constraint hole_size (max 5.6mm))
+    (condition "A.Pad_Type == 'Through-hole'"))
+
+#----------------------------------------------------------------------------------------------------
+# We dont support micro or buried vias
+
+(rule "Disallow buried via"
+   (constraint disallow buried_via))
+
+(rule "Disallow micro via"
+   (constraint disallow micro_via))
+
+#----------------------------------------------------------------------------------------------------
+# The Soldermask is pulled back by a bit to account for slight missalignment during manufacturing. 
+# We do this on our own, please keep the soldermask margin set to 0. 
+ 
+(rule "Disallow solder mask margin overrides"
+    (constraint assertion "A.Soldermask_Margin_Override == 0mm || A.Soldermask_Margin_Override == null")
+    (condition "A.Type == 'Pad' && !A.memberOfFootprint('Fiducial:*')")
+)
+
+#----------------------------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------
+# Isolation barrier, Domain 1 to Domain 2.
+# Cable side = the PoE taps and the MDI pairs (Mode A carries PoE current on the data pairs).
+# Everything else, including CHASSIS, is on the far side of the barrier and keeps its distance.
+# Take the actual figure from IEC 60664-1 for the pollution degree in use - see docs/09.
+
+(rule "isolation_barrier"
+   (constraint clearance (min 1.5mm))
+   (condition "(A.NetClass == 'PoE TAPS' || A.NetClass == 'MDI') && !(B.NetClass == 'PoE TAPS' || B.NetClass == 'MDI')"))
+
+# The etherCON's own pin-to-shield spacing is fixed by Neutrik and cannot be changed by layout.
+# A later rule wins in KiCad, so this exempts the connector's internal geometry from the rule above
+# without weakening it anywhere else on the board.
+
+(rule "etherCON: vendor-defined pin spacing"
+   (constraint clearance (min 0.2mm))
+   (condition "A.memberOfFootprint('LRV:Neutrik_NE8FAH-LR-DAE') && B.memberOfFootprint('LRV:Neutrik_NE8FAH-LR-DAE')"))
