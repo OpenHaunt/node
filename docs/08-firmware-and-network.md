@@ -314,7 +314,7 @@ updated separately, which is what keeps the app partitions viable.
 
 | Condition | Behaviour |
 |---|---|
-| No power board, or a bad descriptor | Run on 3.3 V, join network, report fault, enable nothing |
+| No power board, or a bad descriptor | Run on the unconditional 5 V, join network, report fault, enable nothing |
 | No IO board detected | Join network, advertise `io=0x0000`, report fault |
 | IO board needs an absent rail | Hold in reset, report which rail, do not brown out trying |
 | IO board draw exceeds budget | Hold in reset, report the declared and available figures |

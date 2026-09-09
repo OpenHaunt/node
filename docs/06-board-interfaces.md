@@ -8,7 +8,7 @@ Four connectors, deliberately different from one another so that no two can be c
 | Ref | Between | Pins | Domain | Carries |
 |---|---|---|---|---|
 | `J1` | Mainboard → Power board | 2×2 | **1** | The four PoE taps, un-isolated |
-| `J2` | Mainboard ↔ Power board | 2×10 | 2 | 3.3 V, 5 V, I2C, alert, enable, PSE type |
+| `J2` | Mainboard ↔ Power board | 2×10 | 2 | 5 V, I2C, alert, enable, PSE type |
 | `J3` | Power board → IO board | 2×10 | 2 | **Rails and ground only** |
 | `J4` | Mainboard ↔ IO board | 2×5 | 2 | **USB and IO control, direct** |
 
@@ -120,12 +120,13 @@ physically impossible.
 
 ## J2 — Power board to mainboard
 
-**Würth 613020243121, 2×10, 2.54 mm, 3 A per contact.** Supply for the mainboard, the metering and
-identification bus, two control lines, and the PSE type the power board detected.
+**Würth 613020243121 socket on the power board, 61302021021 pin header on the mainboard. 2×10, 2.54 mm,
+3 A per contact.** Supply for the mainboard, the metering and identification bus, two control lines, and
+the PSE type the power board detected.
 
 | Pin | Row A | Pin | Row B |
 |---:|---|---:|---|
-| 1 | `+3V3` | 2 | `+3V3` |
+| 1 | `+5V` | 2 | `+5V` |
 | 3 | `GND` | 4 | `GND` |
 | 5 | `+5V` | 6 | `GND` |
 | 7 | `GND` | 8 | `GND` |
@@ -136,9 +137,12 @@ identification bus, two control lines, and the PSE type the power board detected
 | 17 | *reserved* | 18 | `PWR_ALERT` |
 | 19 | *reserved* | 20 | `PWR_EN` |
 
-**Only two rails reach the mainboard.** `+3V3` for the processor, ethernet and logic, roughly 350 mA, and
-`+5V` for the two Halo LEDs and their level shifter, roughly 50 mA. 24 V and 12 V never touch the
-mainboard — the power board sends them straight to the IO board over J3.
+**One rail reaches the mainboard: `+5V`, on three contacts, and it is unconditional.** It is not behind
+`PWR_EN`; it is up whenever the PD module is up. The mainboard makes its own 3.3 V from it for the ESP32-S3,
+W5500 and logic (D36), and feeds the two Halo LEDs and their level shifter directly. Roughly 300 mA at 5 V.
+24 V and 12 V never touch the mainboard — the power board sends them straight to the IO board over J3.
+
+Pins 1 and 2 carried `+3V3` until D36 removed the 3.3 V rail from the power board.
 
 **`TYP2_DET` and `TYP3_DET` are new, and they are opto outputs.** The bt PD modules pull these pins low
 from `VIN+`, so they sit in Domain 1 and reach Domain 2 through an optocoupler on the power board, which is
@@ -157,7 +161,7 @@ it no longer crosses a board carrying switching regulators. See D35.
 
 | Address | Device | Purpose |
 |---|---|---|
-| `0x40` | INA3221 | 12 V, 5 V, 3.3 V metering |
+| `0x40` | INA3221 | 12 V, the IO board's 5 V, and the mainboard's 5 V feed |
 | `0x44` | INA226 | 24 V metering. Absent on boards with no 24 V rail |
 | `0x50` | 24AA02UID | Descriptor and unique serial |
 
@@ -165,16 +169,16 @@ The mainboard is always the I2C master. Addresses above `0x50` are reserved for 
 
 ### Power contract
 
-**Only 3.3 V is guaranteed.** Everything else depends on the fitted variant and is declared in the
-descriptor. A mainboard that finds no 24 V rail is not in a fault state, it is on a power board built
+**Only 5 V is guaranteed.** Everything else depends on the fitted variant and is declared in the
+descriptor. There is no 3.3 V rail: every board regulates its own from 5 V (D36). A mainboard that finds no 24 V rail is not in a fault state, it is on a power board built
 from a 12 V module.
 
 The rails share one budget and are not additive. An IO board drawing 500 mA at 5 V has consumed 2.7 W of
 the total, not half of a separate 5 V allowance.
 
-`PWR_EN` is deliberately not the 3.3 V rail's enable. The mainboard has to be alive to assert it, so 3.3 V
-comes up unconditionally and the mainboard then enables the rest once it has read the descriptor and
-checked the budget.
+`PWR_EN` is deliberately not the enable of the mainboard's 5 V feed. The mainboard has to be alive to
+assert it, so its 5 V comes up unconditionally and the mainboard then enables the rest, the IO board's 5 V
+included, once it has read the descriptor and checked the budget.
 
 ### Power board descriptor
 
@@ -189,12 +193,12 @@ At EEPROM address `0x00`, little-endian.
 | 0x08 | 1 | `poe_standard` | 1 = af, 2 = at, 3 = bt Type 3, 4 = bt Type 4 |
 | 0x09 | 1 | `declared_class` | The class signature presented to the PSE, 0 to 8 |
 | 0x0A | 2 | `total_budget_mW` | Power available to the node after the PD module |
-| 0x0C | 1 | `rails_present` | Bitfield: 0 = 3V3, 1 = 5V, 2 = 12V, 3 = 24V |
-| 0x0D | 2 | `limit_mA_3v3` | eFuse trip threshold |
+| 0x0C | 1 | `rails_present` | Bitfield: 0 = 5V_MB (the mainboard feed, always set), 1 = 5V, 2 = 12V, 3 = 24V |
+| 0x0D | 2 | `limit_mA_5v_mb` | eFuse trip threshold of the mainboard feed |
 | 0x0F | 2 | `limit_mA_5v` | |
 | 0x11 | 2 | `limit_mA_12v` | |
 | 0x13 | 2 | `limit_mA_24v` | Zero if absent |
-| 0x15 | 2 | `shunt_uohm_3v3` | Metering calibration |
+| 0x15 | 2 | `shunt_uohm_5v_mb` | Metering calibration |
 | 0x17 | 2 | `shunt_uohm_5v` | |
 | 0x19 | 2 | `shunt_uohm_12v` | |
 | 0x1B | 2 | `shunt_uohm_24v` | |
@@ -217,10 +221,10 @@ which is which. That is deliberate: it lets a variant pick whatever PD module su
 
 | `board_type` | Variant | Module | Rails |
 |---:|---|---|---|
-| `0x0001` | `PWR-AF` | AG9912-MTB or AG9924-MTB | 3V3, 5V, 12V *or* 24V |
-| `0x0002` | `PWR-AT` | AG5712/5724-LPB | 3V3, 5V, 12V *or* 24V |
-| `0x0003` | `PWR-BT3` | AG59612/59624-LPB | 3V3, 5V, 12V *or* 24V |
-| `0x0004` | `PWR-BT4` | AG59824-LPB | 3V3, 5V, 12V, 24V |
+| `0x0001` | `PWR-AF` | AG9912-MTB or AG9924-MTB | 5V, 12V *or* 24V |
+| `0x0002` | `PWR-AT` | AG5712/5724-LPB | 5V, 12V *or* 24V |
+| `0x0003` | `PWR-BT3` | AG59612/59624-LPB | 5V, 12V *or* 24V |
+| `0x0004` | `PWR-BT4` | AG59824-LPB | 5V, 12V, 24V |
 
 `0x0003` was `PWR-BT` before the range split into Type 3 and Type 4. Nothing has shipped, so it is
 reassigned rather than deprecated — but once a board exists in the field this table is append-only.
@@ -229,7 +233,7 @@ reassigned rather than deprecated — but once a board exists in the field this 
 
 ## J3 — Power board to IO board
 
-**Würth 613020243121 socket on the IO board, 61302021021 pin header on the power board. 2×10, 2.54 mm,
+**Würth 613020243121 socket on the power board, 61302021021 pin header on the IO board. 2×10, 2.54 mm,
 3 A per contact.** **Rails and ground, nothing else.**
 
 | Pin | Row A | Pin | Row B |
@@ -241,12 +245,12 @@ reassigned rather than deprecated — but once a board exists in the field this 
 | 9 | `+5V` | 10 | `GND` |
 | 11 | `+5V` | 12 | `GND` |
 | 13 | `+5V` | 14 | `GND` |
-| 15 | `+3V3` | 16 | `GND` |
+| 15 | `+5V` | 16 | `GND` |
 | 17 | `GND` | 18 | `GND` |
 | 19 | `GND` | 20 | `GND` |
 
-`+24V` and `+12V` may be absent — ask the descriptor before using them. `+3V3` is always present and is the
-logic reference.
+`+24V` and `+12V` may be absent — ask the descriptor before using them. `+5V` is always present; every IO
+board makes its own 3.3 V from it (D36). Pin 15 carried `+3V3` before D36.
 
 **This connector is sized for current, not pin count**, which is the point of D35, and the contact count
 follows from a decision recorded in Q4: **each rail must be able to deliver nearly the whole budget on its
@@ -257,8 +261,8 @@ rails need parallel contacts while 24 V needs one.
 rail is ever near full load, so its return uses all of them. This is why the ground side is not sized per
 rail: the constraint is the worst single rail, not the sum.
 
-**3V3 is deliberately not in this scheme.** It is the logic supply, capped at 3 A. Full budget on 3.3 V
-would be 18 A, which nobody draws through a 2.54 mm connector.
+**There is no 3.3 V on this connector.** D36 removed the rail from the power board; an IO board's logic
+supply is an LDO from `+5V` on the IO board itself.
 
 **The rails share one budget and are not additive.** An IO board drawing 500 mA at 5 V has consumed 2.7 W
 of the total, not half of a separate 5 V allowance.
@@ -341,8 +345,7 @@ reason, and self-test result.
 | `hw_revision` | |
 | `fw_version` | RP2354 application version |
 | `serial` | 64-bit, from the RP2350 chip ID |
-| `power_mA_3v3` | Declared worst case |
-| `power_mA_5v` | |
+| `power_mA_5v` | Declared worst case, including the board's own 3.3 V regulation |
 | `power_mA_12v` | |
 | `power_mA_24v` | |
 | `rails_required` | Bitfield. The mainboard refuses to enable a board asking for an absent rail |
@@ -376,11 +379,11 @@ a mains board is visually distinguishable in the control software.
 ## Boot sequence
 
 ```
- 1. 3.3 V comes up unconditionally from the power board
+ 1. 5 V comes up unconditionally from the power board; the mainboard makes its own 3.3 V
  2. Mainboard boots. IO_nRESET low, PWR_EN low, so the IO board is held down
  3. Read the power board descriptor at 0x50
     ├─ invalid or absent → no power board, or a broken one.
-    │                      Run on 3.3 V, network up, report fault, stop here
+    │                      Run on 5 V, network up, report fault, stop here
     └─ valid → continue
  3a. Read TYP2_DET and TYP3_DET. Derate total_budget_mW to the PSE actually
      present, and report it if it is below the board's own rating
@@ -404,7 +407,8 @@ deliberate. A node that has lost a board must be findable and diagnosable remote
 is a ladder.
 
 Note that step 3 happens before step 5. The mainboard cannot enable the rails until it knows what they are,
-which is why 3.3 V is unconditional and why strap pins were rejected as an identification scheme. There is
+which is why the mainboard's 5 V is unconditional and why strap pins were rejected as an identification
+scheme. There is
 nothing useful to do in the window before I2C comes up.
 
 ## Mechanics
@@ -476,17 +480,29 @@ so the assembly settles itself as the screws go in.
 | Interface | Layout | Socket | Pin header | Socket on |
 |---|---|---|---|---|
 | `J1` | **2×2** | `613004243121` | `61300421021` | Mainboard |
-| `J2` | **2×10** | `613020243121` | `61302021021` | Mainboard |
-| `J3` | **2×10** | `613020243121` | `61302021021` | IO board |
+| `J2` | **2×10** | `613020243121` | `61302021021` | Power board |
+| `J3` | **2×10** | `613020243121` | `61302021021` | Power board |
 | `J4` | **2×5** | `613010243121` | `61301021021` | Mainboard |
 
 **The right-angle socket range has gaps the pin header range does not.** There is no 2×8 and **no 2×7**
 (`613014243121` does not exist), which is why J2 stays 2×10 with three reserved contacts rather than
 shrinking to fit its nine signals. J1 is 2×2 rather than 1×4 for the same reason.
 
-**J3 puts the socket on the IO board**, breaking the socket-on-mainboard rule deliberately: the power board
-is the one carrying live rails, so the exposed pins belong on the board that is dead until `PWR_EN`. The
-same reasoning that put sockets on the mainboard puts this one on the IO board.
+**The socket sits on the board that sources what the connector carries.** Exposed pins must never be live,
+so the side that can be live gets the socket:
+
+- `J1` carries the cable-side PoE taps, which come off the mainboard's magnetics. Socket on the mainboard.
+- `J2` and `J3` carry rails, which come from the power board. Sockets on the power board. The mainboard
+  feed on `J2` is live whenever PoE is present, before `PWR_EN`, so this is not optional.
+- `J4` carries USB and the control lines, and the mainboard is the host that drives them. Socket on the
+  mainboard.
+
+**Corrected 2026-09-09.** Earlier versions of this document put the sockets on the mainboard throughout
+and, for `J3`, on the IO board, with the argument that the power board's rails are dead until `PWR_EN`.
+That was wrong for `J2`, whose mainboard feed is unconditional (3.3 V then, 5 V since D36), and it left the
+power board with three exposed live headers. The rule above replaces it. Consequences: the IO board carries pin headers only, the mainboard
+has one socket (`J1`, `J4`) and one header (`J2`), the power board has two sockets (`J2`, `J3`) and one
+header (`J1`).
 
 Sourcing, checked 2026-09-07: `613010243121` 2288, `61301021021` 972, `613004243121` and `61300421021`
 in stock. `613020243121` showed zero DigiKey stock on 2026-09-06 while the matching pin header had 1525 —
@@ -496,8 +512,8 @@ check other distributors before committing to J2.
 positions relative to the body are vendor-specific, and Würth specifies **Ø1.1 ±0.20** against KiCad's
 generic Ø1.0. Verify the generic footprints against the Würth drawing before layout.
 
-The mainboard carries the sockets throughout, per D30's reasoning about which side stays live and, more
-practically, so that a bare mainboard on the bench has no exposed pins to short with a probe.
+A bare mainboard on the bench still has no live exposed pins: `J2`'s header is dead without a power board,
+and `J1` and `J4` are sockets.
 
 `J21` on the mainboard and the SWD header on the IO board are board-local service connectors and stay
 vertical.

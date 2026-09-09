@@ -20,8 +20,8 @@
 ║   │ W5500  MAC+PHY   │                     │  24V ─ eFuse ─ INA226    │  ║
 ║   │ SPI              │                     │  12V ─ eFuse ─┐          │  ║
 ║   └────────┬─────────┘                     │   5V ─ eFuse ─┤ INA3221  │  ║
-║            │ SPI                           │  3V3 ─ eFuse ─┘          │  ║
-║   ┌────────▼─────────┐    J2: 3V3,5V,I2C   │  24AA02UID  0x50         │  ║
+║            │ SPI                           │  5Vm ─ eFuse ─┘          │  ║
+║   ┌────────▼─────────┐    J2: 5V, I2C      │  24AA02UID  0x50         │  ║
 ║   │ ESP32-S3         │◀═══════════════════▶│  + USB and IO control    │  ║
 ║   │ 16 MB int. flash │                     └──────────────────────────┘  ║
 ║   └────────┬─────────┘                                                   ║
@@ -47,7 +47,7 @@ between mainboard and IO board stays point-to-point.
 | Mainboard | Power board | IO board |
 |---|---|---|
 | RJ45 magjack and all magnetics | PoE detection, classification, isolation | RP2354 and its firmware |
-| Every impedance-controlled trace | 24 V / 12 V / 5 V / 3.3 V generation | All application I/O |
+| Every impedance-controlled trace | 24 V / 12 V / 5 V generation | All application I/O |
 | ESP32-S3, W5500, external flash | Per-rail eFuse and metering | All outward-facing connectors except RJ45 |
 | Network stack, mDNS, OTA, web UI | Descriptor EEPROM | Any additional isolation barrier |
 | Status LEDs, config button | Thermal management of the PD module | |
@@ -129,15 +129,16 @@ Silvertel PD module                          1500 V isolated, bridge rectifiers 
    ├── 24 V ──▶ eFuse ──▶ INA226  ──┐
    ├── 12 V ──▶ eFuse ──┐           │
    │                    ├─ INA3221 ─┤
-   ├──▶ buck ── 5 V ──▶ eFuse ──────┤        J2
-   │                                │        ══▶ MAINBOARD  (3V3 only)
-   └──▶ buck ── 3V3 ──▶ eFuse ──────┘        ══▶ IO BOARD   (all four rails)
+   └──▶ buck ── 5 V ──┬▶ eFuse ──────┤        J2
+                      └▶ eFuse ──────┘        ══▶ MAINBOARD  (5 V only, unconditional)
+                                              ══▶ IO BOARD   (all three rails)
                                               ══▶ I2C: 0x40 INA3221
                                                        0x44 INA226
                                                        0x50 24AA02UID
 ```
 
-Which rails exist depends on the power board fitted. Only 3.3 V is guaranteed. The descriptor says what
+Which rails exist depends on the power board fitted. Only 5 V is guaranteed; every board makes its own
+3.3 V from it (D36). `5Vm` in the figure above is the mainboard's unconditional feed. The descriptor says what
 else is present and at what current limit, and firmware refuses to enable an IO board that asks for a rail
 the fitted power board does not have.
 
@@ -194,12 +195,12 @@ the total, not half of a separate 5 V allowance.
 
 Each rail leaves the power board through a current-limiting load switch with a hard trip that does not
 depend on firmware. At 71 W a shorted IO board rail is a fire risk rather than a brownout, and the
-Silvertel's own protection sits at the 48 V input, not at the 3.3 V rail that just shorted.
+Silvertel's own protection sits at the 48 V input, not at the 5 V rail that just shorted.
 
 The eFuse also gives a clean way to power-cycle an IO board that has locked up, and a defined inrush ramp
 so that hot-plugging a board with bulk capacitance does not collapse the rail for everything else.
 
-**TPS259803ONRGER** is already in Part-DB and is a good fit for 12 V, 5 V and 3.3 V: 2.7 to 24 V, 8 A,
+**TPS259803ONRGER** is already in Part-DB and is a good fit for 12 V and both 5 V branches: 2.7 to 24 V, 8 A,
 programmable current limit, circuit breaker, OVP, slew rate and UVLO, $2.64 with 7,916 in stock. Its 24 V
 supply ceiling leaves no margin on a 24 V rail, so a board carrying one needs a higher-voltage part there,
 something in the TPS1663 class at 60 V. See [04 — Power Board](04-power-board.md).
@@ -208,7 +209,8 @@ something in the TPS1663 class at 60 V. See [04 — Power Board](04-power-board.
 
 Voltage, current and power per rail, over the I2C on J2.
 
-The INA3221 is three channels in one package at one address, which covers 12 V, 5 V and 3.3 V. **It cannot
+The INA3221 is three channels in one package at one address, which covers 12 V, the IO board's 5 V and
+the mainboard's 5 V feed. **It cannot
 be used for the 24 V rail.** Its common-mode range tops out at 26 V, which leaves no margin on a 24 V rail
 with switching ripple on it. The 24 V rail gets its own INA226 at 36 V instead.
 

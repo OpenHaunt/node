@@ -63,7 +63,7 @@ what SPI ethernet can absorb, so sACN becomes a requirement.
 
 ### Q4 — Regulator selection for the high-power variants
 
-`PWR-AF` inherits the AP63203 and AP63205, both 2 A parts, and they are fine there. `PWR-AT` and
+`PWR-AF` inherits the AP63205, a 2 A part, and it is fine there (the AP63203 is gone since D36; the mainboard uses an AMS1117). `PWR-AT` and
 `PWR-BT` need different parts: higher current, and a 24 V input rather than 12 V.
 
 The problem is that the right current per rail follows from the IO board catalogue, which is mostly still
@@ -279,3 +279,41 @@ the RP2354's resident bootloader, and an isolation test on the DMX IO board.
 
 **Design the test points in now.** The SWD programming step in particular is new and has to be reachable on
 an assembled IO board.
+
+### Q20 — Sound board: where the audio storage lives, and which side decodes
+
+The sound board ([01](01-product-concept.md)) needs storage for its sounds and something that decodes
+them into I2S. Three placements are on the table:
+
+- **SD card on the sound board.** Cheapest, replaceable, and sounds travel with the board. Cards in a
+  humid, fog-laden enclosure are a reliability question, and a card slot is a mechanical opening.
+- **eMMC on the sound board.** Sealed and reliable, loaded over the network rather than by swapping a
+  card. More expensive, and the content is tied to the board.
+- **Storage on the mainboard**, with the sound board reduced to a DAC and amplifier. Then the mainboard's
+  flash budget and the ESP32-S3's decoding capacity decide what fits, and mainboard variant 2 gets sound
+  almost for free.
+
+Which side decodes follows from that choice, and it decides whether the sound board carries an MCU of its
+own. Decide before the connector is specified, because the answer changes what crosses it.
+
+### Q21 — Should the power board generate 3.3 V at all? — RESOLVED
+
+**Resolved 2026-09-09 by D36: no.** 5 V is the unconditional rail; every board makes its own 3.3 V. The
+analysis below is kept as the record.
+
+Every power board variant carries a 3.3 V buck, its eFuse and a metering channel, and 3.3 V is the
+unconditional rail the boot sequence in [06](06-board-interfaces.md) starts from. Both consumers are small:
+the mainboard at about 350 mA, an IO board's RP2354 at about 100 mA.
+
+**The alternative is to make 5 V the unconditional rail and regulate 3.3 V locally on every board.** The
+mainboard gets the AP63203 buck that `PWR-AF` already uses, an IO board gets an LDO from 5 V. What it
+buys: one buck, one eFuse and one descriptor rail fewer on every power board variant, about 250 mm² on
+`PWR-BT4`, and a 3.3 V that is regulated next to the ESP32-S3 instead of arriving through two connectors
+and a rail shared with an IO board. The freed INA3221 channel can meter the mainboard's own 5 V feed
+separately from the IO board's. What it costs: a switching regulator on the mainboard, which currently has
+none, and a contract change on `J2` (pins 1 and 2 become 5 V) and `J3` (pin 15 becomes a fifth 5 V contact
+or reserved). Nothing has shipped, so the contract change is free now and expensive later.
+
+**Leaning: drop it.** The unconditional rail becomes 5 V, which needs an ungated 5 V path to `J2` beside
+the eFuse-gated one to `J3`. If decided, it amends D-entries on the power board and `06`, `04`, `05` and
+`02`, all of which currently say "only 3.3 V is guaranteed".

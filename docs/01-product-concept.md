@@ -78,7 +78,7 @@ pulled apart far enough to justify a third.
    │  MAINBOARD       │   │  POWER BOARD     │   │  IO BOARD        │
 ═▶ │  etherCON        │──▶│  PoE tap         │   │  RP2354          │
    │  magnetics       │   │  Silvertel PD    │   │  application I/O │
-   │  ESP32 · PHY     │◀──│  24/12/5/3V3     │   │  ID over link    │
+   │  ESP32 · PHY     │◀──│  24 / 12 / 5     │   │  ID over link    │
    │  flash · network │   │  eFuse · metering│   │  isolation if    │
    │                  │──────── rails ──────────▶│  needed          │
    │                  │◀─────── link ───────────▶│                  │
@@ -146,13 +146,59 @@ The cost is a second firmware image and a second update path. That is real work,
 |---|---|---|
 | etherCON and all magnetics | PoE detection and classification | Application I/O of every kind |
 | Every impedance-controlled trace | The isolation barrier | All outward-facing connectors except the etherCON |
-| ESP32-S3, W5500, external flash | 24 V / 12 V / 5 V / 3.3 V | Any additional isolation barrier |
+| ESP32-S3, W5500, external flash | 24 V / 12 V / 5 V | Any additional isolation barrier |
 | mDNS, web UI, OTA, protocol stacks | Per-rail eFuse and metering | Local timing and failsafe behaviour |
 | Status display on the Halo ring | Descriptor EEPROM | Self-description over the link |
 
 **DMX is an IO board, not a mainboard function.** This was deliberated and settled early: although the
 project started as a DMX node, making DMX an IO board keeps the mainboard small and means nodes that only
 read a button do not carry an isolated RS-485 transceiver and an XLR connector they will never use.
+
+## Beyond three boards
+
+Two extensions are part of the concept but not of rev A. They are written down here so that rev A does
+not close the door on them.
+
+```
+   ┌──────────┐ ┌───────────────┬──────────────┐
+   │  SOUND   │ │   MAINBOARD   │ POWER BOARD  │
+   │  BOARD   │─│  (or variant 2)   J1 · J2    │
+   └──────────┘ └───────┬───────┴──────┬───────┘
+                     J4 │           J3 │
+                ┌───────┴──────────────┴───────┐
+                │          IO BOARD            │
+                └──────────────────────────────┘
+```
+
+### A sound board beside the mainboard
+
+**A fourth coplanar board on the mainboard's free edge**, connected over I2S from the ESP32-S3 plus a
+control bus, on a new board-to-board connector from the `J1` to `J9` band. It does one thing: turn a cue into audio, locally,
+without a separate player and a contact-closure trigger.
+
+- **Two variants.** Line level on a 3.5 mm mini-jack for installations with their own amplification, and
+  a variant with a small amplifier for a passive speaker. The amplifier variant is bounded by what the
+  mainboard can pass on: 5 V only, since 12 V and 24 V never touch the mainboard. A few watts of
+  class D at 5 V fits; anything larger needs a rail path of its own and is a different design.
+- **Storage travels with the sounds.** Whether that is an SD card on the sound board, eMMC on the sound
+  board, or storage on the mainboard that the sound board streams from, is open. So is which side decodes.
+  See Q20 in [11](11-open-questions.md).
+- **The edge is not free yet.** In D35's arrangement the mainboard's outer edge carries the etherCON. Either
+  the etherCON moves to the front edge or the sound board docks at the front; that is settled with the
+  enclosure, not before.
+
+### Mainboard variant 2: a Linux processor for video
+
+**The same outline and the same three connectors, with a Raspberry Pi Zero 2 W or a Compute Module 4/5 in
+place of the ESP32-S3**, for nodes that have to output video: projection mapping, a screen in a prop, a
+display that is part of the effect. Sound can then live on the mainboard, since the processor already has
+I2S and HDMI audio.
+
+What it must keep: `J1`, `J2` and `J4` at the positions the contract fixes, the etherCON and its
+magnetics, and the boot sequence in [06](06-board-interfaces.md). Power boards and IO boards then work
+unchanged, which is the whole reason the interfaces are contracts. What it changes: the processor, the
+firmware, the power budget of the mainboard itself, and the certification file. Concept only; no part is
+selected.
 
 ## Non-goals
 

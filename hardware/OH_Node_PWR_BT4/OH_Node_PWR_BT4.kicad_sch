@@ -6309,179 +6309,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Part-DB:RC0402JR-07510RL"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
-			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "R"
-				(at 2.032 0 90)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "510R"
-				(at 0 0 90)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-				(at -1.778 0 90)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "510 Ohms ±5% 0.063W, 1/16W Chip Resistor 0402 (1005 Metric) Moisture Resistant Thick Film"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "MPN" "RC0402JR-07510RL"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Manufacturer" "YAGEO"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Part-DB ID" "373"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Part-DB URL" "http://parts.hive.service42.me/en/part/373/info"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_fp_filters" "Resistor_SMD:R_0402_1005Metric"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(symbol "RC0402JR-07510RL_0_1"
-				(rectangle
-					(start -1.016 -2.54)
-					(end 1.016 2.54)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "RC0402JR-07510RL_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Part-DB:RC0402JR-1322KL"
 			(pin_numbers
 				(hide yes)
@@ -7157,217 +6984,6 @@
 					(at 0 -3.81 90)
 					(length 1.27)
 					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "Part-DB:SRP1265A-100M"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 1.016)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
-			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "L"
-				(at -1.27 0 90)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "SRP1265A-100M"
-				(at 1.905 0 90)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "LRV:Bourns_SRP1265A"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/18/SRP_Series_Bltn.pdf"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "10 µH Shielded Drum Core, Wirewound Inductor 10 A 16.5mOhm Max Nonstandard"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "MPN" "SRP1265A-100M"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Manufacturer" "Bourns Inc."
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Part-DB ID" "573"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Part-DB URL" "http://parts.hive.service42.me/en/part/573/info"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_fp_filters" "LRV:Bourns_SRP1265A"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(symbol "SRP1265A-100M_0_1"
-				(arc
-					(start 0 2.54)
-					(mid 0.6323 1.905)
-					(end 0 1.27)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(arc
-					(start 0 1.27)
-					(mid 0.6323 0.635)
-					(end 0 0)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(arc
-					(start 0 0)
-					(mid 0.6323 -0.635)
-					(end 0 -1.27)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(arc
-					(start 0 -1.27)
-					(mid 0.6323 -1.905)
-					(end 0 -2.54)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "SRP1265A-100M_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -10205,12 +9821,6 @@
 		(uuid "029da7b3-2e82-43cd-907a-ec457c6f8607")
 	)
 	(junction
-		(at 173.99 217.17)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "0735f1d9-de53-4265-8240-0cbb7db32ad8")
-	)
-	(junction
 		(at 361.95 124.46)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -10233,12 +9843,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "14a8f3e0-80ba-4fb7-ad4f-ccfd7a64d7fc")
-	)
-	(junction
-		(at 173.99 266.7)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "151d0c08-f094-4589-b203-b44b728b274d")
 	)
 	(junction
 		(at 292.1 62.23)
@@ -10283,12 +9887,6 @@
 		(uuid "2a565de3-c3c4-43c3-9adc-00ac5b07dbef")
 	)
 	(junction
-		(at 184.15 259.08)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "2e02723b-66b7-4ff5-b889-e7bc4b989416")
-	)
-	(junction
 		(at 101.6 251.46)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -10317,12 +9915,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "39d9e14c-7b55-4e48-8f9b-330cb139a437")
-	)
-	(junction
-		(at 173.99 204.47)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "3b313e7d-5eb3-4d68-b5e9-e19f8f8128a0")
 	)
 	(junction
 		(at 130.81 71.12)
@@ -10361,12 +9953,6 @@
 		(uuid "575de6eb-589e-4739-b9dd-274b931c4b6e")
 	)
 	(junction
-		(at 210.82 218.44)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "5bd68deb-bae2-40ad-8e22-b065908ec04e")
-	)
-	(junction
 		(at 255.27 66.04)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -10377,12 +9963,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "6141ea78-af0c-4955-97d9-775e7e79f8f1")
-	)
-	(junction
-		(at 179.07 259.08)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "62f13933-ff03-4728-bfdc-84edbce72fe5")
 	)
 	(junction
 		(at 302.26 138.43)
@@ -10413,12 +9993,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "7cec1260-13d1-46a6-80e4-d562cb853a39")
-	)
-	(junction
-		(at 217.17 210.82)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "8066b7ae-a5ae-4226-953a-fd8e880132eb")
 	)
 	(junction
 		(at 162.56 184.15)
@@ -10491,6 +10065,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "99e86ad4-527e-4b74-a688-84bd0f0cf63a")
+	)
+	(junction
+		(at 351.79 199.39)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "9ab68071-5a72-4b97-9b15-d6297c59f837")
 	)
 	(junction
 		(at 347.98 105.41)
@@ -10571,12 +10151,6 @@
 		(uuid "c6c187ec-2f24-4418-882e-01ac3305618d")
 	)
 	(junction
-		(at 173.99 205.74)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "c793156e-afb6-4e43-89d8-1d07ebf1a522")
-	)
-	(junction
 		(at 138.43 218.44)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -10587,12 +10161,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "cea09b64-db8f-468b-8aee-da06ea669250")
-	)
-	(junction
-		(at 184.15 266.7)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "d20bf47b-d5ca-4b98-a286-5e1973e2dc18")
 	)
 	(junction
 		(at 109.22 184.15)
@@ -10613,16 +10181,16 @@
 		(uuid "dcd0a07b-af7b-4f57-bf81-346439ea299b")
 	)
 	(junction
+		(at 242.57 76.2)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "df504a93-5065-4c41-9a03-1e29bfff4a44")
+	)
+	(junction
 		(at 74.93 210.82)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e35692b2-16cf-443f-bf6b-e568fd128884")
-	)
-	(junction
-		(at 191.77 241.3)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "e3baeb8b-7c3e-4604-b8d5-ea8b6d6f79ba")
 	)
 	(junction
 		(at 101.6 217.17)
@@ -10635,12 +10203,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e5b9fada-911e-4b1f-88ba-64a887276336")
-	)
-	(junction
-		(at 179.07 266.7)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "ec1900eb-09a1-4d0e-9312-9921be46925c")
 	)
 	(junction
 		(at 140.97 50.8)
@@ -10671,12 +10233,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f47fbc8a-0a32-4aa3-a4cf-223a344ece84")
-	)
-	(junction
-		(at 222.25 203.2)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f750154b-e612-43fe-abd6-a9202e201879")
 	)
 	(junction
 		(at 133.35 266.7)
@@ -10789,10 +10345,6 @@
 		(uuid "b1d65d18-09e4-478c-ade2-f66a9708404c")
 	)
 	(no_connect
-		(at 209.55 226.06)
-		(uuid "b75c4250-9cc2-4ef1-b6f3-262ad7c5d79a")
-	)
-	(no_connect
 		(at 361.95 157.48)
 		(uuid "c18dcf24-4ce7-4540-af5e-d1a5b970102f")
 	)
@@ -10873,16 +10425,6 @@
 			(type default)
 		)
 		(uuid "05654f49-7904-423c-a3e5-5d455a7f9c58")
-	)
-	(wire
-		(pts
-			(xy 160.02 204.47) (xy 173.99 204.47)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0598eee8-cd4f-428e-8f1b-1ba6da9e077b")
 	)
 	(wire
 		(pts
@@ -11036,16 +10578,6 @@
 	)
 	(wire
 		(pts
-			(xy 222.25 203.2) (xy 217.17 203.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "16210e09-414d-4cbc-872f-918b672792e5")
-	)
-	(wire
-		(pts
 			(xy 85.09 184.15) (xy 92.71 184.15)
 		)
 		(stroke
@@ -11096,16 +10628,6 @@
 	)
 	(wire
 		(pts
-			(xy 217.17 210.82) (xy 222.25 210.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1dd0298a-2b79-4a23-819a-4060e55ee97a")
-	)
-	(wire
-		(pts
 			(xy 278.13 127) (xy 289.56 127)
 		)
 		(stroke
@@ -11136,16 +10658,6 @@
 	)
 	(wire
 		(pts
-			(xy 217.17 208.28) (xy 217.17 210.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "200d8abb-751e-4fcf-9ca9-95acc8d7eb05")
-	)
-	(wire
-		(pts
 			(xy 278.13 114.3) (xy 289.56 114.3)
 		)
 		(stroke
@@ -11153,16 +10665,6 @@
 			(type default)
 		)
 		(uuid "21397eeb-1fc2-4f7d-bd57-ff0e46406719")
-	)
-	(wire
-		(pts
-			(xy 158.75 213.36) (xy 158.75 217.17)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "21d3873a-33e4-49e7-823e-13f7d5e74c08")
 	)
 	(wire
 		(pts
@@ -11213,26 +10715,6 @@
 			(type default)
 		)
 		(uuid "23b0fd03-6366-43b0-ad96-7f5edcba7f6f")
-	)
-	(wire
-		(pts
-			(xy 87.63 276.86) (xy 95.25 276.86)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2497dd0f-3e82-40ec-ad4b-8cc686dbaae3")
-	)
-	(wire
-		(pts
-			(xy 165.1 228.6) (xy 173.99 228.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "25509475-2010-4755-b220-13d94f9e3556")
 	)
 	(wire
 		(pts
@@ -11396,7 +10878,7 @@
 	)
 	(wire
 		(pts
-			(xy 346.71 207.01) (xy 356.87 207.01)
+			(xy 351.79 207.01) (xy 356.87 207.01)
 		)
 		(stroke
 			(width 0)
@@ -11453,16 +10935,6 @@
 			(type default)
 		)
 		(uuid "3aef4b48-40c8-4c97-819d-3496d0b1ece5")
-	)
-	(wire
-		(pts
-			(xy 184.15 259.08) (xy 189.23 259.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3c8f9103-1d84-4410-9ea2-972ccd260a37")
 	)
 	(wire
 		(pts
@@ -11533,26 +11005,6 @@
 			(type default)
 		)
 		(uuid "44c3af96-d833-41f0-b252-71510f489922")
-	)
-	(wire
-		(pts
-			(xy 173.99 259.08) (xy 179.07 259.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "44d4544a-67c2-49ff-9b05-ed15776f9ef0")
-	)
-	(wire
-		(pts
-			(xy 173.99 215.9) (xy 173.99 217.17)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "464caac6-b506-424f-92fc-6b84d89e2f92")
 	)
 	(wire
 		(pts
@@ -11906,16 +11358,6 @@
 	)
 	(wire
 		(pts
-			(xy 226.06 203.2) (xy 222.25 203.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "64b849ce-0e00-45cb-9b9e-7fa5a9ed4ed9")
-	)
-	(wire
-		(pts
 			(xy 255.27 73.66) (xy 255.27 76.2)
 		)
 		(stroke
@@ -12013,16 +11455,6 @@
 			(type default)
 		)
 		(uuid "6b10670a-d82d-4f6a-9e67-7f3006ffac90")
-	)
-	(wire
-		(pts
-			(xy 110.49 278.13) (xy 110.49 276.86)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6b359db7-74b1-4cfa-92bf-269939b1cad6")
 	)
 	(wire
 		(pts
@@ -12146,16 +11578,6 @@
 	)
 	(wire
 		(pts
-			(xy 191.77 241.3) (xy 196.85 241.3)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7b58266b-41be-4d6a-9a9a-c3e45cf46c3c")
-	)
-	(wire
-		(pts
 			(xy 299.72 69.85) (xy 306.07 69.85)
 		)
 		(stroke
@@ -12216,16 +11638,6 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 241.3) (xy 191.77 241.3)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "824476d5-1642-4525-9127-d2450806094f")
-	)
-	(wire
-		(pts
 			(xy 87.63 265.43) (xy 95.25 265.43)
 		)
 		(stroke
@@ -12253,16 +11665,6 @@
 			(type default)
 		)
 		(uuid "867b19e1-9745-4c70-acb8-fe69cb85b063")
-	)
-	(wire
-		(pts
-			(xy 209.55 208.28) (xy 217.17 208.28)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "874434c1-4db2-494e-80d2-4ee5c4375e20")
 	)
 	(wire
 		(pts
@@ -12314,16 +11716,6 @@
 		)
 		(uuid "90f293f1-53df-4441-b71e-b44060558f98")
 	)
-	(wire
-		(pts
-			(xy 179.07 266.7) (xy 184.15 266.7)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "912cf308-29fa-4651-a074-e0d2ca37a96b")
-	)
 	(polyline
 		(pts
 			(xy 273.05 31.75) (xy 273.685 153.67)
@@ -12343,26 +11735,6 @@
 			(type default)
 		)
 		(uuid "934934cd-16ef-4e50-a64f-258bda384fb2")
-	)
-	(wire
-		(pts
-			(xy 210.82 217.17) (xy 210.82 218.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9444a33f-2f06-4e71-aaa7-585bd253ebcb")
-	)
-	(wire
-		(pts
-			(xy 173.99 203.2) (xy 173.99 205.74)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "94b01c29-d559-4d56-93b2-da6e5d2b3831")
 	)
 	(wire
 		(pts
@@ -12436,16 +11808,6 @@
 	)
 	(wire
 		(pts
-			(xy 184.15 266.7) (xy 189.23 266.7)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9cc642f7-9891-4bcf-8af3-1cc152c60d1d")
-	)
-	(wire
-		(pts
 			(xy 86.36 213.36) (xy 86.36 217.17)
 		)
 		(stroke
@@ -12486,16 +11848,6 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 213.36) (xy 158.75 213.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a0bcf9a4-19c0-4b3d-ab01-cce8f3a6c2a1")
-	)
-	(wire
-		(pts
 			(xy 31.75 217.17) (xy 68.58 217.17)
 		)
 		(stroke
@@ -12513,16 +11865,6 @@
 			(type default)
 		)
 		(uuid "a1024262-8cf5-4efe-ade0-a50ff675ef66")
-	)
-	(wire
-		(pts
-			(xy 173.99 266.7) (xy 179.07 266.7)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a18aba52-48cb-4a64-a30d-3cc88c5f638f")
 	)
 	(wire
 		(pts
@@ -12606,16 +11948,6 @@
 	)
 	(wire
 		(pts
-			(xy 67.31 276.86) (xy 80.01 276.86)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a8c03649-5b6a-40eb-8dfb-ce27d9ed235d")
-	)
-	(wire
-		(pts
 			(xy 363.22 175.26) (xy 363.22 173.99)
 		)
 		(stroke
@@ -12623,6 +11955,16 @@
 			(type default)
 		)
 		(uuid "a8d1bfca-1dc7-4927-83fe-83a7c3f2b741")
+	)
+	(wire
+		(pts
+			(xy 242.57 73.66) (xy 242.57 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a9210afc-4dc6-42fc-83e9-adcdbab3c38f")
 	)
 	(wire
 		(pts
@@ -12806,26 +12148,6 @@
 	)
 	(wire
 		(pts
-			(xy 179.07 259.08) (xy 184.15 259.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "bbefe89c-284b-4d87-84df-5e56eaba9a13")
-	)
-	(wire
-		(pts
-			(xy 210.82 218.44) (xy 217.17 218.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "be01f080-55e0-46fa-b19a-23e931b65f3b")
-	)
-	(wire
-		(pts
 			(xy 201.93 78.74) (xy 220.98 78.74)
 		)
 		(stroke
@@ -12833,16 +12155,6 @@
 			(type default)
 		)
 		(uuid "c0b6496c-3ccd-4291-9829-e7604b5a4e86")
-	)
-	(wire
-		(pts
-			(xy 173.99 217.17) (xy 210.82 217.17)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c24c1418-8655-4428-b4b4-8ad66eb301bf")
 	)
 	(wire
 		(pts
@@ -12946,16 +12258,6 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 205.74) (xy 173.99 210.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d410352c-b102-466c-bc83-1882318a93bb")
-	)
-	(wire
-		(pts
 			(xy 332.74 59.69) (xy 341.63 59.69)
 		)
 		(stroke
@@ -13006,26 +12308,6 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 218.44) (xy 210.82 218.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d91e9885-c1fb-4a19-9971-47e3bd1ecf81")
-	)
-	(wire
-		(pts
-			(xy 165.1 223.52) (xy 173.99 223.52)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d9fb715e-5f51-44c9-9616-60f03bc72142")
-	)
-	(wire
-		(pts
 			(xy 278.13 129.54) (xy 289.56 129.54)
 		)
 		(stroke
@@ -13063,6 +12345,16 @@
 			(type default)
 		)
 		(uuid "debb6a97-2ae0-4b28-8039-8111cde60a3c")
+	)
+	(wire
+		(pts
+			(xy 351.79 199.39) (xy 351.79 207.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "df2ff290-8223-44fd-bf3f-ab701acecd8d")
 	)
 	(wire
 		(pts
@@ -13376,16 +12668,6 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 217.17) (xy 173.99 218.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fced0bb5-4372-4ea8-b014-3ff7d5ae5c5e")
-	)
-	(wire
-		(pts
 			(xy 138.43 217.17) (xy 138.43 218.44)
 		)
 		(stroke
@@ -13443,16 +12725,6 @@
 			(justify right bottom)
 		)
 		(uuid "14ba2d61-e323-4b2c-a900-38709927600a")
-	)
-	(label "+3V3_REG"
-		(at 67.31 276.86 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "1829954b-4cb2-42ca-88ea-d7d5570f4f6a")
 	)
 	(label "+24V_PRE"
 		(at 300.99 52.07 0)
@@ -13524,7 +12796,7 @@
 		)
 		(uuid "2f414ec0-7e95-470a-a0b6-28f225433901")
 	)
-	(label "+3V3_PRE"
+	(label "+5V_PRE"
 		(at 345.44 199.39 0)
 		(effects
 			(font
@@ -13674,16 +12946,6 @@
 		)
 		(uuid "504cf537-eea8-43aa-a58f-fe49526d0339")
 	)
-	(label "EN_3V3"
-		(at 346.71 207.01 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "57a1804d-9cec-44df-84bf-51c16f75d6f1")
-	)
 	(label "+5V_PRE"
 		(at 294.64 199.39 0)
 		(effects
@@ -13724,7 +12986,7 @@
 		)
 		(uuid "5c5daba5-5728-4bca-8546-913caa1d04aa")
 	)
-	(label "+3V3_PRE"
+	(label "+5V_MB_PRE"
 		(at 278.13 129.54 0)
 		(effects
 			(font
@@ -13874,17 +13136,7 @@
 		)
 		(uuid "7aa8c60c-643f-4f0b-a7e9-8971e4e5fa9f")
 	)
-	(label "+3V3_REG"
-		(at 184.15 259.08 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "7b6bf101-26bc-43cc-90c8-225329620df1")
-	)
-	(label "+3V3_REG"
+	(label "+5V_REG"
 		(at 278.13 127 0)
 		(effects
 			(font
@@ -13914,16 +13166,6 @@
 		)
 		(uuid "7e40ac6a-ed89-4c54-b5b5-1249f0ed8514")
 	)
-	(label "+3V3_REG"
-		(at 226.06 203.2 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "84cf5ac5-eaf1-46fe-b080-aac4e140e2aa")
-	)
 	(label "VIN-"
 		(at 66.04 152.4 180)
 		(effects
@@ -13943,16 +13185,6 @@
 			(justify left bottom)
 		)
 		(uuid "8e056bfc-e4c7-4a6c-b990-6f9876541398")
-	)
-	(label "FB_3V3"
-		(at 91.44 276.86 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "90d7878f-c093-46ed-b188-7ade8adc0328")
 	)
 	(label "PoE_SP45"
 		(at 19.05 102.87 0)
@@ -14034,7 +13266,7 @@
 		)
 		(uuid "a3110b43-269d-4c9c-99c1-6a0a80dca07e")
 	)
-	(label "+3V3_PRE"
+	(label "+5V_MB_PRE"
 		(at 391.16 90.17 180)
 		(effects
 			(font
@@ -14174,16 +13406,6 @@
 		)
 		(uuid "be8ce66a-fff0-4181-a151-92c9f648f518")
 	)
-	(label "FB_3V3"
-		(at 165.1 223.52 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "c0538480-9bc9-452d-aea5-a892329adf29")
-	)
 	(label "PWR_EN"
 		(at 220.98 78.74 180)
 		(effects
@@ -14214,7 +13436,7 @@
 		)
 		(uuid "c6c59d03-e06f-4656-bcf1-725f2319830d")
 	)
-	(label "+3V3_REG"
+	(label "+5V_REG"
 		(at 360.68 90.17 0)
 		(effects
 			(font
@@ -14284,16 +13506,6 @@
 		)
 		(uuid "dc00b19f-ab8a-4d92-9b26-8bf6b17b7670")
 	)
-	(label "+24V_RAW"
-		(at 160.02 204.47 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "dca03c10-47de-4809-b0c3-abdc911c05c9")
-	)
 	(label "I2C_SDA"
 		(at 341.63 59.69 180)
 		(effects
@@ -14323,16 +13535,6 @@
 			(justify left bottom)
 		)
 		(uuid "e4c5cd7c-ef9f-404f-a66c-717f5b52b51a")
-	)
-	(label "+5V_REG"
-		(at 165.1 228.6 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e6400f0e-d03d-45a5-afae-3fefe274f35f")
 	)
 	(label "VIN-"
 		(at 81.28 58.42 0)
@@ -15087,7 +14289,6 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "06a7a3ed-4da6-480f-8a3d-859906278a38")
 		(property "Reference" "#PWR065"
 			(at 382.27 203.2 0)
@@ -15100,14 +14301,15 @@
 				)
 			)
 		)
-		(property "Value" "+3V3"
-			(at 382.27 194.31 0)
+		(property "Value" "+5V_MB"
+			(at 382.27 194.818 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
@@ -16175,6 +15377,132 @@
 		)
 	)
 	(symbol
+		(lib_id "Part-DB:RC0402FR-07182RL")
+		(at 356.87 223.52 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "168f2662-0ed9-4a03-99d9-7b0c871cce73")
+		(property "Reference" "R22"
+			(at 359.41 222.2499 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "182R"
+			(at 359.41 224.7899 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 355.092 223.52 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L"
+			(at 356.87 223.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "182 Ohms ±1% 0.063W, 1/16W Chip Resistor 0402 (1005 Metric) Moisture Resistant Thick Film"
+			(at 356.87 223.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "RC0402FR-07182RL"
+			(at 356.87 223.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "YAGEO"
+			(at 356.87 223.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB ID" "379"
+			(at 356.87 223.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/379/info"
+			(at 356.87 223.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "5de34080-534e-4a7d-a51a-bbf077b30638")
+		)
+		(pin "1"
+			(uuid "5b3ae283-8a15-45ac-9b0d-b4721d1c3482")
+		)
+		(instances
+			(project "OH_Node_PWR_BT4"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "R22")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Part-DB:C1608X7R1H474K080AC")
 		(at 109.22 180.34 0)
 		(unit 1)
@@ -16301,132 +15629,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Part-DB:GRM32ER71E226KE15L")
-		(at 179.07 262.89 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "1711c4f6-27ae-4e3f-9002-f1e63d67848f")
-		(property "Reference" "C30"
-			(at 182.88 261.6199 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "22u"
-			(at 182.88 264.1599 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric"
-			(at 180.0352 266.7 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM32ER71E226KE15-01.pdf"
-			(at 179.07 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "22 uF 10% 25V Ceramic Capacitor X7R 1210 (3225 Metric)"
-			(at 179.07 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "GRM32ER71E226KE15L"
-			(at 179.07 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "Murata Electronics"
-			(at 179.07 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "182"
-			(at 179.07 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/182/info"
-			(at 179.07 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "576d98d2-aa23-44af-8335-55b6023d3b91")
-		)
-		(pin "1"
-			(uuid "e6321a93-bbdf-42f0-a520-fa83912082ea")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "C30")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+12V")
 		(at 284.48 199.39 0)
 		(unit 1)
@@ -16499,132 +15701,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "#PWR063")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Part-DB:GRM32ER71E226KE15L")
-		(at 173.99 262.89 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "19b76f9e-2c2c-4edd-9484-c9b72c339f93")
-		(property "Reference" "C12"
-			(at 177.8 261.6199 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "22u"
-			(at 177.8 264.1599 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric"
-			(at 174.9552 266.7 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM32ER71E226KE15-01.pdf"
-			(at 173.99 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "22 uF 10% 25V Ceramic Capacitor X7R 1210 (3225 Metric)"
-			(at 173.99 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "GRM32ER71E226KE15L"
-			(at 173.99 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "Murata Electronics"
-			(at 173.99 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "182"
-			(at 173.99 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/182/info"
-			(at 173.99 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "336d7075-b9c8-4184-9533-01b7bc19c849")
-		)
-		(pin "1"
-			(uuid "f3426853-0900-4b89-ac65-ac00047aa930")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "C12")
 					(unit 1)
 				)
 			)
@@ -16827,130 +15903,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "#PWR037")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Part-DB:SRP1265A-100M")
-		(at 213.36 203.2 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "1c2bfae2-4447-4938-81ba-8df5c6c055b9")
-		(property "Reference" "L9"
-			(at 213.36 198.12 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "SRP1265A-100M"
-			(at 213.36 200.66 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "LRV:Bourns_SRP1265A"
-			(at 213.36 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/18/SRP_Series_Bltn.pdf"
-			(at 213.36 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "10 µH Shielded Drum Core, Wirewound Inductor 10 A 16.5mOhm Max Nonstandard"
-			(at 213.36 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "SRP1265A-100M"
-			(at 213.36 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "Bourns Inc."
-			(at 213.36 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "573"
-			(at 213.36 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/573/info"
-			(at 213.36 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "6b1b203e-8a0b-4ddf-9e91-a59f9fbaadcf")
-		)
-		(pin "2"
-			(uuid "f00ced9c-03c5-4032-9e74-775101f5b01f")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "L9")
 					(unit 1)
 				)
 			)
@@ -17734,6 +16686,7 @@
 		(uuid "2eb96dfc-dddf-45eb-9311-92835b373f64")
 		(property "Reference" "C29"
 			(at 168.148 261.62 0)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -17745,6 +16698,7 @@
 		)
 		(property "Value" "22u"
 			(at 168.148 264.16 0)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19338,132 +18292,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Part-DB:CL10B104KB8NNNC")
-		(at 222.25 207.01 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "42811b78-726b-4617-ac32-b563e17e38e6")
-		(property "Reference" "C25"
-			(at 226.06 205.7399 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "100n"
-			(at 226.06 208.2799 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-			(at 223.2152 210.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://weblib.samsungsem.com/mlcc/mlcc-ec-data-sheet.do?partNumber=CL05Y105KP6VPN"
-			(at 222.25 207.01 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "100 nF 10% 50V Ceramic Capacitor X7R 0603"
-			(at 222.25 207.01 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "CL10B104KB8NNNC"
-			(at 222.25 207.01 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "Samsung Electro-Mechanics"
-			(at 222.25 207.01 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "41"
-			(at 222.25 207.01 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/41/info"
-			(at 222.25 207.01 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "c1510213-ac71-4452-912f-efef9c1bef7e")
-		)
-		(pin "1"
-			(uuid "18773332-8a96-4dc5-bc94-4de51f21d8a1")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "C25")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 153.67 203.2 180)
 		(unit 1)
@@ -19825,132 +18653,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Part-DB:CL05A105KA5NQNC")
-		(at 217.17 222.25 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "4372c5e2-9694-42f6-bb7a-f194273d8ef7")
-		(property "Reference" "C8"
-			(at 220.98 220.9799 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "1u/25V"
-			(at 220.98 223.5199 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 218.1352 226.06 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/02336ea48ea44ca18c72517dd3cb7b47.pdf?productCode=C52923"
-			(at 217.17 222.25 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "1 uF ±10% 25V Ceramic Capacitor X5R 0402"
-			(at 217.17 222.25 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "CL05A105KA5NQNC"
-			(at 217.17 222.25 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "Samsung Electro-Mechanics"
-			(at 217.17 222.25 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "256"
-			(at 217.17 222.25 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/256/info"
-			(at 217.17 222.25 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "8bee5502-005a-41e3-972a-cd4c11dc33a0")
-		)
-		(pin "1"
-			(uuid "2a180802-5511-47dc-b9a2-cbf74fa1071a")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "C8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Part-DB:MPZ2012S102AT000")
 		(at 53.34 140.97 90)
 		(unit 1)
@@ -20147,129 +18849,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "#FLG03")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Part-DB:RC0402JR-1322KL")
-		(at 99.06 276.86 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "46c77db6-adcb-471c-a360-60483dbbaee0")
-		(property "Reference" "R19"
-			(at 99.06 274.32 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "22K"
-			(at 99.06 276.86 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 99.06 278.638 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L"
-			(at 99.06 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "22 kOhms ±5% 0.063W, 1/16W Chip Resistor 0402 (1005 Metric) Moisture Resistant Thick Film"
-			(at 99.06 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "RC0402JR-1322KL"
-			(at 99.06 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "YAGEO"
-			(at 99.06 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "399"
-			(at 99.06 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/399/info"
-			(at 99.06 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "d260843a-865e-4f4d-944e-84b93d673fac")
-		)
-		(pin "1"
-			(uuid "bf29f015-2c76-4987-acdb-87952bc3bf2f")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "R19")
 					(unit 1)
 				)
 			)
@@ -21194,84 +19773,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 191.77 241.3 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "57321ea2-3823-47d7-9ea7-d6eabb29e508")
-		(property "Reference" "#PWR052"
-			(at 191.77 247.65 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 191.77 246.38 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 191.77 241.3 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 191.77 241.3 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 191.77 241.3 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "2d01a89d-8933-4a2d-b963-e215be203ad6")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "#PWR052")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Part-DB:GRM155R61A106ME11D")
 		(at 290.83 168.91 0)
 		(unit 1)
@@ -21392,84 +19893,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "C1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:PWR_FLAG")
-		(at 226.06 203.2 180)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "5a60663e-5201-4f40-b3fd-81c4b948e9a0")
-		(property "Reference" "#FLG09"
-			(at 226.06 205.105 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "PWR_FLAG"
-			(at 226.06 208.28 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 226.06 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 226.06 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Special symbol for telling ERC where power comes from"
-			(at 226.06 203.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "17f898bb-7cd3-49b8-bd1b-5654853f2709")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "#FLG09")
 					(unit 1)
 				)
 			)
@@ -21745,7 +20168,6 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "607387e7-271e-49e2-8ceb-60abfb02409d")
 		(property "Reference" "#PWR07"
 			(at 193.04 55.88 0)
@@ -21758,15 +20180,14 @@
 				)
 			)
 		)
-		(property "Value" "+3V3"
-			(at 185.42 55.8799 90)
+		(property "Value" "+5V_MB"
+			(at 181.61 55.88 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
 		(property "Footprint" ""
@@ -23136,337 +21557,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Part-DB:GRM32ER71E226KE15L")
-		(at 189.23 262.89 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6b973743-6a5f-4d3b-8ae0-67d16fb97a10")
-		(property "Reference" "C32"
-			(at 193.04 261.6199 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "22u"
-			(at 193.04 264.1599 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric"
-			(at 190.1952 266.7 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM32ER71E226KE15-01.pdf"
-			(at 189.23 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "22 uF 10% 25V Ceramic Capacitor X7R 1210 (3225 Metric)"
-			(at 189.23 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "GRM32ER71E226KE15L"
-			(at 189.23 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "Murata Electronics"
-			(at 189.23 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "182"
-			(at 189.23 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/182/info"
-			(at 189.23 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "0cb4585d-2f63-49ad-b0ef-7da65d51ff8c")
-		)
-		(pin "1"
-			(uuid "aaa836ed-ebd2-4e9c-8869-f1dac073ad7e")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "C32")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Part-DB:RC0402JR-07510RL")
-		(at 356.87 223.52 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6bcadf3d-eba3-409a-b660-afbcf34adb84")
-		(property "Reference" "R22"
-			(at 359.41 222.2499 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "510R"
-			(at 359.41 224.7899 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 355.092 223.52 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L"
-			(at 356.87 223.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "510 Ohms ±5% 0.063W, 1/16W Chip Resistor 0402 (1005 Metric) Moisture Resistant Thick Film"
-			(at 356.87 223.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "RC0402JR-07510RL"
-			(at 356.87 223.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "YAGEO"
-			(at 356.87 223.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "373"
-			(at 356.87 223.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/373/info"
-			(at 356.87 223.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "9942bb91-4ce4-4943-91d6-d4168d718453")
-		)
-		(pin "2"
-			(uuid "f1e998a7-a937-4466-9a6a-641cbe6e8cf2")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "R22")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3V3")
-		(at 242.57 73.66 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6bfb39ee-4155-44e0-a5bc-0ab09b09ca2b")
-		(property "Reference" "#PWR025"
-			(at 246.38 73.66 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+3V3"
-			(at 238.76 73.6599 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 242.57 73.66 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 242.57 73.66 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 242.57 73.66 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "3df2558f-2109-4501-af29-347564f3a1f1")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "#PWR025")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3V3")
 		(at 201.93 55.88 270)
 		(unit 1)
@@ -23489,7 +21579,7 @@
 				)
 			)
 		)
-		(property "Value" "+3V3"
+		(property "Value" "+5V_MB"
 			(at 205.74 55.8799 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25518,84 +23608,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 173.99 266.7 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "8bc64049-1cad-413c-bcdb-9987be5b7596")
-		(property "Reference" "#PWR085"
-			(at 173.99 273.05 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 173.99 271.78 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 173.99 266.7 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 173.99 266.7 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 173.99 266.7 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "3b443cce-80c7-43a2-ac5e-172422a52232")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "#PWR085")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Part-DB:CC1210KKX7R9BB106")
 		(at 100.33 180.34 0)
 		(unit 1)
@@ -26159,132 +24171,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Part-DB:GRM32ER71E226KE15L")
-		(at 184.15 262.89 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "8f65e628-2044-455b-8b10-340ed4a77bf7")
-		(property "Reference" "C31"
-			(at 187.96 261.6199 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "22u"
-			(at 187.96 264.1599 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric"
-			(at 185.1152 266.7 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM32ER71E226KE15-01.pdf"
-			(at 184.15 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "22 uF 10% 25V Ceramic Capacitor X7R 1210 (3225 Metric)"
-			(at 184.15 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "GRM32ER71E226KE15L"
-			(at 184.15 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "Murata Electronics"
-			(at 184.15 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "182"
-			(at 184.15 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/182/info"
-			(at 184.15 262.89 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "d0ad9bab-f2c7-47a3-8f87-ad4c19250b9a")
-		)
-		(pin "1"
-			(uuid "90d765e9-fd10-415c-b1f2-f22b8d1bb04d")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "C31")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Part-DB:CL05A105KA5NQNC")
 		(at 144.78 222.25 0)
 		(unit 1)
@@ -26609,174 +24495,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "C17")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Part-DB:LM61495RPHR")
-		(at 191.77 218.44 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "90e42c13-c865-47bd-9264-8c4615e04781")
-		(property "Reference" "U6"
-			(at 191.77 195.58 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "LM61495RPHR"
-			(at 191.77 198.12 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "LRV:TI_LM61495RPHR"
-			(at 191.77 241.3 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/lm61495.pdf"
-			(at 191.77 243.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Description" "Buck Switching Regulator IC Positive Adjustable 1V 1 Output 10A 16-PowerVFQFN"
-			(at 191.77 246.38 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "LM61495RPHR"
-			(at 191.77 218.44 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "Texas Instruments"
-			(at 191.77 218.44 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "569"
-			(at 191.77 218.44 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/569/info"
-			(at 191.77 218.44 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "77a08117-4e8e-4710-bb6d-a3e8f3ad80e5")
-		)
-		(pin "2"
-			(uuid "4f257830-5dfa-46ac-bb9d-91607595dc97")
-		)
-		(pin "3"
-			(uuid "1293a7ed-3f99-45f5-bd8e-b2fe6a429d86")
-		)
-		(pin "4"
-			(uuid "124639b2-4fde-49e4-8402-8c5e83b21809")
-		)
-		(pin "5"
-			(uuid "8bbf5e4f-22c2-4817-b95b-18be55dda7d4")
-		)
-		(pin "6"
-			(uuid "15578355-4e87-4ab2-9f1e-3366ca9000be")
-		)
-		(pin "7"
-			(uuid "7c28efb1-6125-46ce-b578-3b583e5a10e1")
-		)
-		(pin "10"
-			(uuid "4f1571ce-046e-48bc-abd7-4aaff86b11b5")
-		)
-		(pin "11"
-			(uuid "19b2de85-dbe4-4c0f-9c34-a5352c22966b")
-		)
-		(pin "12"
-			(uuid "fd6ed57e-7cc9-48b6-a969-28dd7d06168f")
-		)
-		(pin "13"
-			(uuid "c26beaca-78ab-482f-ba59-6cdc76a468d3")
-		)
-		(pin "14"
-			(uuid "0cc089c8-07f3-49f3-9544-874f2213ed24")
-		)
-		(pin "15"
-			(uuid "93691d7b-639c-4043-b3a7-55808a0a0442")
-		)
-		(pin "16"
-			(uuid "4605b401-a3d4-4c1b-bd1c-0e8c8f23fc99")
-		)
-		(pin "9"
-			(uuid "922af354-ee3c-4940-a5da-123a93c96b88")
-		)
-		(pin "8"
-			(uuid "46011a7b-781e-4d7a-989b-6c905aad51c3")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "U6")
 					(unit 1)
 				)
 			)
@@ -27326,84 +25044,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "U8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 158.75 217.17 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "95f574b9-ca6d-4050-b953-140d6b120b7b")
-		(property "Reference" "#PWR056"
-			(at 158.75 223.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 158.75 222.25 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 158.75 217.17 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 158.75 217.17 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 158.75 217.17 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "292ae7e9-a73c-4ea1-b123-26387b13c7e3")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "#PWR056")
 					(unit 1)
 				)
 			)
@@ -28318,84 +25958,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "#PWR071")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 110.49 278.13 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "a12a8774-54af-482b-9175-0d81d7615136")
-		(property "Reference" "#PWR062"
-			(at 110.49 284.48 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 110.49 283.21 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 110.49 278.13 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 110.49 278.13 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 110.49 278.13 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "35cf5fca-1e4f-4579-926f-178284941ec9")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "#PWR062")
 					(unit 1)
 				)
 			)
@@ -30092,84 +27654,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 217.17 226.06 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "bd44bf38-7098-4c6a-b976-b838656263ed")
-		(property "Reference" "#PWR082"
-			(at 217.17 232.41 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 217.17 231.14 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 217.17 226.06 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 217.17 226.06 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 217.17 226.06 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "add05b60-d022-4ccb-98e7-50dd29cf1136")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "#PWR082")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 391.16 90.17 270)
 		(unit 1)
@@ -30414,7 +27898,6 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "c2ac571a-03fe-4b27-b63f-2849f9cd24a4")
 		(property "Reference" "#PWR09"
 			(at 193.04 60.96 0)
@@ -30427,15 +27910,14 @@
 				)
 			)
 		)
-		(property "Value" "+5V"
-			(at 185.42 60.9599 90)
+		(property "Value" "+5V_MB"
+			(at 181.61 60.96 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
 		(property "Footprint" ""
@@ -32028,129 +29510,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Part-DB:RC0402JR-1322KL")
-		(at 106.68 276.86 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "dba5b5a6-8885-44e3-be0a-cd49872a5a23")
-		(property "Reference" "R18"
-			(at 106.68 274.32 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "22K"
-			(at 106.68 276.86 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 106.68 278.638 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L"
-			(at 106.68 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "22 kOhms ±5% 0.063W, 1/16W Chip Resistor 0402 (1005 Metric) Moisture Resistant Thick Film"
-			(at 106.68 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "RC0402JR-1322KL"
-			(at 106.68 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "YAGEO"
-			(at 106.68 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "399"
-			(at 106.68 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/399/info"
-			(at 106.68 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "3a68799a-1b07-4fec-8bcc-9bf0ac3c1ffe")
-		)
-		(pin "1"
-			(uuid "e4ac4679-82b7-4c80-894b-6748c1a69aa4")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "R18")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Part-DB:RC0603JR-07100KL")
 		(at 82.55 248.92 90)
 		(unit 1)
@@ -32576,130 +29935,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "H1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Part-DB:RC0402JR-070RL")
-		(at 213.36 210.82 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "e574811a-b810-46b8-9611-4af01d75daeb")
-		(property "Reference" "R9"
-			(at 213.36 204.47 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "0R"
-			(at 213.36 207.01 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 213.36 212.598 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://www.yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L"
-			(at 213.36 210.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "0 Ohms Jumper Chip Resistor 0402"
-			(at 213.36 210.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "RC0402JR-070RL"
-			(at 213.36 210.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "YAGEO"
-			(at 213.36 210.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "1"
-			(at 213.36 210.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/1/info"
-			(at 213.36 210.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "40949a8a-7123-46ad-99c1-930ca3e3fe42")
-		)
-		(pin "2"
-			(uuid "8d58152e-188c-4411-95ac-5868e3ea08ce")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "R9")
 					(unit 1)
 				)
 			)
@@ -33270,129 +30505,6 @@
 			(project "OH_Node_PWR_BT4"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "#PWR048")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Part-DB:RC0603JR-07100KL")
-		(at 83.82 276.86 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "f00c104b-aae7-4e81-b877-b01f2cff4547")
-		(property "Reference" "R16"
-			(at 83.82 274.32 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "100K"
-			(at 83.82 276.86 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 83.82 278.638 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://www.yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L"
-			(at 83.82 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "100 kOhms 5% 0.1W, 1/10W Chip Resistor 0603"
-			(at 83.82 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "RC0603JR-07100KL"
-			(at 83.82 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "YAGEO"
-			(at 83.82 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB ID" "125"
-			(at 83.82 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/125/info"
-			(at 83.82 276.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "1eeb1547-f3db-4a53-b319-ec4668c5526c")
-		)
-		(pin "1"
-			(uuid "daea9935-cd60-43f3-8863-1607d9c255dc")
-		)
-		(instances
-			(project "OH_Node_PWR_BT4"
-				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
-					(reference "R16")
 					(unit 1)
 				)
 			)

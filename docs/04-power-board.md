@@ -143,23 +143,23 @@ PD module
    ├── 24 V ──▶ eFuse ──▶ INA226  0x44 ──┐
    ├── 12 V ──▶ eFuse ──┐                │
    │                    ├── INA3221 0x40 ├──▶ J2
-   ├──▶ buck ── 5 V ──▶ eFuse ───────────┤
-   │                                     │
-   └──▶ buck ── 3V3 ──▶ eFuse ───────────┘
+   └──▶ buck ── 5 V ──┬▶ eFuse ───────────┤   to J3, behind PWR_EN
+                      └▶ eFuse ───────────┘   to J2, unconditional
                                           + 24AA02UID 0x50
 ```
 
-Only 3.3 V is guaranteed across all variants. The descriptor says what else exists and at what limit, and
+Only 5 V is guaranteed across all variants, and there is no 3.3 V rail: every board regulates its own from
+5 V (D36). The descriptor says what else exists and at what limit, and
 firmware refuses to enable an IO board that asks for a rail the fitted power board does not have.
 
 ### Regulators
 
-Two independent bucks from the module's output, not cascaded. Cascading multiplies efficiencies and couples
+Independent bucks from the module's output, not cascaded. Cascading multiplies efficiencies and couples
 the rails.
 
-For `PWR-AF` the parts from the two-board design carry over unchanged: **AP63205WU-7** for 5 V and
-**AP63203WU-7** for 3.3 V, both 3.8 to 32 V in, 2 A, TSOT-26. Both use frequency spread spectrum with about
-±6 % jitter, which is why they were chosen over a cheaper MP2315 or TPS562201. The board already carries
+For `PWR-AF` one buck: **AP63205WU-7** for 5 V, 3.8 to 32 V in, 2 A, TSOT-26, with frequency spread
+spectrum of about ±6 % jitter, which is why it was chosen over a cheaper MP2315 or TPS562201. Its sibling
+**AP63203WU-7** made 3.3 V here until D36 moved that job to the mainboard, where an AMS1117 LDO does it. The board already carries
 the PD module's switcher and, on some IO boards, an isolated DC/DC. Two more fixed-tone 1.1 MHz emitters
 would be an avoidable EMC problem.
 
@@ -168,8 +168,8 @@ available, and on a 24 V-input build the step-down ratio is larger.
 
 **`PWR-BT4` is a 24 V board**, because the 12 V AG59812-LPB is unavailable and because 24 V halves the
 secondary current — 4.2 A instead of 8.4 A at the module, and 2.8 A instead of 5.6 A on J3 at full load.
-That means three bucks (24→12, 24→5, 24→3.3) rather than two, and it makes the 24 V eFuse mandatory rather
-than optional. Current per rail, and therefore the regulator selection,
+That means two bucks (24→12, 24→5) rather than one, and it makes the 24 V eFuse mandatory rather than
+optional. Current per rail, and therefore the regulator selection,
 follows from the IO board catalogue rather than from the PD module. See Q4 in
 [11 — Open Questions](11-open-questions.md).
 
@@ -178,7 +178,7 @@ follows from the IO board catalogue rather than from the PD module. See Q4 in
 Every rail leaves through a current-limiting load switch with a hard trip that does not depend on firmware.
 
 At 12.95 W a shorted rail is a brownout. At 71 W it is a fire, and the Silvertel's own protection sits at
-the 48 V input where it will happily deliver 71 W into a shorted 3.3 V rail without noticing anything is
+the 48 V input where it will happily deliver 71 W into a shorted 5 V rail without noticing anything is
 wrong. The trip has to be local to the rail and it must not need the ESP32 to be alive, because the ESP32
 is powered from one of the rails being protected.
 
@@ -189,7 +189,7 @@ Three things fall out of the eFuse for free, and they are worth having in their 
 - **Power cycling a locked-up IO board** without power cycling the node.
 - **Sequenced startup.** Rails come up in a defined order rather than racing.
 
-**TPS259803ONRGER is already in Part-DB and is the right part for 12 V, 5 V and 3.3 V.** 2.7 to 24 V, 8 A,
+**TPS259803ONRGER is already in Part-DB and is the right part for 12 V and both 5 V branches.** 2.7 to 24 V, 8 A,
 with programmable current limit, circuit breaker, overvoltage protection, slew rate and UVLO. $2.64,
 7,916 in stock, 24-VQFN.
 
@@ -197,7 +197,8 @@ with programmable current limit, circuit breaker, overvoltage protection, slew r
 |---|---|---|
 | 24 V | **not selected**, TPS1663 class at 60 V | The TPS259803's 24 V ceiling leaves no margin here |
 | 12 V | TPS259803ONRGER | 2× margin |
-| 5 V, 3.3 V | TPS259803ONRGER | Same part, different sense resistor |
+| 5 V to J3 | TPS259803ONRGER | Same part, different sense resistor. Behind `PWR_EN` |
+| 5 V to J2 | TPS259803ONRGER, enable tied high | The unconditional mainboard feed. Keeps current limit and inrush without firmware |
 
 Using one eFuse part across three rails is worth more than optimising each one. Same footprint, same
 driver code, one line in the BOM.
@@ -209,8 +210,9 @@ can deliver. The eFuse protects the IO board's wiring and the enclosure, not the
 
 Voltage, current and power per rail, read by the mainboard over the I2C on J2.
 
-**INA3221** covers 12 V, 5 V and 3.3 V. Three channels, one package, one address, which is exactly the shape
-of the problem.
+**INA3221** covers 12 V, the IO board's 5 V and the mainboard's 5 V feed. Three channels, one package, one
+address, which is exactly the shape of the problem. The third channel metered 3.3 V until D36; metering the
+mainboard feed separately means the node's own consumption is visible apart from the IO board's.
 
 **It cannot be used on the 24 V rail.** Its common-mode range tops out at 26 V. A 24 V rail with switching
 ripple and load transients on it has no usable margin against that, and the failure is a measurement that

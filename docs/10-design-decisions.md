@@ -271,6 +271,10 @@ Ag9700 family output options: 3.3 V / 1.8 A, 5 V / 1.8 A, **12 V / 1.0 A**, 24 V
 
 **Parts:** AP63205WU-7 (5 V) and AP63203WU-7 (3.3 V). Both 3.8–32 V in, 2 A, TSOT-26.
 
+**Amended by D36.** The 3.3 V converter is no longer on the power board, and the AP63203 is not used
+anywhere: the mainboard regulates with an AMS1117 LDO. The "not a cascade" argument still holds for
+12 V → 5 V and for any future rail.
+
 **Chosen for EMC, not price.** Both feature **Frequency Spread Spectrum** (±6 % jitter). The board already
 carries the PoE module's switcher and, on DMX modules, an isolated DC/DC. A cheaper MP2315 or TPS562201 would
 have added two more fixed-tone 1.1 MHz emitters. The 32 V input rating also gives comfortable margin over the
@@ -553,6 +557,9 @@ actuator that shares a failure mode with the thing it is protecting against.
 ## D24 — INA3221 for the low rails, INA226 for 24 V
 
 **Decided.** INA3221 at `0x40` covers 12 V, 5 V and 3.3 V. INA226 at `0x44` covers 24 V.
+
+**Amended by D36.** With no 3.3 V rail, the third INA3221 channel meters the mainboard's unconditional 5 V
+feed, so the node's own consumption is visible separately from the IO board's.
 
 **Why not one INA3221 for everything:** its common-mode range tops out at **26 V**. A 24 V rail with
 switching ripple and load transients has no usable margin against that, and the failure is a measurement
@@ -908,6 +915,12 @@ mating direction, so the assembly settles as the screws are tightened.
 coplanar adds a practical argument: a bare mainboard on the bench has no exposed pins for a probe to
 short.
 
+**Amended 2026-09-09.** The "socket upstream" rule above was wrong for `J2`: its 3.3 V is live whenever PoE
+is present, so a header on the power board is a live header. The rule is now *the socket sits on the board
+that sources what the connector carries*: `J1` socket on the mainboard, `J2` and `J3` sockets on the power
+board, `J4` socket on the mainboard, and the IO board carries headers only. See the connector pairs in
+`06`. D35 added `J4`, so the mainboard has three board-to-board connectors, not two.
+
 **Still open:** whether the three boards sit in a row or in an L. That fixes which edge of the mainboard
 carries J1 and J2 and therefore its outline. See Q10 in [11](11-open-questions.md).
 
@@ -1093,3 +1106,44 @@ current will divide between them. **`J3` must win on copper, not on intent**: wi
 rather than pin count. `J2` loses the five signals it was passing through. **`J4` is new.** `J1` is
 untouched.
 
+
+---
+
+## D36 — 5 V is the unconditional rail; every board makes its own 3.3 V
+
+**Decided 2026-09-09.** The power board no longer generates 3.3 V. Its unconditional rail, the one that is
+up whenever the PD module is up and that the boot sequence starts from, is **5 V**. Every board regulates
+3.3 V for itself with an LDO: the mainboard with an AMS1117-3.3 from the 5 V on `J2`, an IO board from the
+5 V on `J3`.
+
+**Why.** Both 3.3 V consumers are small, the mainboard at about 350 mA and an IO board's RP2354 at about
+100 mA, and for them every power board variant carried a buck, an eFuse, a descriptor rail and a metering
+channel. On `PWR-BT4` that was a third LM61495 with its inductor and capacitors, about 250 mm². The rail
+also arrived at the ESP32-S3 through two connectors and was shared with whatever the IO board did with it.
+A regulator next to the processor is the better supply and the smaller power board at once.
+
+**What changes.**
+
+- `J2` pins 1 and 2 become `+5V`, unconditional, alongside pin 5. The mainboard sees one rail.
+- `J3` pin 15 becomes a fifth `+5V` contact. There is no 3.3 V on `J3`.
+- The power board's 5 V has two branches: through an eFuse behind `PWR_EN` to `J3`, and through an eFuse
+  with its enable tied high to `J2`. The second eFuse is the part that guarded 3.3 V; it keeps current
+  limit and inrush on the mainboard feed without firmware.
+- The freed INA3221 channel meters the mainboard feed. Descriptor: `rails_present` bit 0 is `5V_MB` and
+  always set, `limit_mA_3v3` and `shunt_uohm_3v3` become `limit_mA_5v_mb` and `shunt_uohm_5v_mb`. Offsets
+  do not move.
+- The IO board descriptor loses `power_mA_3v3`; a board declares its 3.3 V consumption inside `power_mA_5v`.
+- The mainboard gets an **AMS1117-3.3**, not a buck. At about 250 mA with Wi-Fi off it dissipates 0.4 W,
+  at 500 mA with Wi-Fi transmitting 0.85 W, which a SOT-223 on a copper pour carries at about 95 °C
+  junction in a 50 °C enclosure. Wi-Fi is a fallback path (01), not a duty cycle. The AP63203 buck that
+  made 3.3 V on `PWR-AF` was considered and rejected for the mainboard: it would be the only switcher on
+  the board that carries every impedance-controlled trace, the PHY and the magnetics, and 0.4 W is 3 % of
+  a `PWR-AF` budget and nothing on a `PWR-BT4`. The AMS1117 wants 22 µF with some ESR on its output;
+  small ceramics alone can oscillate it.
+
+**What it costs.** 0.3 to 0.6 W more heat on the mainboard than a buck would make, and an LDO on every IO
+board, which the RP2354 base sheet carried anyway. The contract change is free because nothing has
+shipped.
+
+**Amends** D12 and D24, and the "only 3.3 V is guaranteed" statements in `02`, `04`, `05` and `06`, which
+now read 5 V. Resolves Q21.

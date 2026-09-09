@@ -277,7 +277,9 @@ documentation, not just here.
 | LAN magnetics | **Würth 7490220122** | DigiKey | $6.98 | 802.3bt 4PPoE, 1000 mA/CT, 350 µH |
 | Light ring LEDs | 0603, **≤0.80 mm**, Vf ≤2.6 V | Part-DB | $0.15 | ×2. See the light ring section |
 | J1 PoE taps | **Würth 613004243121** | DigiKey | $0.91 | 2×2 right-angle socket |
-| J2 | **Würth 613020243121** | DigiKey | $1.35 | 2×10 right-angle socket |
+| J2 | **Würth 61302021021** | Part-DB | — | 2×10 right-angle pin header. The socket is on the power board, see 06 |
+| J4 | **Würth 613010243121** | Part-DB | — | 2×5 right-angle socket, to the IO board (D35) |
+| 3.3 V regulator | **AMS1117-3.3** | Part-DB | — | 5 V → 3.3 V LDO, SOT-223, with 22 µF on the output (D36) |
 | J21 console | Würth 61300511121 | Part-DB | $0.22 | 1×5 vertical |
 | Level shifter | **74AHCT1G125W5-7** | DigiKey | $0.17 | SOT-753, TTL inputs at 5 V |
 | Halo LEDs | **IN-PI15TAT5R5G5B** ×2 | Part-DB | $0.53 | Addressable RGB, 0.65 mm high |
@@ -380,13 +382,15 @@ Three, and they are deliberately different from each other so that no two can be
 | Ref | To | Part | Pins | Carries |
 |---|---|---|---|---|
 | `J1` | Power board | **613004243121** | 2×2 | TCT, RCT, SP45, SP78. **Domain 1.** Keep-out on all sides |
-| `J2` | Power board | **613020243121** | 2×10 | 3.3 V, 5 V, GND, I2C, `PWR_ALERT`, `PWR_EN`, USB, IO control |
+| `J2` | Power board | **61302021021** | 2×10 | 5 V, GND, I2C, `PWR_ALERT`, `PWR_EN`, PSE type. Pin header; the socket is on the power board |
+| `J4` | IO board | **613010243121** | 2×5 | USB, `IO_nRESET`, `IO_BOOTSEL`, `IO_ATTN`. Socket |
 | `J10` | Network, outward | NE8FAH-LR-DAE | 8+SH | etherCON. Data pairs, PoE, shield, Halo ring |
 | `J21` | Console | 61300511121 | 1×5 | `UART0_TX/RX`, `IO0`, `EN`, GND. **The only flashing route** |
 
-**The mainboard has two board-to-board connectors, not three.** Under D31 the boards run mainboard →
-power board → IO board, so `J3` lives on the power board and the mainboard's supply and IO signals both
-travel over `J2`.
+**The mainboard has three board-to-board connectors.** Under D35 the IO board lies across the back of
+mainboard and power board, so `J4` carries USB and the IO control lines straight to it and `J2` carries
+only supply, metering and the two control lines. `J3` lives on the power board. An earlier version of this
+section described D31's row, where everything travelled over `J2`; that is superseded.
 
 **`J20` no longer exists.** The SWD passthrough was needed when the IO board sat in the middle of a stack;
 with it at an edge, the SWD header belongs on the IO board itself, next to the RP2354.
@@ -395,24 +399,29 @@ with it at an edge, the SWD header belongs on the IO board itself, next to the R
 
 ```
 Pin  Row A              Pin  Row B
- 1   +3V3                2   +3V3
+ 1   +5V                 2   +5V
  3   GND                 4   GND
  5   +5V                 6   GND
  7   GND                 8   GND
- 9   USB_D−             10   GND
-11   USB_D+             12   GND
+ 9   TYP2_DET           10   GND
+11   TYP3_DET           12   GND
 13   GND                14   I2C_SDA
-15   IO_nRESET          16   I2C_SCL
-17   IO_BOOTSEL         18   PWR_ALERT
-19   IO_ATTN            20   PWR_EN
+15   reserved           16   I2C_SCL
+17   reserved           18   PWR_ALERT
+19   reserved           20   PWR_EN
 ```
 
-**The USB pair sits on 9 and 11**, adjacent in the same row so both traces leave on the same side of the
-board and stay symmetric. Ground surrounds it: pins 7 and 13 in the same row, 10 and 12 directly opposite.
+**USB and the IO control lines are on `J4` since D35**, not here. Pins 15 to 19 held them and stay
+reserved. The authoritative pinout is in [06 — Board Interfaces](06-board-interfaces.md).
 
-**Only two rails reach the mainboard.** `+3V3` for the ESP32-S3, W5500 and logic, roughly 350 mA, and
-`+5V` for the two Halo LEDs and their level shifter, roughly 50 mA. **24 V and 12 V never touch this
+**One rail reaches the mainboard: 5 V, unconditional, on three contacts.** **24 V and 12 V never touch this
 board** — they go straight from the power board to the IO board, which is the point of D31.
+
+**The mainboard makes its own 3.3 V** (D36) with an **AMS1117-3.3** LDO from the 5 V feed. Load is
+roughly 250 mA with Wi-Fi off, up to 500 mA while Wi-Fi transmits, so 0.4 to 0.85 W in a SOT-223: give the
+tab a copper pour. An LDO rather than a buck deliberately, because this board carries every
+impedance-controlled trace, the PHY and the magnetics, and it has no switching regulator on it. 22 µF with
+some ESR on the output, as on the RP2354 base sheet; a lone small ceramic can make a 1117 oscillate.
 
 Numbering follows the band scheme in [06 — Board Interfaces](06-board-interfaces.md): J1–J9 are
 board-to-board and carry the same number on both boards, J10+ face outward, J20+ are service.

@@ -6,21 +6,44 @@ level of "we know what it is and what it costs us".
 Every board carries an RP2354, so the "bus lines used" column from the two-board design is gone. What
 matters now is which rails a board needs and how much of the budget it eats.
 
-| ID | Board | Rails needed | Fits on | Status |
-|---:|---|---|---|---|
-| `0x0001` | DMX512 / RDM | 3V3, 5V | any | **Components selected** |
-| `0x0002` | Digital input, 8× | 3V3, 12V | any | Concept |
-| `0x0003` | Addressable LED | 3V3, 5V | `PWR-AT` or `PWR-BT` for a real run | Concept |
-| `0x0004` | Mains relay, 3~ + N | 3V3, 12V | any, remote | Concept, see safety notes |
-| `0x0005` | OLED display | 3V3 | any | Concept |
-| `0x0006` | Dry contact output, 4× | 3V3, 12V | any | Concept |
-| `0x0007` | Environmental sensor | 3V3 | any | Concept |
+**Naming: `IO-<FUNCTION><COUNT>`**, following `PWR-<CLASS>` on the power boards. The count is the number of
+channels the board exposes, so `IO-LED8` and `IO-DMX2` say what they are on the silkscreen. This is the
+`name` field in the identification reply, and it is what the web UI shows.
+
+Every board takes 5 V from `J3` and makes its own 3.3 V with an LDO; there is no 3.3 V rail (D36). The
+"rails needed" column lists what the application circuit needs beyond that.
+
+| ID | Name | Board | Rails needed | Fits on | Status |
+|---:|---|---|---|---|---|
+| `0x0001` | `IO-DMX2` | DMX512 / RDM, 2 universes | 5V | any | **Components selected** |
+| `0x0002` | `IO-DIN8` | Digital input, 8× | 5V, 12V | any | Concept |
+| `0x0003` | `IO-LED8` | Addressable LED, 8 outputs | 5V, 12V or 24V by jumper | `PWR-AT` or `PWR-BT` for a real run | **First board to build** |
+| `0x0004` | `IO-MAINS4` | Mains relay, 3~ + N | 5V, 12V | any, remote | Concept, see safety notes |
+| `0x0005` | `IO-OLED` | OLED display | 5V | any | Concept |
+| `0x0006` | `IO-REL4` | Dry contact output, 4× | 5V, 12V | any | Concept |
+| `0x0007` | `IO-ENV` | Environmental sensor | 5V | any | Concept |
+| `0x0008` | `IO-AIO4` | Analog / digital input, 4× | 5V, 12V | any | Concept |
+| `0x0009` | `IO-PWM4` | PWM output, 4× 16 bit | 5V, 12V or 24V by jumper | any | Concept |
+| `0x000A` | `IO-STEP1` | Stepper with encoder, 1× | 5V, 24V | `PWR-BT` | Concept |
+
+**Build order: `IO-LED8`, `IO-REL4`, `IO-DMX2`, then the rest.** The first board pays for the shared base:
+RP2354, crystal, SWD, USB service connector, J3 and J4, the reset and boot lines, and the link firmware.
+That base wants a periphery with as few unknowns as possible, and `IO-LED8` is a level shifter and
+terminals. It is also the only board that loads the power board hard enough to prove the 5 V buck at 10 A,
+the 24 V rail, and the J3 ground rule from [06](06-board-interfaces.md). `IO-REL4` draws 200 mA and
+proves nothing about the power board. `IO-STEP1` is last: motor current, heat and motion firmware are three
+new problems on one board.
 
 ---
 
-## 0x0001 — DMX512 / RDM
+## 0x0001 — DMX512 / RDM — `IO-DMX2`
 
-The board the project started as. One isolated DMX universe on an XLR connector.
+The board the project started as. Isolated DMX on XLR connectors.
+
+**The first build carries two universes.** Two transceivers, two protection networks, two XLRs, both
+driven from PIO. Nothing below changes per universe, it is simply fitted twice, and the transceiver's
+integrated isolated DC/DC means the second universe costs no extra supply. A single-universe variant would
+be a different board and gets its own ID; the universe count is not a population option.
 
 ### Bill of materials
 
@@ -117,7 +140,7 @@ uses. Affects the board outline and the enclosure. See Q8 in [11](11-open-questi
 
 ---
 
-## 0x0002 — Digital input, 8×
+## 0x0002 — Digital input, 8× — `IO-DIN8`
 
 Buttons, reed switches, PIR sensors, door contacts, prop triggers. The most common board in an escape room.
 
@@ -134,10 +157,43 @@ stated but could not really enforce.
 
 Latency is the design driver. A scare that fires late is not a scare.
 
-## 0x0003 — Addressable LED
+## 0x0003 — Addressable LED, 8 outputs — `IO-LED8`
 
-- PIO-driven WS2812 timing, level shifted 3.3 V to 5 V
-- Terminal for external 5 V injection and a jumper to select bus-powered or externally-powered
+**The first board to build.** Decided 2026-09-09:
+
+- **8 outputs, one PIO state machine each** or the parallel-output variant from the pico examples, which
+  drives all eight from one state machine and DMA. Both are firmware choices; the hardware is the same.
+- **Data level shifted 3.3 V to 5 V** through one 74HCT245, plus a series resistor of 33 to 100 Ω per output
+  at the terminal. 12 V and 24 V strips still take 5 V data, so the level shifter does not change with the
+  rail.
+- **3-pole terminal per output: V+, DATA, GND. WAGO 2601-1103**, 3.5 mm pitch, lever-actuated push-in,
+  10 A, 16 to 26 AWG, the 3-pole sibling of the 2601-1102 already in Part-DB. About €3 each, so €24 of
+  terminals per board; that is the price of tool-free wiring on site. The injection terminal is the
+  2-pole 2601-1102.
+- **A PPTC per output** in the V+ line, **Bourns MF-MSMF110/33X-2**: 33 V, 1.1 A hold, 2.2 A trip, 1812.
+  33 V is the only rating that clears the 24 V option, and at 33 V the 1812 size tops out at about 1.1 A.
+  That is the per-output ceiling: 5.5 W of 5 V strip per output, or the whole 10 A budget across eight
+  outputs, which is consistent with `J3`. A single long 5 V run at 3 A does not fit through it and wants
+  external injection, which long runs want anyway. If that ceiling ever hurts, the alternative is a
+  non-resettable 4 A Nano2 fuse per output, `0453004.MR`, which is in Part-DB. The PPTC protects the
+  terminal and the strip wiring; the power board's eFuse protects the rail.
+- **Strip supply selectable by jumper: 5 V, 12 V or 24 V.** One jumper for the whole board, not per output.
+  Mixing strip types on one board is not worth a per-output jumper that an installer will get wrong.
+- **The RP2354 senses the selected rail** through a resistor divider on an ADC pin and derives
+  `rails_required` from it at boot, so the descriptor always declares the rail that is actually jumpered.
+  It also lets firmware refuse to run when the jumper is missing or the voltage is not one of the three.
+- Terminal for **external injection** stays, with the jumper deciding bus-powered or externally-powered.
+
+**Jumper geometry.** A 2×3 header (Würth 61300621121) with the strip supply on both middle pins, 5 V and
+EXT on the left column, 12 V and 24 V on the right column. Every shunt position is one rail; the four
+positions read 5V, EXT, 12V, 24V on the silkscreen, by voltage, not by letter. Two shunts fitted at once
+would bridge two rails, which the rail sense catches: firmware refuses to run when the measured voltage is
+not one of the three, and the power board's eFuse trips on the short.
+
+**Current.** Eight outputs share the rail budget, not eight times a per-output allowance. At 5 V the J3
+contract carries 10 A, so a fully used board is 1.25 A per output on average, and the PPTC's hold current
+is the per-output ceiling. Firmware compares the declared strip lengths against the budget the mainboard
+reports and refuses to light more than it has.
 
 **This board is the reason 802.3bt was worth the money.** On the af budget, 60 mA per RGB pixel at full
 white meant roughly 55 pixels before the node browned out, which is not a length of LED strip anybody wants.
@@ -158,7 +214,7 @@ The constraint moves from "one fast line and 10 W" to "how many amps do you want
 problem. Long runs still want external injection, both for volt drop along the strip and to keep the
 node's own thermal budget sane.
 
-## 0x0004 — Mains relay, 3 phases + neutral
+## 0x0004 — Mains relay, 3 phases + neutral — `IO-MAINS4`
 
 **Read [09 — Compliance & Safety](09-compliance-and-safety.md) before designing this board.**
 
@@ -190,12 +246,12 @@ harder question about state after a power failure.
 **This board is remote, not stacked.** In practice that means it gets its own node. See
 [06 — Board Interfaces](06-board-interfaces.md).
 
-## 0x0005 — OLED display
+## 0x0005 — OLED display — `IO-OLED`
 
 I2C SSD1306 or SH1106, 128×64, driven by the RP2354. Countdown timers, hint display, prop instrumentation,
 and a local diagnostic readout showing IP address and board status without a laptop.
 
-## 0x0006 — Dry contact output, 4×
+## 0x0006 — Dry contact output, 4× — `IO-REL4`
 
 Four low-voltage relay or solid-state outputs for triggering third-party equipment: audio players, smoke
 machines with contact-closure inputs, existing show controllers. The glue board that lets OpenHaunt drive
@@ -204,8 +260,67 @@ things it does not otherwise speak to.
 A good candidate for the failsafe capability flag. A dry contact that holds its last state through a link
 dropout is usually right; one that holds it through a five-minute network outage usually is not.
 
-## 0x0007 — Environmental sensor
+## 0x0007 — Environmental sensor — `IO-ENV`
 
 Temperature, humidity and air quality over I2C. Less about effects, more about operations. Fog fluid
 behaviour depends on humidity, and an escape room's HVAC failing mid-season is worth knowing about before
 the guests mention it.
+
+## 0x0008 — Analog / digital input, 4× — `IO-AIO4`
+
+Four universal input channels for sensors that are not a dry contact: distance sensors, potentiometers,
+pressure mats with analog output, 0 to 10 V from third-party controllers.
+
+- **Four channels, matching the four ADC inputs of the RP2354A.** Eight would force the RP2354B; the
+  digital-only board `IO-DIN8` covers the case where eight contacts are needed.
+- **Each channel is 0 to 10 V analog or a digital input, selected per channel by jumper.** Analog mode is
+  a divider to the 3.3 V ADC range with a series resistor and clamp. Digital mode is the same divider read
+  as a threshold, so the hardware is one input network with two firmware interpretations.
+- **12 V on the terminals** for powering sensors, PPTC-protected, as on `IO-DIN8`.
+- **Not isolated.** An analog input cannot be opto-isolated cheaply, and a universal channel that is
+  isolated in one mode and not in the other is a trap. Protection is series resistance, clamping and a
+  TVS per channel. Anything that arrives on long wiring next to mains belongs on `IO-DIN8`, which is
+  isolated. This is the trade the board makes, and it belongs on the silkscreen.
+- 3-pole terminal per channel: 12 V, SIGNAL, GND.
+
+Open: whether 4 to 20 mA current loops are worth a burden-resistor population option. Industrial sensors
+use them; haunt equipment mostly does not.
+
+## 0x0009 — PWM output, 4× 16 bit — `IO-PWM4`
+
+Four dimmed outputs for non-addressable loads: single-colour or RGBW LED strip, lamps, small DC motors,
+fans, solenoids with PWM hold.
+
+- **The RP2350 PWM is 16 bit natively**, twelve slices of two channels, so four channels cost nothing
+  in silicon and 16 bit means no visible steps at the low end of a fade.
+- **Low-side MOSFET per channel**, 2 to 3 A, with a flyback diode across the terminal for inductive loads
+  and a gate driver stage so the edge rate is set by the board, not by the RP2354 pin.
+- **Load supply selectable by jumper: 12 V or 24 V**, one jumper for the board, sensed by the RP2354
+  exactly as on `IO-LED8`. 5 V is not offered: a 5 V load at these currents is what `IO-LED8` is for.
+- **PPTC per channel** in the supply line, same rating rule as `IO-LED8`.
+- 3-pole terminal per channel: V+, OUT, GND. The load sits between V+ and OUT.
+
+The pluggable output stage is common with `IO-LED8`: same terminals, same PPTCs, same jumper sense. Design
+those as one sub-sheet.
+
+Open: whether a 0 to 10 V analog output variant is wanted for third-party dimmers. It is an RC filter and an
+op-amp per channel, but it is a different output stage and probably a different board.
+
+## 0x000A — Stepper with encoder, 1× — `IO-STEP1`
+
+One stepper motor with a quadrature encoder and two endstops, for props that move: sliding panels, rotating
+heads, curtains, anything that has to reach a position and stay there.
+
+- **Driver: Trinamic TMC2209** for up to about 2 A RMS, configured over UART from the RP2354, with
+  StallGuard as a sensorless endstop. A TMC5160 variant for larger motors is a different board.
+- **Motor supply from the 24 V rail.** This is the one board besides `IO-LED8` that sets capability flag
+  bit 7, and it does not fit a power board without 24 V. 24 V at 2 A is 48 W, which is most of a `PWR-BT4`
+  budget and all of a `PWR-BT3`; declare it honestly and expect the mainboard to refuse on anything smaller.
+- **Encoder through PIO.** Quadrature decoding is a PIO program in the pico examples; the RP2354 keeps the
+  position count itself and reports it.
+- Two endstop inputs, opto-isolated like `IO-DIN8`, because they run out along the mechanism.
+- **Motion runs on the RP2354.** Acceleration profiles, homing and position hold are local; the mainboard
+  sends targets. That is the whole point of D19 applied to a motor.
+
+**Last in the build order.** Motor current, driver heat on a board that sits in a sealed enclosure, and
+motion firmware are three new problems, and none of them are shared with the other boards.
