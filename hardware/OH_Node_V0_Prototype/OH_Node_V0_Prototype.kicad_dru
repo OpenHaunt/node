@@ -1,0 +1,104 @@
+(version 1.1)
+#----------------------------------------------------------------------------------------------------
+# AISLER custom DRC rules.
+# Make Hardware less Hard. 
+#----------------------------------------------------------------------------------------------------
+# We created these custom rules to warn you if your design hits our manufacturing bounderies. 
+# You can disable the custom rules by commenting them out, though we advise against it.  
+# These rules are valid as of May 2024, please check for updated ones on our forum.
+# Please also note that these rules do not catch every single manufacturing limit. 
+# If you are not certain please check the documentation on our website. 
+#----------------------------------------------------------------------------------------------------
+
+# As our tooling is finite we only support certain trough hole sizes. 
+# Please keep the plated trough holes below 5.6mm in diameter. 
+# We provide a community post for more details: 
+# https://community.aisler.net/t/plated-and-non-plated-holes/50
+
+(rule "Max Drill Hole Size PTH"
+    (constraint hole_size (max 5.6mm))
+    (condition "A.Pad_Type == 'Through-hole'"))
+
+#----------------------------------------------------------------------------------------------------
+# We dont support micro or buried vias
+
+(rule "Disallow buried via"
+   (constraint disallow buried_via))
+
+(rule "Disallow micro via"
+   (constraint disallow micro_via))
+
+#----------------------------------------------------------------------------------------------------
+# The Soldermask is pulled back by a bit to account for slight missalignment during manufacturing. 
+# We do this on our own, please keep the soldermask margin set to 0. 
+ 
+(rule "Disallow solder mask margin overrides"
+    (constraint assertion "A.Soldermask_Margin_Override == 0mm || A.Soldermask_Margin_Override == null")
+    (condition "A.Type == 'Pad' && !A.memberOfFootprint('Fiducial:*')")
+)
+
+#----------------------------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------
+# Isolation barrier, Domain 1 to Domain 2 (V0 single board).
+# Domain 1 = the magjack centre taps V1..V4, the bridges, the TVS and the Ag9905 input: net class "PoE".
+# The data pairs are isolated inside the magjack and carry no PoE current, so they are Domain 2 here.
+# Take the actual figure from IEC 60664-1 for the pollution degree in use - see docs/09.
+
+(rule "isolation_barrier"
+   (constraint clearance (min 1.5mm))
+   (condition "A.NetClass == 'PoE' && B.NetClass != 'PoE'"))
+
+#----------------------------------------------------------------------------------------------------
+# Mains on the relay contacts, net class "MAINS" (docs/09: basic ~3 mm, reinforced 6-8 mm at 230 V).
+# MAINS to MAINS uses the net class clearance of 3.0 mm (basic insulation, e.g. NO to NC of one relay).
+# MAINS to everything else is reinforced insulation to SELV: 6.4 mm here. Raise to 8 mm if the enclosure
+# or pollution degree asks for it.
+
+(rule "mains_to_selv"
+   (constraint clearance (min 6.4mm))
+   (condition "(A.NetClass == 'MAINS') != (B.NetClass == 'MAINS')"))
+
+(rule "mains_track_width"
+   (constraint track_width (min 1.5mm))
+   (condition "A.NetClass == 'MAINS'"))
+
+(rule "mains_copper_to_edge"
+   (constraint edge_clearance (min 2.0mm))
+   (condition "A.NetClass == 'MAINS'"))
+
+# The G5LE's own pin spacing is fixed by Omron: coil pad to COM pad is 3.8 mm edge to edge on the PCB.
+# Omron rates coil-to-contact insulation 4 kV; on the board the slot under the relay provides the
+# creepage (docs/09). This later rule exempts the relay's own pads from mains_to_selv without
+# weakening it anywhere else.
+
+(rule "relay: vendor-defined pin spacing"
+   (constraint clearance (min 2.5mm))
+   (condition "A.memberOfFootprint('K?') && B.memberOfFootprint('K?') && A.Type == 'Pad' && B.Type == 'Pad'"))
+
+# The WAGO 2601-1103 relay terminals have a 3.5 mm pitch with 2.3 mm pads, 1.2 mm edge to edge, fixed by
+# WAGO and rated by them for the mains voltage. One rule per terminal so that only a terminal's own pads
+# are exempted; pads of two different terminals, or a terminal and anything else, keep the full rules.
+
+(rule "J2: WAGO pin spacing"
+   (constraint clearance (min 1.0mm))
+   (condition "A.memberOfFootprint('J2') && B.memberOfFootprint('J2')"))
+
+(rule "J4: WAGO pin spacing"
+   (constraint clearance (min 1.0mm))
+   (condition "A.memberOfFootprint('J4') && B.memberOfFootprint('J4')"))
+
+(rule "J5: WAGO pin spacing"
+   (constraint clearance (min 1.0mm))
+   (condition "A.memberOfFootprint('J5') && B.memberOfFootprint('J5')"))
+
+(rule "J6: WAGO pin spacing"
+   (constraint clearance (min 1.0mm))
+   (condition "A.memberOfFootprint('J6') && B.memberOfFootprint('J6')"))
+
+# The magjack's V1..V4 pins are on the connector's own pitch, 0.21 mm apart at the pads, fixed by Würth.
+# Exempt the jack's own pads from the 0.5 mm PoE class clearance; the barrier rule to other nets stays.
+
+(rule "J3: magjack pin spacing"
+   (constraint clearance (min 0.2mm))
+   (condition "A.memberOfFootprint('J3') && B.memberOfFootprint('J3')"))

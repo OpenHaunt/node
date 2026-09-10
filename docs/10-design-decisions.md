@@ -1147,3 +1147,64 @@ shipped.
 
 **Amends** D12 and D24, and the "only 3.3 V is guaranteed" statements in `02`, `04`, `05` and `06`, which
 now read 5 V. Resolves Q21.
+
+---
+
+## D37 — V0 is one board: the mainboard plus an af module and the IO of the first haunt
+
+**Decided 2026-09-09.** Before the three-board family is built, a single-PCB prototype proves the ESP32-S3,
+the W5500, PoE and the firmware. It is `OH_Node_V0_Prototype`, started as a copy of the mainboard schematic.
+
+**Why.** Five PCBs (mainboard, `PWR-BT4`, `IO-LED8`, and their successors) for a first prototype is too
+expensive and proves too much at once. D16 through D36 stay the design for the product; V0 is the
+shortest path to a node that boots, gets an address, fires a relay and lights a strip.
+
+**What V0 carries.** One PoE class, no board-to-board connectors, no RP2354, no descriptor EEPROM, no
+per-rail metering. The ESP32-S3 drives every output directly.
+
+| Function | Part | Source | Notes |
+|---|---|---|---|
+| Ethernet + magnetics | Würth **7499511420** magjack | Part-DB 159, LRV symbol and footprint exist | 1000 mA per centre tap, Bob Smith and 1 nF/2 kV built in, two LEDs |
+| PoE | Silvertel **AG9905-MTB**, 5 V | new, €7.49, 3121 stock | 9 W to 70 °C, 6 W at 85 °C, 1.8 A. Class 0. Min load 200 mA |
+| Input bridges | 4 × **V6K100DUHM3/H** | Part-DB 157, as on `PWR-BT4` | datasheet suggests MB6S, the stocked dual diodes do the same |
+| Input TVS | **SMAJ58A** | Part-DB 164 | Figure 14 of the Ag9900 datasheet |
+| 3.3 V | **AMS1117-3.3** | Part-DB 12 | as D36 already said for the mainboard |
+| Relays | 4 × Omron **G5LE-1 DC5**, SPDT 10 A | new, €1.60, 6304 stock | 79 mA coil, 1.6 W with all four held |
+| Relay drivers | 2 × **DMN601DWK-7**, 4 × **1N4148WS** | Part-DB 28, 528 | |
+| Relay terminals | 4 × WAGO **2601-1103**, 3-pos | new, €3.06 | NC / COM / NO. The 2-pos 2601-1102 is stocked, the 3-pos is not |
+| PIR inputs | 2 × WR-WTB Interkom **66100311722**, 3-pin right angle | Part-DB 98 | 5 V, GND, signal. HC-SR501 style, 3.3 V output |
+| WS2812 outputs | 2 × **74AHCT1G125W5-7** + 150 R | Part-DB 561 | data and GND only, strip power is external |
+| WS2812 terminals | 2 × WR-WTB **61900211021**, 2-pin right angle | Part-DB 93 | |
+| Audio | **MAX98357AETE+T** I2S class D | new, €1.90 | 3.2 W into 4 Ω from 5 V. Audio decoded by the ESP32-S3 from its 16 MB flash |
+| Speaker | WAGO **2601-1102** and a CUI **SJ1-3523N** 3.5 mm jack in parallel | Part-DB 130, new €0.96 | the jack carries the bridged speaker output, not line level |
+| Status LED | 1 × **IN-PI15TAT5R5G5B** on the existing 74AHCT1G125 | Part-DB | the second Halo LED goes with the etherCON |
+| Spare GPIO | 1×10 header: 3V3, GND, SDA, SCL, 6 GPIO | Part-DB stock | |
+
+**Power budget at 5 V.** ESP32-S3 and W5500 through the LDO 1.8 W typical and 2.5 W peak, four relays
+1.6 W, amplifier 1 W typical and 3.5 W flat out, LEDs 0.2 W. About 4.5 W typical, 7.5 W worst case, against
+9 W from the module and 6 W once the module passes 70 °C. Worst case at high ambient does not fit; V0
+accepts that. The Ag9905 needs 200 mA minimum load or the PSE may drop it; the processor alone covers it,
+so do not put the ESP32 into deep sleep on V0.
+
+**Why 5 V and not 12 V.** The 12 V module keeps the stocked G2R relays and would allow 12 W, at the cost
+of an AP3441 buck with inductor and capacitors on a board that has no switcher otherwise. Every V0 load
+runs from 5 V, so the 5 V module removes a whole stage.
+
+**Why the magjack and not the etherCON with discrete magnetics.** D26 and D28 stand for the product.
+For a prototype the NE8FAH-LR-DAE, the 7490220122 transformer, the Halo LEDs and the external Bob Smith
+network cost more than the magjack and take a board edge the prototype does not need. The magjack is
+1000 mA per tap, which is Type 3 territory, so nothing about the PoE front end is being under-built.
+
+**Why an I2S amplifier and not a DFPlayer.** The DFPlayer would have been the faster path. The
+MAX98357A is one QFN, three GPIOs and no module socket, and it forces the sound-storage question of Q20
+onto the ESP32-S3, which has 16 MB of flash it is not using. Q20 stays open for the product.
+
+**What V0 does not prove.** The IO board link, the RP2354 firmware, the descriptor scheme, per-rail
+eFuses and metering, the Domain 1 crossing on `J1`, and anything above 9 W. Those are what the three
+boards are for.
+
+**Isolation on one board.** Domain 1 is now the magjack centre taps `V1..V4`, the bridges, the TVS and
+the Ag9905 input pins. The 1500 V barrier is the module's transformer and the magjack's. Keep the
+Domain 1 keep-out around that corner exactly as D17 required for `J1`.
+
+**Does not supersede** D16, D17, D19, D20, D26, D28, D29 or D35. V0 is a prototype, not a variant.
