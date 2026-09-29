@@ -7,6 +7,9 @@
 		(legacy_teardrops no)
 	)
 	(paper "A4")
+	(title_block
+		(comment 4 "AISLER Project ID: OAJSWOGZ")
+	)
 	(layers
 		(0 "F.Cu" signal)
 		(4 "In1.Cu" signal)
@@ -3807,14 +3810,14 @@
 			)
 		)
 	)
-	(footprint "Capacitor_SMD:C_0402_1005Metric"
+	(footprint "Capacitor_SMD:C_0805_2012Metric"
 		(layer "F.Cu")
 		(uuid "1e1c952b-54af-43ce-b471-97b3154ac43e")
 		(at 135.95 103.15 -90)
-		(descr "Capacitor SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC-7351 nominal, (Body size source: IPC-SM-782 page 76, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf)")
+		(descr "Capacitor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC-7351 nominal, (Body size source: IPC-SM-782 page 76, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf, https://docs.google.com/spreadsheets/d/1BsfQQcO9C6DZCsRaXUlFlo91Tg2WpOkGARC1WS5S8t0/edit?usp=sharing)")
 		(tags "capacitor")
 		(property "Reference" "C19"
-			(at 0 -1.16 90)
+			(at 0 -1.68 270)
 			(layer "F.SilkS")
 			(uuid "cf62feab-2560-43cb-96b5-cfdf4673b5a8")
 			(effects
@@ -3825,7 +3828,7 @@
 			)
 		)
 		(property "Value" "4.7u"
-			(at 0 1.16 90)
+			(at 0 1.68 270)
 			(layer "F.Fab")
 			(uuid "1c1d89fd-c152-4c58-bbf3-ebee0ac57eff")
 			(effects
@@ -3836,7 +3839,7 @@
 			)
 		)
 		(property "Datasheet" "https://weblib.samsungsem.com/mlcc/mlcc-ec-data-sheet.do?partNumber=CL05Y105KP6VPN"
-			(at 0 0 90)
+			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "02c4d662-b4a6-4042-8935-c2dcf7533226")
@@ -3847,7 +3850,7 @@
 			)
 		)
 		(property "Description" "4.7 uF 10% 35V Ceramic Capacitor X5R 0805 (2012 Metric)"
-			(at 0 0 90)
+			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "edadf176-10ea-4461-819b-45127f8b69e0")
@@ -3858,7 +3861,7 @@
 			)
 		)
 		(property "KiLib_Generator" "SMD_2terminal_chip_molded"
-			(at 0 0 90)
+			(at 0 0 270)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "4efa55fc-228e-4ed3-9224-e24a05522720")
@@ -3874,7 +3877,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "bd9403ce-c256-444a-ba9a-0cf9bf8e1e32")
+			(uuid "6f6bb34e-2ccf-4669-80c9-6a76be9112c9")
 			(effects
 				(font
 					(size 1 1)
@@ -3887,7 +3890,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "e3db9614-00db-4c3a-bb61-e328ee70a8d4")
+			(uuid "b82c4f1c-4adf-484b-aa66-b1773aa68904")
 			(effects
 				(font
 					(size 1 1)
@@ -3900,7 +3903,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "7b6a3695-97a2-4c68-8a2b-7c5bf2eedf02")
+			(uuid "16231b9f-3725-46d6-b8a2-62f9571af5dd")
 			(effects
 				(font
 					(size 1 1)
@@ -3913,7 +3916,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "1bae8024-1360-4909-835f-4e74d6a7b28d")
+			(uuid "872a26b6-12e1-4b07-89a1-813e2cb3d8ec")
 			(effects
 				(font
 					(size 1 1)
@@ -3921,7 +3924,7 @@
 				)
 			)
 		)
-		(property ki_fp_filters "Capacitor_SMD:C_0402_1005Metric")
+		(property ki_fp_filters "Capacitor_SMD:C_0805_2012Metric")
 		(path "/42d62981-faaf-415a-9931-f68b083c8136")
 		(sheetname "/")
 		(sheetfile "OH_Node_V0_Prototype.kicad_sch")
@@ -3934,8 +3937,8 @@
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start -0.107836 0.36)
-			(end 0.107836 0.36)
+			(start -0.261252 0.735)
+			(end 0.261252 0.735)
 			(stroke
 				(width 0.12)
 				(type solid)
@@ -3944,8 +3947,8 @@
 			(uuid "52327335-1689-4d8f-82df-441b5ead7883")
 		)
 		(fp_line
-			(start -0.107836 -0.36)
-			(end 0.107836 -0.36)
+			(start -0.261252 -0.735)
+			(end 0.261252 -0.735)
 			(stroke
 				(width 0.12)
 				(type solid)
@@ -3953,44 +3956,42 @@
 			(layer "F.SilkS")
 			(uuid "e8db20ab-65cd-4b4e-b1e1-519e61feb49e")
 		)
-		(fp_poly
-			(pts
-				(xy -0.91 -0.46) (xy 0.91 -0.46) (xy 0.91 0.46) (xy -0.91 0.46)
-			)
+		(fp_rect
+			(start -1.7 -0.98)
+			(end 1.7 0.98)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.CrtYd")
-			(uuid "480042f2-ecfc-4f51-b10e-fe2f7f086dfe")
+			(uuid "b3c49838-1c65-4bb7-910d-d5fd53f4a750")
 		)
-		(fp_poly
-			(pts
-				(xy -0.5 -0.25) (xy 0.5 -0.25) (xy 0.5 0.25) (xy -0.5 0.25)
-			)
+		(fp_rect
+			(start -1 -0.625)
+			(end 1 0.625)
 			(stroke
 				(width 0.1)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.Fab")
-			(uuid "238a0ce6-3c07-46b3-adc3-1ede8b22b065")
+			(uuid "a0f069d8-9f40-4b4c-bff7-389594a3a41e")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
+			(at 0 0 270)
 			(layer "F.Fab")
 			(uuid "64c749fb-b1ad-40f8-9c05-7a2796eb6340")
 			(effects
 				(font
-					(size 0.25 0.25)
-					(thickness 0.04)
+					(size 0.5 0.5)
+					(thickness 0.08)
 				)
 			)
 		)
 		(pad "1" smd roundrect
-			(at -0.48 0 270)
-			(size 0.56 0.62)
+			(at -0.95 0 270)
+			(size 1 1.45)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
 			(net "Net-(U1-TOCAP)")
@@ -3998,8 +3999,8 @@
 			(uuid "4045cb45-0350-4dad-a0c5-6651647d98af")
 		)
 		(pad "2" smd roundrect
-			(at 0.48 0 270)
-			(size 0.56 0.62)
+			(at 0.95 0 270)
+			(size 1 1.45)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
 			(net "GND")
@@ -4007,7 +4008,7 @@
 			(uuid "ea86d470-8480-4c31-8c1a-eba2e3ac6e47")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+		(model "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0805_2012Metric.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -34431,6 +34432,14 @@
 		(uuid "c05686c6-be8d-45d8-8aa8-f53b9667160e")
 	)
 	(segment
+		(start 99.5 78)
+		(end 115.63 78)
+		(width 1)
+		(layer "F.Cu")
+		(net "/CHASSIS")
+		(uuid "d0c09714-e1f4-4e87-bd21-f865a05fde8e")
+	)
+	(segment
 		(start 146.45 82.025)
 		(end 145.95 82.025)
 		(width 0.25)
@@ -40533,14 +40542,6 @@
 		(layer "F.Cu")
 		(net "Net-(Q1-N2G)")
 		(uuid "b4ee3ec1-b851-4a8d-9fa0-a758dc5d1b0e")
-	)
-	(segment
-		(start 99.5 78)
-		(end 115.63 78)
-		(width 1)
-		(layer "F.Cu")
-		(net "/CHASSIS")
-		(uuid "d0c09714-e1f4-4e87-bd21-f865a05fde8e")
 	)
 	(zone
 		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu")
