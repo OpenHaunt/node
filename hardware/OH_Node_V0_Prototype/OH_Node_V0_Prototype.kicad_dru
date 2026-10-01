@@ -51,7 +51,7 @@
 
 #----------------------------------------------------------------------------------------------------
 # Mains on the relay contacts, net class "MAINS" (docs/09: basic ~3 mm, reinforced 6-8 mm at 230 V).
-# MAINS to MAINS uses the net class clearance of 3.0 mm (basic insulation, e.g. NO to NC of one relay).
+# MAINS to MAINS uses the net class clearance of 3.0 mm (basic insulation, between different relays).
 # MAINS to everything else is reinforced insulation to SELV: 6.4 mm here. Raise to 8 mm if the enclosure
 # or pollution degree asks for it.
 
@@ -67,34 +67,27 @@
    (constraint edge_clearance (min 2.0mm))
    (condition "A.NetClass == 'MAINS'"))
 
-# The G5LE's own pin spacing is fixed by Omron: coil pad to COM pad is 3.8 mm edge to edge on the PCB.
-# Omron rates coil-to-contact insulation 4 kV; on the board the slot under the relay provides the
-# creepage (docs/09). This later rule exempts the relay's own pads from mains_to_selv without
-# weakening it anywhere else.
+# Contacts of one relay (NO / COM / NC): functional insulation. The terminal (Würth 691137710003, 5 mm
+# pitch) has its own pads 2.7 mm apart, so the 3 mm MAINS class clearance cannot be met there. 2.5 mm is a
+# working figure, not checked against IEC 60664-1. Between different relays the 3 mm class value stays.
+# The relay is an Omron G2RL-1-E (5 kV coil to contacts, 8 mm / 8 mm): its coil pads are 13 mm from the
+# contact pads, so it needs no exemption from mains_to_selv.
 
-(rule "relay: vendor-defined pin spacing"
+(rule "K1 contacts: same relay"
    (constraint clearance (min 2.5mm))
-   (condition "A.memberOfFootprint('K?') && B.memberOfFootprint('K?') && A.Type == 'Pad' && B.Type == 'Pad'"))
+   (condition "A.NetName == 'Net-(J2-Pin_*)' && B.NetName == 'Net-(J2-Pin_*)'"))
 
-# The WAGO 2601-1103 relay terminals have a 3.5 mm pitch with 2.3 mm pads, 1.2 mm edge to edge, fixed by
-# WAGO and rated by them for the mains voltage. One rule per terminal so that only a terminal's own pads
-# are exempted; pads of two different terminals, or a terminal and anything else, keep the full rules.
+(rule "K2 contacts: same relay"
+   (constraint clearance (min 2.5mm))
+   (condition "A.NetName == 'Net-(J4-Pin_*)' && B.NetName == 'Net-(J4-Pin_*)'"))
 
-(rule "J2: WAGO pin spacing"
-   (constraint clearance (min 1.0mm))
-   (condition "A.memberOfFootprint('J2') && B.memberOfFootprint('J2')"))
+(rule "K3 contacts: same relay"
+   (constraint clearance (min 2.5mm))
+   (condition "A.NetName == 'Net-(J5-Pin_*)' && B.NetName == 'Net-(J5-Pin_*)'"))
 
-(rule "J4: WAGO pin spacing"
-   (constraint clearance (min 1.0mm))
-   (condition "A.memberOfFootprint('J4') && B.memberOfFootprint('J4')"))
-
-(rule "J5: WAGO pin spacing"
-   (constraint clearance (min 1.0mm))
-   (condition "A.memberOfFootprint('J5') && B.memberOfFootprint('J5')"))
-
-(rule "J6: WAGO pin spacing"
-   (constraint clearance (min 1.0mm))
-   (condition "A.memberOfFootprint('J6') && B.memberOfFootprint('J6')"))
+(rule "K4 contacts: same relay"
+   (constraint clearance (min 2.5mm))
+   (condition "A.NetName == 'Net-(J6-Pin_*)' && B.NetName == 'Net-(J6-Pin_*)'"))
 
 # The magjack's V1..V4 pins are on the connector's own pitch, 0.21 mm apart at the pads, fixed by Würth.
 # Exempt the jack's own pads from the 0.5 mm PoE class clearance; the barrier rule to other nets stays.

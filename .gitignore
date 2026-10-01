@@ -18,7 +18,8 @@ _autosave-*
 
 # KiCad output
 gerbers/
-production/
+**/production/*
+!**/production/jlc_final/
 ibom.html
 *.zip
 *.step
@@ -47,4 +48,10 @@ dependencies.lock
 *.swp
 
 # Datasheets are large and belong in the vendor's hands, not in git
-datasheets/*.pdf
+**/datasheets/*.pdf
+
+# Review / analysis working directory (regenerable)
+analysis/
+
+# JLC order files are kept so a tag can pin the exact uploaded set (overrides *.zip above)
+!**/production/jlc_final/*.zip

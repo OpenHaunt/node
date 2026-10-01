@@ -1,0 +1,283 @@
+{
+ "1N4148WS-7-F": {
+  "id": 528,
+  "file": "1N4148WS-7-F.pdf",
+  "attachment": "1N4148WS, BAV16WS Datasheet",
+  "bytes": 256314,
+  "is_pdf": true
+ },
+ "1N5819HW-7-F": {
+  "id": 366,
+  "file": "1N5819HW-7-F.pdf",
+  "attachment": "1N5819HW Datasheet",
+  "bytes": 282780,
+  "is_pdf": true
+ },
+ "2601-1102": {
+  "id": 130,
+  "file": "2601-1102.pdf",
+  "attachment": "2601-1102",
+  "bytes": 1438063,
+  "is_pdf": true
+ },
+ "2601-1103": {
+  "id": 579,
+  "file": "2601-1103.pdf",
+  "attachment": "2601-1103",
+  "bytes": 1383707,
+  "is_pdf": true
+ },
+ "434133025816": {
+  "id": 17,
+  "file": null
+ },
+ "61300811121": {
+  "id": 34,
+  "file": "61300811121.pdf",
+  "attachment": "61300811121",
+  "bytes": 383764,
+  "is_pdf": true
+ },
+ "7499511420": {
+  "id": 159,
+  "file": "7499511420.pdf",
+  "attachment": "7499511420 (2)",
+  "bytes": 676847,
+  "is_pdf": true
+ },
+ "74AHCT1G125W5-7": {
+  "id": 561,
+  "file": "74AHCT1G125W5-7.pdf",
+  "attachment": "74AHCT1G125",
+  "bytes": 232293,
+  "is_pdf": true
+ },
+ "824500581": {
+  "id": 164,
+  "file": null
+ },
+ "875105344010": {
+  "id": 119,
+  "file": "875105344010.pdf",
+  "attachment": "875105344010 Drawing",
+  "bytes": 773272,
+  "is_pdf": true
+ },
+ "AG9905-MTB": {
+  "id": 577,
+  "file": "AG9905-MTB.pdf",
+  "attachment": "Ag9900",
+  "bytes": 964307,
+  "is_pdf": true
+ },
+ "AMS1117-3.3": {
+  "id": 12,
+  "file": "AMS1117-3.3.pdf",
+  "attachment": "AMS1117 Datasheet",
+  "bytes": 1304629,
+  "is_pdf": true
+ },
+ "BLM15AG601SN1D": {
+  "id": 534,
+  "file": "BLM15AG601SN1D.pdf",
+  "attachment": "BLM15 Specsheet",
+  "bytes": 607337,
+  "is_pdf": true
+ },
+ "CL05A104KA5NNNC": {
+  "id": 9,
+  "file": "CL05A104KA5NNNC.pdf",
+  "attachment": "CL05A104KA5NNNC Char Sheet",
+  "bytes": 183144,
+  "is_pdf": true
+ },
+ "CL05A105KA5NQNC": {
+  "id": 256,
+  "file": "CL05A105KA5NQNC.pdf",
+  "attachment": "02336ea48ea44ca18c72517dd3cb7b47.pdf",
+  "bytes": 7856403,
+  "is_pdf": true
+ },
+ "CL05B103KB5NNNC": {
+  "id": 318,
+  "file": "CL05B103KB5NNNC.pdf",
+  "attachment": "02336ea48ea44ca18c72517dd3cb7b47.pdf",
+  "bytes": 7856403,
+  "is_pdf": true
+ },
+ "CL05B682KB5NNNC": {
+  "id": 555,
+  "file": "CL05B682KB5NNNC.pdf",
+  "attachment": "CL05B682KB5NNNC Spec",
+  "bytes": 1397519,
+  "is_pdf": true
+ },
+ "CL21A226MAYNNNE": {
+  "id": 115,
+  "file": "CL21A226MAYNNNE.pdf",
+  "attachment": "CL21A226MAYNNN Char Sheet",
+  "bytes": 182503,
+  "is_pdf": true
+ },
+ "CL21A475KLCLQNC": {
+  "id": 225,
+  "file": "CL21A475KLCLQNC.pdf",
+  "attachment": "CL21A475KLCLQNC Spec",
+  "bytes": 1317647,
+  "is_pdf": true
+ },
+ "DMN601DWK-7": {
+  "id": 28,
+  "file": "DMN601DWK-7.pdf",
+  "attachment": "DMN601DWK",
+  "bytes": 731845,
+  "is_pdf": true
+ },
+ "ECS-250-18-33-JGN-TR3": {
+  "id": 556,
+  "file": "ECS-250-18-33-JGN-TR3.pdf",
+  "attachment": "ECX-32 Datasheet",
+  "bytes": 397473,
+  "is_pdf": true
+ },
+ "ESP32-S3-WROOM-1-N16R2": {
+  "id": 557,
+  "file": "ESP32-S3-WROOM-1-N16R2.pdf",
+  "attachment": "ESP32\u00adS3-WROOM\u00ad1 Datasheet",
+  "bytes": 1280501,
+  "is_pdf": true
+ },
+ "G5LE-1 DC5": {
+  "id": 578,
+  "file": "G5LE-1_DC5.pdf",
+  "attachment": "G5LE Datasheet",
+  "bytes": 886603,
+  "is_pdf": true
+ },
+ "GRM1555C1H270JA01D": {
+  "id": 559,
+  "file": "GRM1555C1H270JA01D.pdf",
+  "attachment": "Chip Multilayer Ceramic Capacitors Catalog",
+  "bytes": 20196532,
+  "is_pdf": true
+ },
+ "GRM155R61A106ME11D": {
+  "id": 222,
+  "file": "GRM155R61A106ME11D.pdf",
+  "attachment": "GRM155R61A106ME11JPart Numbering Guide",
+  "bytes": 1916396,
+  "is_pdf": true
+ },
+ "MAX98357AETE+T": {
+  "id": 580,
+  "file": "MAX98357AETE+T.pdf",
+  "attachment": "MAX98357A,B Datasheet",
+  "bytes": 3933655,
+  "is_pdf": true
+ },
+ "RC0402FR-0712K4L": {
+  "id": 551,
+  "file": "RC0402FR-0712K4L.pdf",
+  "attachment": "PYU-RC Group Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0402FR-0749R9L": {
+  "id": 549,
+  "file": "RC0402FR-0749R9L.pdf",
+  "attachment": "PYU-RC Group Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0402JR-070RL": {
+  "id": 1,
+  "file": "RC0402JR-070RL.pdf",
+  "attachment": "RC L Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0402JR-0710KL": {
+  "id": 3,
+  "file": "RC0402JR-0710KL.pdf",
+  "attachment": "RC L Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0402JR-07150RL": {
+  "id": 357,
+  "file": "RC0402JR-07150RL.pdf",
+  "attachment": "PYU-RC Group Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0402JR-071KL": {
+  "id": 2,
+  "file": "RC0402JR-071KL.pdf",
+  "attachment": "RC L Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0402JR-071ML": {
+  "id": 518,
+  "file": "RC0402JR-071ML.pdf",
+  "attachment": "PYU-RC Group Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0402JR-074K7L": {
+  "id": 331,
+  "file": "RC0402JR-074K7L.pdf",
+  "attachment": "PYU-RC Group Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0402JR-075K1L": {
+  "id": 20,
+  "file": "RC0402JR-075K1L.pdf",
+  "attachment": "RC L Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "RC0603JR-07100KL": {
+  "id": 125,
+  "file": "RC0603JR-07100KL.pdf",
+  "attachment": "RC L Datasheet",
+  "bytes": 542969,
+  "is_pdf": true
+ },
+ "SJ1-3523N": {
+  "id": 581,
+  "file": "SJ1-3523N.pdf",
+  "attachment": "SJ1-352xN",
+  "bytes": 283619,
+  "is_pdf": true
+ },
+ "SR0402KR-0710RL": {
+  "id": 550,
+  "file": "SR0402KR-0710RL.pdf",
+  "attachment": "SR Series, J,K,M Datasheet",
+  "bytes": 634815,
+  "is_pdf": true
+ },
+ "USB4215-03-A": {
+  "id": 64,
+  "file": "USB4215-03-A.pdf",
+  "attachment": "USB4215 Datasheet",
+  "bytes": 375634,
+  "is_pdf": true
+ },
+ "V6K100DUHM3/H": {
+  "id": 157,
+  "file": "V6K100DUHM3_H.pdf",
+  "attachment": "V6K100DU Datasheet",
+  "bytes": 172424,
+  "is_pdf": true
+ },
+ "W5500": {
+  "id": 558,
+  "file": "W5500.pdf",
+  "attachment": "W5500 Datasheet",
+  "bytes": 1893745,
+  "is_pdf": true
+ }
+}
