@@ -1,8 +1,8 @@
-refs,qty_per_board,qty_total,part,description,partdb_id,partdb_stock,to_buy,digikey_pn,digikey_stock,price_1,price_at_qty,line_total,tiers
-J1,1,1,SJ1-3523N,"3.50mm (0.141"", 1/8"", Mini Plug) - Headphone Phone Jack Ster",581,0,1,CP1-3523N-ND,232540,0.96,0.96,0.96,1:0.96; 10:0.813; 25:0.7624; 50:0.7258; 140:0.67486; 280:0.64261; 560:0.61191; 1120:0.58269; 2520:0.55029
-"J2, J4, J5, J6, J8, J10",6,6,691137710003,3 Position Wire to Board Terminal Block Horizontal with Boar,584,0,6,732-10956-ND,14764,0.54,0.54,3.24,1:0.54; 10:0.477; 50:0.4246; 100:0.3815; 500:0.36992
-J3,1,1,7499511420,"1 Port RJ45 Through Hole 10/100/1000 Base-T, AutoMDIX, Power",159,13,0,732-7499511420-ND,21,14.07,14.07,0,1:14.07; 5:13.414; 10:13.005; 21:12.61; 42:12.20762
-"J7, J9",2,2,691137710002,2 Position Wire to Board Terminal Block Horizontal with Boar,585,0,2,732-10955-ND,66024,0.33,0.33,0.66,1:0.33; 10:0.295; 50:0.2602; 100:0.2335; 500:0.22718
-J12,1,1,61300811121,Connector Header THT 8 position 2.54mm,34,4,0,732-5321-ND,30873,0.33,0.33,0,1:0.33; 10:0.273; 25:0.2276; 50:0.1904; 100:0.1726
-"K1, K2, K3, K4",4,4,G2RL-1-E DC5,General Purpose Relay SPDT (1 Form C) 5VDC Coil Through Hole,583,0,4,Z2824-ND,10208,3.64,3.64,14.56,1:3.64; 20:3.13; 40:3.023; 60:2.962; 100:2.8867; 260:2.75108; 500:2.66188; 1000:2.57041
-PS1,1,1,AG9905-MTB,Isolated PoE (Power over Ethernet) Module DC DC Converter 1 ,577,0,1,5061-AG9905-MTB-ND,6445,7.49,7.49,7.49,1:7.49; 50:7.2768; 100:7.0628; 500:6.84882; 1000:6.20677
+refs,qty_per_board,needed,in_stock,to_buy,part,description,partdb_id,digikey_pn,digikey_stock,price_1,unit_price,cost_needed,cost_to_buy,tiers
+J1,1,1,0,1,SJ1-3523N,"3.50mm (0.141"", 1/8"", Mini Plug) - Headphone Phone Jack Ster",581,CP1-3523N-ND,232540,0.96,0.96,0.96,0.96,1:0.96; 10:0.813; 25:0.7624; 50:0.7258; 140:0.67486; 280:0.64261; 560:0.61191; 1120:0.58269; 2520:0.55029
+"J2, J4, J5, J6, J8, J10",6,6,0,6,691137710003,3 Position Wire to Board Terminal Block Horizontal with Boar,584,732-10956-ND,14764,0.54,0.54,3.24,3.24,1:0.54; 10:0.477; 50:0.4246; 100:0.3815; 500:0.36992
+J3,1,1,1,0,7499511420,"1 Port RJ45 Through Hole 10/100/1000 Base-T, AutoMDIX, Power",159,732-7499511420-ND,21,14.07,14.07,14.07,0.0,1:14.07; 5:13.414; 10:13.005; 21:12.61; 42:12.20762
+"J7, J9",2,2,0,2,691137710002,2 Position Wire to Board Terminal Block Horizontal with Boar,585,732-10955-ND,66019,0.33,0.33,0.66,0.66,1:0.33; 10:0.295; 50:0.2602; 100:0.2335; 500:0.22718
+J12,1,1,1,0,61300811121,Connector Header THT 8 position 2.54mm,34,732-5321-ND,30873,0.33,0.33,0.33,0.0,1:0.33; 10:0.273; 25:0.2276; 50:0.1904; 100:0.1726
+"K1, K2, K3, K4",4,4,0,4,G2RL-1-E DC5,General Purpose Relay SPDT (1 Form C) 5VDC Coil Through Hole,583,Z2824-ND,10208,3.64,3.64,14.56,14.56,1:3.64; 20:3.13; 40:3.023; 60:2.962; 100:2.8867; 260:2.75108; 500:2.66188; 1000:2.57041
+PS1,1,1,0,1,AG9905-MTB,Isolated PoE (Power over Ethernet) Module DC DC Converter 1 ,577,5061-AG9905-MTB-ND,6445,7.49,7.49,7.49,7.49,1:7.49; 50:7.2768; 100:7.0628; 500:6.84882; 1000:6.20677
