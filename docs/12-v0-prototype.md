@@ -19,7 +19,7 @@ mainboard schematic; the schematic was completed the same evening. This is the a
 | Chassis | R1 1 M (0603) ∥ C1 1 n 2 kV (1206, FH 1206B102K202NT) between CHASSIS and GND, R5 0 R DNP | D30 bonding option, magjack shield on CHASSIS. Added 2026-09-29; missing before |
 
 Removed against the mainboard: etherCON, discrete magnetics, Halo LEDs, all board-to-board connectors,
-the console header, the status LED. No eFuses, no metering, no descriptor EEPROM.
+the console header. Two status LEDs (red, yellow) on GPIO35/36 since 2026-10-05. No eFuses, no metering, no descriptor EEPROM.
 
 Deferred to V1 (decided 2026-10-04): ESD protection on USB and on the PIR / WS2812 terminals, and a reset
 button. V0 is a bench prototype; USB Serial/JTAG resets the S3 and enters download mode without buttons,
@@ -43,12 +43,24 @@ pins and stay off connectors.
 | 48 | `AMP_EN` (MAX98357A SD_MODE, high = on, left channel) |
 | 38, 39 + two more | header GPIOs. Use 1 and 2 for the other two, not 45/46 |
 | 43, 44 | UART0, unused, no header |
+| 35 | `LED_R`: D2 red KT-0603R via R46 1K, error (high = on) |
+| 36 | `LED_Y`: D1 yellow KT-0603Y via R45 1K, status (high = on) |
+| 8, 37 | spare, unconnected |
 
 ## Power budget at 5 V
 
 ESP32-S3 and W5500 through the LDO 1.8 W typical, 2.5 W peak. Four relays held 1.6 W. Amplifier 1 W
 typical, 3.5 W flat out. About 4.5 W typical, 7.5 W worst case, against 9 W from the module and 6 W above
 70 °C. From USB on the bench: processor and network only, do not hold relays and drive the speaker at once.
+
+**PoE and USB at the same time.** USB VBUS feeds +5V through D10 (1N5819HW), in parallel with the AG9905
+output. Normally the module wins: 5.0 V against VBUS minus 0.2–0.3 V, so D10 stays off, nothing flows back into
+the host, and the module's isolation keeps the PoE barrier intact with a laptop on USB. Worst case (module
+4.75 V, VBUS 5.25 V) USB takes the load; PoE can then fall below its MPS current and be dropped by the switch,
+and the node reboots when USB is unplugged. With USB only, VBUS back-drives the unpowered module output,
+which the AG9905 datasheet does not cover. For a guaranteed PoE feed while debugging, use a USB data-only
+adapter (VBUS blocker) or lift D10. Bring-up check: with both connected, measure which source carries the
+load; with USB only, measure the current into PS1 +VDC.
 
 ## Library additions made for V0
 

@@ -11264,6 +11264,562 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Part-DB:KT-0603R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "KT-0603R"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/011ec3e8cb1e825f6961d29bc4db4c7a.pdf?productCode=C2286"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Red 645nm LED Indication - Discrete 2.4V 0603"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Pins" "1=K 2=A"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "12V Series Resistor" "11 kOhm [6.0 mcd ... 14.6 mcd]"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "24V Series Resistor" "24 kOhm [6.2 mcd ... 14.6 mcd]"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "3.3V Series Resistor" "1.3 kOhm [4.8 mcd ... 18.2 mcd]"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "5V Series Resistor" "3.3 kOhm [5.4 mcd ... 15.3 mcd]"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "MPN" "KT-0603R"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Manufacturer" "Hubei KENTO Elec"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Part-DB ID" "392"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Part-DB URL" "http://parts.hive.service42.me/en/part/392/info"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "LED_SMD:LED_0603_1608Metric"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "KT-0603R_0_1"
+				(polyline
+					(pts
+						(xy -3.048 -0.762) (xy -4.572 -2.286) (xy -3.81 -2.286) (xy -4.572 -2.286) (xy -4.572 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.778 -0.762) (xy -3.302 -2.286) (xy -2.54 -2.286) (xy -3.302 -2.286) (xy -3.302 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 0) (xy 1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -1.27) (xy -1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "KT-0603R_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Part-DB:KT-0603Y"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "KT-0603Y"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/ba7b73648918210433b88ee1f2fd7ebf.pdf?productCode=C2287"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Yellow 596nm LED Indication - Discrete 2.4V 0603"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Pins" "1=K 2=A"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "12V Series Resistor" "6.2 kOhm [5.2 mcd ... 15.2 mcd]"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "24V Series Resistor" "13 kOhm [5.5 mcd ... 15.7 mcd]"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "3.3V Series Resistor" "750 Ohm [4.0 mcd ... 18.4 mcd]"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "5V Series Resistor" "1.8 kOhm [4.8 mcd ... 16.4 mcd]"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "MPN" "KT-0603Y"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Manufacturer" "Hubei KENTO Elec"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Part-DB ID" "395"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Part-DB URL" "http://parts.hive.service42.me/en/part/395/info"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "LED_SMD:LED_0603_1608Metric"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "KT-0603Y_0_1"
+				(polyline
+					(pts
+						(xy -3.048 -0.762) (xy -4.572 -2.286) (xy -3.81 -2.286) (xy -4.572 -2.286) (xy -4.572 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.778 -0.762) (xy -3.302 -2.286) (xy -2.54 -2.286) (xy -3.302 -2.286) (xy -3.302 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 0) (xy 1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -1.27) (xy -1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "KT-0603Y_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Part-DB:MAX98357AETE+T"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -17392,6 +17948,18 @@
 		)
 		(uuid "a56e8b42-7445-4abd-9faa-65f3575b4b11")
 	)
+	(text "CONNECTORS"
+		(exclude_from_sim no)
+		(at 226.568 124.968 0)
+		(effects
+			(font
+				(size 2 2)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "d0e7e73f-89e8-43d7-80fd-fd7b50b28eef")
+	)
 	(text "WS2812"
 		(exclude_from_sim no)
 		(at 72.898 227.33 0)
@@ -17415,6 +17983,18 @@
 			(justify left bottom)
 		)
 		(uuid "f098b9a0-82cd-426b-b825-ea90e32534c4")
+	)
+	(text "STATUS LEDs"
+		(exclude_from_sim no)
+		(at 225.806 173.736 0)
+		(effects
+			(font
+				(size 2 2)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "f91a572a-b0cf-4630-980a-f9694010bd5f")
 	)
 	(junction
 		(at 147.32 143.51)
@@ -17747,10 +18327,6 @@
 		(uuid "fed4f971-b851-473d-a6bf-193764f1fd17")
 	)
 	(no_connect
-		(at 326.39 76.2)
-		(uuid "08ae8ab0-90c8-4b16-9949-8f96e5a9642d")
-	)
-	(no_connect
 		(at 295.91 83.82)
 		(uuid "144aafb3-f85f-4f19-96a6-095598b5aff7")
 	)
@@ -17833,10 +18409,6 @@
 	(no_connect
 		(at 326.39 96.52)
 		(uuid "f2a2729e-a1da-44aa-92d8-60977aa44647")
-	)
-	(no_connect
-		(at 326.39 78.74)
-		(uuid "f4a1c64c-d90e-491b-8e9a-57228110d458")
 	)
 	(wire
 		(pts
@@ -18027,6 +18599,16 @@
 			(type default)
 		)
 		(uuid "0bd13912-56f1-44ac-a98f-1e8719fc9d9d")
+	)
+	(wire
+		(pts
+			(xy 228.6 187.96) (xy 228.6 190.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0cad64ae-ec20-4b0c-aabb-11e0d0aa89cc")
 	)
 	(wire
 		(pts
@@ -18230,7 +18812,7 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 146.05) (xy 228.6 146.05)
+			(xy 238.76 138.43) (xy 227.33 138.43)
 		)
 		(stroke
 			(width 0)
@@ -18490,7 +19072,7 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 153.67) (xy 228.6 153.67)
+			(xy 238.76 146.05) (xy 227.33 146.05)
 		)
 		(stroke
 			(width 0)
@@ -18517,6 +19099,16 @@
 			(type default)
 		)
 		(uuid "38cd2a41-5d7c-444b-927b-1c449aaad362")
+	)
+	(polyline
+		(pts
+			(xy 224.98 162.56) (xy 261.62 162.56)
+		)
+		(stroke
+			(width 0.2)
+			(type dash)
+		)
+		(uuid "39164780-5194-461c-a858-e7a1e040d1d7")
 	)
 	(wire
 		(pts
@@ -18687,6 +19279,16 @@
 			(type default)
 		)
 		(uuid "49264dd5-2eee-455f-aa1f-7d6a7f1d38d4")
+	)
+	(wire
+		(pts
+			(xy 234.95 180.34) (xy 228.6 180.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "49659205-aa7b-417b-9165-c3c17d6f6c93")
 	)
 	(wire
 		(pts
@@ -19460,7 +20062,7 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 143.51) (xy 228.6 143.51)
+			(xy 238.76 135.89) (xy 227.33 135.89)
 		)
 		(stroke
 			(width 0)
@@ -19547,6 +20149,16 @@
 			(type default)
 		)
 		(uuid "8c07c102-36fa-4326-bcf4-7b59d0a67969")
+	)
+	(wire
+		(pts
+			(xy 251.46 180.34) (xy 245.11 180.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8c1ca9f2-36b5-46e1-a224-e3bf7155a087")
 	)
 	(wire
 		(pts
@@ -19647,6 +20259,16 @@
 			(type default)
 		)
 		(uuid "9920b6aa-f1f7-43ff-a9ef-e46267516668")
+	)
+	(wire
+		(pts
+			(xy 326.39 76.2) (xy 337.82 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9a78d789-da13-44ff-9822-0f321b8410a9")
 	)
 	(wire
 		(pts
@@ -19900,7 +20522,7 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 151.13) (xy 228.6 151.13)
+			(xy 238.76 143.51) (xy 227.33 143.51)
 		)
 		(stroke
 			(width 0)
@@ -19920,7 +20542,7 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 148.59) (xy 228.6 148.59)
+			(xy 238.76 140.97) (xy 227.33 140.97)
 		)
 		(stroke
 			(width 0)
@@ -20147,6 +20769,16 @@
 			(type default)
 		)
 		(uuid "c41acf86-b86a-4ac5-87c9-a12e9a62570d")
+	)
+	(wire
+		(pts
+			(xy 326.39 78.74) (xy 337.82 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c58a6dfe-ea79-42f5-a130-2ff9f858cb9b")
 	)
 	(wire
 		(pts
@@ -20400,7 +21032,7 @@
 	)
 	(wire
 		(pts
-			(xy 228.6 156.21) (xy 240.03 156.21)
+			(xy 227.33 148.59) (xy 238.76 148.59)
 		)
 		(stroke
 			(width 0)
@@ -20440,6 +21072,16 @@
 	)
 	(wire
 		(pts
+			(xy 245.11 187.96) (xy 245.11 190.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dd9cd49e-77c9-44e7-826c-ba32d5a5902b")
+	)
+	(wire
+		(pts
 			(xy 314.96 146.05) (xy 314.96 147.32)
 		)
 		(stroke
@@ -20457,6 +21099,16 @@
 			(type default)
 		)
 		(uuid "e165c536-4960-4dc4-93a7-4574910e5c9a")
+	)
+	(wire
+		(pts
+			(xy 245.11 198.12) (xy 245.11 200.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e1ba2bb6-701a-458a-b58e-a4deefe6c592")
 	)
 	(wire
 		(pts
@@ -20728,6 +21380,16 @@
 		)
 		(uuid "f42f6150-d997-472d-a227-1daf16473f91")
 	)
+	(wire
+		(pts
+			(xy 228.6 200.66) (xy 228.6 198.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f43961d8-d178-4d15-80b3-0ed65ef53e16")
+	)
 	(polyline
 		(pts
 			(xy 178.905 214.285) (xy 178.435 280.67)
@@ -20909,7 +21571,7 @@
 		(uuid "0712f26a-a3ac-4d39-b5cd-8ee17f822d4b")
 	)
 	(label "GPIO2"
-		(at 228.6 146.05 0)
+		(at 227.33 138.43 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -21069,7 +21731,7 @@
 		(uuid "2b3dec42-ef20-41ed-8ea1-73c5b65342e3")
 	)
 	(label "GPIO39"
-		(at 228.6 151.13 0)
+		(at 227.33 143.51 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -21087,6 +21749,16 @@
 			(justify right bottom)
 		)
 		(uuid "3113f075-c331-48a5-908a-8f0e84325f67")
+	)
+	(label "LED_Y"
+		(at 337.82 78.74 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "31845e57-ba06-40de-9a8e-77fdb5d9d0bb")
 	)
 	(label "GPIO39"
 		(at 337.82 86.36 180)
@@ -21268,6 +21940,16 @@
 		)
 		(uuid "53aeeef0-4a57-45b2-b923-706186fe41b7")
 	)
+	(label "LED_Y"
+		(at 234.95 180.34 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "54505d9b-552e-4075-86c5-e5dc876ccc2a")
+	)
 	(label "MOSI"
 		(at 154.94 148.59 0)
 		(effects
@@ -21289,7 +21971,7 @@
 		(uuid "57019896-b71f-414d-867e-f053e66d6ab4")
 	)
 	(label "I2C_SCL"
-		(at 228.6 153.67 0)
+		(at 227.33 146.05 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -21418,6 +22100,16 @@
 		)
 		(uuid "732b5566-2240-477d-bf4f-167b25f4c437")
 	)
+	(label "LED_R"
+		(at 337.82 76.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "73b2a0c6-7266-4c4b-bb55-0e046e4cc620")
+	)
 	(label "V1"
 		(at 24.13 147.32 0)
 		(effects
@@ -21538,6 +22230,16 @@
 		)
 		(uuid "8db32cfb-1739-4665-8873-ff9bc854d105")
 	)
+	(label "LED_R"
+		(at 251.46 180.34 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "8ee06f9e-44de-45f2-ac4d-e22846978024")
+	)
 	(label "SCSn"
 		(at 288.29 93.98 0)
 		(effects
@@ -21599,7 +22301,7 @@
 		(uuid "a3f38ce2-b21e-4989-8c9b-b55e4510713b")
 	)
 	(label "GPIO38"
-		(at 228.6 148.59 0)
+		(at 227.33 140.97 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -21669,7 +22371,7 @@
 		(uuid "ad1d4371-81cf-499f-9f51-f38e3c9492df")
 	)
 	(label "I2C_SDA"
-		(at 228.6 156.21 0)
+		(at 227.33 148.59 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -21869,7 +22571,7 @@
 		(uuid "df2f9fc8-2ac4-4a46-b228-88c12ce331ed")
 	)
 	(label "GPIO1"
-		(at 228.6 143.51 0)
+		(at 227.33 135.89 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -23151,7 +23853,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 240.03 140.97 0)
+		(at 238.76 133.35 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -23162,7 +23864,7 @@
 		(fields_autoplaced yes)
 		(uuid "0f302dd7-88bd-44da-b1d8-324728f93041")
 		(property "Reference" "#PWR083"
-			(at 240.03 144.78 0)
+			(at 238.76 137.16 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23173,7 +23875,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 240.03 135.89 0)
+			(at 238.76 128.27 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -23183,7 +23885,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 240.03 140.97 0)
+			(at 238.76 133.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23194,7 +23896,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 240.03 140.97 0)
+			(at 238.76 133.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23205,7 +23907,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 240.03 140.97 0)
+			(at 238.76 133.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31977,6 +32679,187 @@
 		)
 	)
 	(symbol
+		(lib_id "Part-DB:KT-0603R")
+		(at 245.11 194.31 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "786b77e5-7d58-4177-911c-8f01a23bf3dd")
+		(property "Reference" "D2"
+			(at 248.92 194.6274 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "KT-0603R"
+			(at 248.92 197.1674 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/011ec3e8cb1e825f6961d29bc4db4c7a.pdf?productCode=C2286"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Red 645nm LED Indication - Discrete 2.4V 0603"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "12V Series Resistor" "11 kOhm [6.0 mcd ... 14.6 mcd]"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "24V Series Resistor" "24 kOhm [6.2 mcd ... 14.6 mcd]"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "3.3V Series Resistor" "1.3 kOhm [4.8 mcd ... 18.2 mcd]"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "5V Series Resistor" "3.3 kOhm [5.4 mcd ... 15.3 mcd]"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "KT-0603R"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Hubei KENTO Elec"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB ID" "392"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/392/info"
+			(at 245.11 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "a4005bdf-2278-46fd-89d1-e63a7d5a0ad9")
+		)
+		(pin "2"
+			(uuid "28f549bc-a7db-4867-933f-b98c1ae2635e")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "D2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Part-DB:CL05B104KB54PNC")
 		(at 184.15 227.33 0)
 		(unit 1)
@@ -33018,6 +33901,84 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 228.6 200.66 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "87dbae92-fc5b-4cfc-b501-42fdc0b8fe02")
+		(property "Reference" "#PWR01"
+			(at 228.6 207.01 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 228.6 205.74 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 228.6 200.66 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 228.6 200.66 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 228.6 200.66 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "9c89f38e-a8ff-4c64-b25b-322dcde3448c")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "#PWR01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 245.11 102.87 0)
 		(unit 1)
 		(body_style 1)
@@ -33599,6 +34560,132 @@
 			(project "OH_Node_V0_Prototype"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "#PWR087")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Part-DB:0402WGF1001TCE")
+		(at 245.11 184.15 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "90700a84-bfba-4d65-abf3-91cdb7842ec2")
+		(property "Reference" "R46"
+			(at 247.65 182.8799 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1K"
+			(at 247.65 185.4199 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 243.332 184.15 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/0a975aaa49b7c97f38a963127be4a823.pdf?productCode=C11702"
+			(at 245.11 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "1kΩ ±1% 62.5mW 0402 Thick Film Resistor"
+			(at 245.11 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 245.11 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "UNI-ROYAL"
+			(at 245.11 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB ID" "604"
+			(at 245.11 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/604/info"
+			(at 245.11 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "b24e07f3-8a37-46cd-a7b8-b7d9056924fd")
+		)
+		(pin "1"
+			(uuid "a8e8a08c-0bd8-4d9a-91b3-1f84ee65cf12")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "R46")
 					(unit 1)
 				)
 			)
@@ -35565,6 +36652,187 @@
 		)
 	)
 	(symbol
+		(lib_id "Part-DB:KT-0603Y")
+		(at 228.6 194.31 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a59932fc-6bc9-4806-9fa1-c7ff3c9a4139")
+		(property "Reference" "D1"
+			(at 232.41 194.6274 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "KT-0603Y"
+			(at 232.41 197.1674 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/ba7b73648918210433b88ee1f2fd7ebf.pdf?productCode=C2287"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Yellow 596nm LED Indication - Discrete 2.4V 0603"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "12V Series Resistor" "6.2 kOhm [5.2 mcd ... 15.2 mcd]"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "24V Series Resistor" "13 kOhm [5.5 mcd ... 15.7 mcd]"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "3.3V Series Resistor" "750 Ohm [4.0 mcd ... 18.4 mcd]"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "5V Series Resistor" "1.8 kOhm [4.8 mcd ... 16.4 mcd]"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "KT-0603Y"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Hubei KENTO Elec"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB ID" "395"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/395/info"
+			(at 228.6 194.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "0a172ed2-20a3-4cc0-9557-970c4683cafa")
+		)
+		(pin "2"
+			(uuid "75dc578a-79c6-40e2-b426-da25d853edf8")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "D1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+5V")
 		(at 95.25 228.6 0)
 		(unit 1)
@@ -36141,6 +37409,84 @@
 			(project "OH_Node_V0_Prototype"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "R32")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 245.11 200.66 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a81d5fd2-1751-4c22-b86c-3eead30ce870")
+		(property "Reference" "#PWR02"
+			(at 245.11 207.01 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 245.11 205.74 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 245.11 200.66 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 245.11 200.66 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 245.11 200.66 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "a925e0d8-9ebf-479f-872c-f9b6d21e6cb0")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "#PWR02")
 					(unit 1)
 				)
 			)
@@ -39297,7 +40643,7 @@
 	)
 	(symbol
 		(lib_id "Part-DB:61300811121")
-		(at 245.11 148.59 0)
+		(at 243.84 140.97 0)
 		(mirror y)
 		(unit 1)
 		(body_style 1)
@@ -39309,7 +40655,7 @@
 		(fields_autoplaced yes)
 		(uuid "c9d8aeae-d49e-4a50-8de7-1db6e34e3ac0")
 		(property "Reference" "J12"
-			(at 246.38 148.5899 0)
+			(at 245.11 140.9699 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -39320,7 +40666,7 @@
 			)
 		)
 		(property "Value" "Conn_01x08_Pin"
-			(at 246.38 151.1299 0)
+			(at 245.11 143.5099 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -39331,7 +40677,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical"
-			(at 245.11 148.59 0)
+			(at 243.84 140.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -39342,7 +40688,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.we-online.com/components/products/datasheet/61300811121.pdf"
-			(at 245.11 148.59 0)
+			(at 243.84 140.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -39353,7 +40699,7 @@
 			)
 		)
 		(property "Description" "Connector Header THT 8 position 2.54mm"
-			(at 245.11 148.59 0)
+			(at 243.84 140.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -39364,7 +40710,7 @@
 			)
 		)
 		(property "MPN" "61300811121"
-			(at 245.11 148.59 0)
+			(at 243.84 140.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -39375,7 +40721,7 @@
 			)
 		)
 		(property "Manufacturer" "Würth Elektronik"
-			(at 245.11 148.59 0)
+			(at 243.84 140.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -39386,7 +40732,7 @@
 			)
 		)
 		(property "Part-DB ID" "34"
-			(at 245.11 148.59 0)
+			(at 243.84 140.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -39397,7 +40743,7 @@
 			)
 		)
 		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/34/info"
-			(at 245.11 148.59 0)
+			(at 243.84 140.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -42082,7 +43428,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 240.03 158.75 0)
+		(at 238.76 151.13 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -42093,7 +43439,7 @@
 		(fields_autoplaced yes)
 		(uuid "e0edf847-9024-4505-be16-e365311d7c0b")
 		(property "Reference" "#PWR084"
-			(at 240.03 165.1 0)
+			(at 238.76 157.48 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -42104,7 +43450,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 240.03 163.83 0)
+			(at 238.76 156.21 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -42114,7 +43460,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 240.03 158.75 0)
+			(at 238.76 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -42125,7 +43471,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 240.03 158.75 0)
+			(at 238.76 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -42136,7 +43482,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 240.03 158.75 0)
+			(at 238.76 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -43165,6 +44511,132 @@
 			(project "OH_Node_V0_Prototype"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Part-DB:0402WGF1001TCE")
+		(at 228.6 184.15 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ec11348d-fafe-48a4-85b3-3aad4419fe22")
+		(property "Reference" "R45"
+			(at 231.14 182.8799 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1K"
+			(at 231.14 185.4199 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 226.822 184.15 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/0a975aaa49b7c97f38a963127be4a823.pdf?productCode=C11702"
+			(at 228.6 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "1kΩ ±1% 62.5mW 0402 Thick Film Resistor"
+			(at 228.6 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 228.6 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "UNI-ROYAL"
+			(at 228.6 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB ID" "604"
+			(at 228.6 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/604/info"
+			(at 228.6 184.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "dec8a778-cce7-4707-974f-cc2581f6a6fa")
+		)
+		(pin "1"
+			(uuid "dc8fe332-e861-4262-9bd2-f87a4298a06f")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "R45")
 					(unit 1)
 				)
 			)

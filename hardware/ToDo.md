@@ -104,8 +104,15 @@ except the items carried over under Minor.
       Decision: leave the symbols, ERC-exclude the U6 pin 17 pin_to_pin warning; W5500 INT raises no warning.
       Exclusion set ("GND exposed pad").
 - [ ] Stiching Vias
-- [ ] Status LEDs
-- [ ] Powering with both PoE and USB
+- [x] Status LEDs
+      *Done 2026-10-05:* GPIO35 → R46 1K → D2 red KT-0603R (Part-DB 392, LCSC C2286) = error; GPIO36 → R45 1K
+      → D1 yellow KT-0603Y (Part-DB 395, LCSC C2287, extended) = status. 1K is Part-DB 604 (0402WGF1001TCE).
+      Placed at (167.4 / 169.1, 93.7), silkscreen "STAT" / "ERR" above them; DRC/ERC/parity clean. docs/12 pin
+      plan updated.
+- [x] Powering with both PoE and USB
+      *2026-10-04:* analysed, no hardware change (documented in docs/12 "Power budget"). Normal case PoE
+      wins; worst case (module 4.75 V, VBUS 5.25 V) USB takes the load and PoE may drop MPS; USB-only
+      back-drives PS1 output (not in datasheet). Use a VBUS blocker for PoE + USB debugging; bench checks.
 - [ ] DRC silkscreen warnings: 139 overlaps, 112 over copper, 9 at the board edge. Cosmetic.
 
 ## Last step
@@ -115,6 +122,7 @@ except the items carried over under Minor.
       plated drill hits and 64 of 88 CPL rows no longer match the board. Regenerate gerbers, drill and
       `positions.csv` after the fixes above. `bom.csv` must be regenerated too: C21 (100 µ 1206,
       GRM31CR61A107MEA8L, LCSC C883598) was added and Q1/Q2 changed to DMN2004DWK-7 (C156343, was C156344) on
-      2026-10-04. The other lines were correct on 2026-10-03.
+      2026-10-04; D1/D2 (C2287, C2286) and R45/R46 (1K) added 2026-10-05; R20 is DNP. The other lines were
+      correct on 2026-10-03.
 - [ ] JLC placement preview: confirm polarity and pin 1 of C2, D9, D10, D11/D12, U1, U3, U4/U5, U6, J11,
       Y1, Q1/Q2 after uploading the new CPL.
