@@ -74,20 +74,35 @@ except the items carried over under Minor.
       phases (400 V). Document "all relays on the same phase" or widen.
       *2026-10-04:* widened. DRC rule `mains_between_relays` 4.0 mm; measured K1/K2 5.29, K2/K3 4.81,
       K3/K4 5.44 mm, tracks still 2.5 mm on all four layers. docs/12 relay row updated.
-- [ ] No ESD protection on USB or on the PIR / WS2812 terminals; no reset button (BOOT only).
-- [ ] W5500 has no auto-MDIX (datasheet 5.5.6). Fine on any switch with auto-MDIX; a direct link to an
+- [x] No ESD protection on USB or on the PIR / WS2812 terminals; no reset button (BOOT only).
+      *Deferred to V1 (2026-10-04), noted in docs/12.*
+- [x] W5500 has no auto-MDIX (datasheet 5.5.6). Fine on any switch with auto-MDIX; a direct link to an
       old 10/100 port needs a crossover cable.
-- [ ] JLC placement preview: confirm polarity and pin 1 of C2, D9, D10, D11/D12, U1, U3, U4/U5, U6, J11,
-      Y1, Q1/Q2 after uploading the new CPL.
-- [ ] docs/12 "Checks run" still gives the G5LE pin numbers for the relay (1 COM, 3 NO, 4 NC, 2/5 coil).
+      *Noted in docs/12 Ethernet row (2026-10-04).*
+- [x] docs/12 "Checks run" still gives the G5LE pin numbers for the relay (1 COM, 3 NO, 4 NC, 2/5 coil).
       G2RL-1-E: coil 1/8, NC 2/7, COM 3/6, NO 4/5 (symbol pins A1/A2, 12, 11, 14). The relay row also
       says the 2.5 mm mains tracks are on both outer layers; they are on all four.
-- [ ] C3, C4, C27 (10 µ 0402 10 V) on 5 V keep ~3–4 µF under bias (accepted for V0; 0603 CL10A106KP8NNNC
+      *Fixed 2026-10-04, checked against the G2RL-1-E drawing; relay row already says all four layers.*
+- [x] C3, C4, C27 (10 µ 0402 10 V) on 5 V keep ~3–4 µF under bias (accepted for V0; 0603 CL10A106KP8NNNC
       C19702 would fix it); AMS1117 output all-ceramic (D36 wants ESR).
-- [ ] DMN601DWK VGS(th) max 2.5 V vs 3.3 V drive — marginal for the 80 mA coil at a worst-case part.
-- [ ] Ag9905 min load 200 mA is borderline with Wi-Fi off (below it the module only gets audibly noisy);
+      *Closed 2026-10-04:* C3/C4 sit in parallel with C2 (100 µ polymer), C27 is backed by C21 (100 µ). The
+      AMS1117 datasheet in `datasheets/` (Slkor) only asks for output ESR ≤ 0.5 Ω, no minimum; C5 + C25 meet
+      that. D36's "wants ESR" is the usual AMS1117 advice, not in this datasheet.
+- [x] DMN601DWK VGS(th) max 2.5 V vs 3.3 V drive — marginal for the 80 mA coil at a worst-case part.
+      *2026-10-04:* gate sees ≈ 3.0 V (1 K / 10 K). Q1/Q2 swapped to pin-compatible DMN2004DWK-7 (Part-DB 610,
+      LCSC C156343, symbol `LRV:DMN2004DWK-7` extends DMN601DWK-7). Pin nets unchanged, DRC/parity clean.
+- [x] Ag9905 min load 200 mA is borderline with Wi-Fi off (below it the module only gets audibly noisy);
       USB bench supply leaves little LDO headroom.
-- [ ] Symbol pin types: MAX98357A PAD (unspecified → passive), W5500 INTn (input → output).
+      *2026-10-04 estimate (datasheets):* 5 V idle with Wi-Fi off ≈ 175–250 mA, ≈ 200 typ (W5500 132, S3
+      modem-sleep 240 MHz 33–81 + flash ≤ 10, LDO Iq 3–10, magjack LEDs 8–16, amp idle ≤ 3). Below 200 mA only
+      the module whine; MPS is safe (≈ 20–25 mA at 48 V vs 10 mA). Plan: DNP bleeder R20, 100R 2512 1 W
+      (UniOhm 25121WF1000T4E, LCSC C35218, new Part-DB entry) from +5V to GND, 50 mA / 0.25 W if fitted.
+      Done: R20 (Part-DB 611) DNP at (92.86, 106.31) on the +5V trunk. Bring-up check: listen for module
+      whine with Wi-Fi off, measure 5 V idle current; fit R20 if below 200 mA and audible.
+- [x] Symbol pin types: MAX98357A PAD (unspecified → passive), W5500 INTn (input → output).
+      *2026-10-04:* both are KiCad stock symbols (`Audio:MAX98357A` pin 17, `Interface_Ethernet:W5500` pin 36).
+      Decision: leave the symbols, ERC-exclude the U6 pin 17 pin_to_pin warning; W5500 INT raises no warning.
+      Exclusion set ("GND exposed pad").
 - [ ] Stiching Vias
 - [ ] Status LEDs
 - [ ] Powering with both PoE and USB
@@ -98,5 +113,8 @@ except the items carried over under Minor.
 - [ ] **Order files are stale.** `production/jlc_final/` was generated 2026-10-01; since then ~75 parts
       (magjack, W5500, ESP32, USB, audio, PoE front end) moved 9.065 mm left and routing changed. 127 of 209
       plated drill hits and 64 of 88 CPL rows no longer match the board. Regenerate gerbers, drill and
-      `positions.csv` after the fixes above; `bom.csv` is still correct (36 lines, all LCSC numbers resolve
-      to the right part and package, all in JLC stock — lowest: 74AHCT1G125W5-7 323, ECS crystal 477).
+      `positions.csv` after the fixes above. `bom.csv` must be regenerated too: C21 (100 µ 1206,
+      GRM31CR61A107MEA8L, LCSC C883598) was added and Q1/Q2 changed to DMN2004DWK-7 (C156343, was C156344) on
+      2026-10-04. The other lines were correct on 2026-10-03.
+- [ ] JLC placement preview: confirm polarity and pin 1 of C2, D9, D10, D11/D12, U1, U3, U4/U5, U6, J11,
+      Y1, Q1/Q2 after uploading the new CPL.

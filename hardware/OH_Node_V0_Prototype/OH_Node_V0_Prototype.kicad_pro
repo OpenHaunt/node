@@ -393,7 +393,12 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      [
+        "pin_to_pin|2184400|2616200|e9fd4635-cd6b-414d-b51b-30dae81f9b61|6107ae3c-74e0-4cd8-ae84-db01bb263a10|/b6338282-1898-4193-8a9f-730e9cd1ee39|/b6338282-1898-4193-8a9f-730e9cd1ee39|/b6338282-1898-4193-8a9f-730e9cd1ee39",
+        "GND exposed pad"
+      ]
+    ],
     "meta": {
       "version": 0
     },
@@ -976,7 +981,7 @@
         "uuid": "b6338282-1898-4193-8a9f-730e9cd1ee39"
       }
     ],
-    "used_designators": "#FLG1-5,PS1,Q1-2,D1-12,#PWR1-88,Y1,U1-6,K1-5,SW1,C1-31,R1-44,H1-4,L1,T1,J1-13",
+    "used_designators": "#FLG1-5,PS1,Q1-3,D1-12,#PWR1-88,#PWR95-96,Y1,U1-6,K1-5,SW1,C1-31,R1-44,H1-4,L1,T1,J1-13",
     "variants": []
   },
   "sheets": [

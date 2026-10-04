@@ -3597,6 +3597,179 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Part-DB:25121WF1000T4E"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "100R"
+				(at 0 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Resistor_SMD:R_2512_6332Metric"
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/0a975aaa49b7c97f38a963127be4a823.pdf?productCode=C35218"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "1W 100Ω 200V Thick Film Resistor ±100ppm/℃ ±1% 2512 Chip Resistor - Surface Mount"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "MPN" "25121WF1000T4E"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Manufacturer" "UNI-ROYAL"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Part-DB ID" "611"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Part-DB URL" "http://parts.hive.service42.me/en/part/611/info"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Resistor_SMD:R_2512_6332Metric"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "25121WF1000T4E_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "25121WF1000T4E_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Part-DB:61300811121"
 			(pin_names
 				(offset 1.016)
@@ -6255,7 +6428,7 @@
 					)
 				)
 			)
-			(property "ki_fp_filters" "LRV:AG9900-MTB"
+			(property "ki_fp_filters" "LRV:AG9900-MTB_HandSolder"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -8671,7 +8844,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Part-DB:DMN601DWK-7"
+		(symbol "Part-DB:DMN2004DWK-7"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -8687,7 +8860,7 @@
 					)
 				)
 			)
-			(property "Value" "DMN601DWK-7"
+			(property "Value" "DMN2004DWK-7"
 				(at 11.43 5.08 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -8709,7 +8882,7 @@
 					(justify left top)
 				)
 			)
-			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/DMN601DWK.pdf"
+			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds30935.pdf"
 				(at 19.05 -194.92 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -8721,7 +8894,7 @@
 					(justify left top)
 				)
 			)
-			(property "Description" "Mosfet Array 60V 305mA 200mW SOT-363"
+			(property "Description" "Mosfet Array 20V 540mA 200mW Surface Mount SOT-363"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -8756,7 +8929,7 @@
 					(justify left top)
 				)
 			)
-			(property "MPN" "DMN601DWK-7"
+			(property "MPN" "DMN2004DWK-7"
 				(at 19.05 -594.92 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -8768,7 +8941,7 @@
 					(justify left top)
 				)
 			)
-			(property "Part-DB ID" "28"
+			(property "Part-DB ID" "610"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -8779,7 +8952,7 @@
 					)
 				)
 			)
-			(property "Part-DB URL" "http://parts.hive.service42.me/en/part/28/info"
+			(property "Part-DB URL" "http://parts.hive.service42.me/en/part/610/info"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -8801,7 +8974,7 @@
 					)
 				)
 			)
-			(symbol "DMN601DWK-7_1_1"
+			(symbol "DMN2004DWK-7_1_1"
 				(rectangle
 					(start 5.08 2.54)
 					(end 17.78 -7.62)
@@ -30145,6 +30318,132 @@
 		)
 	)
 	(symbol
+		(lib_id "Part-DB:25121WF1000T4E")
+		(at 245.11 99.06 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp yes)
+		(fields_autoplaced yes)
+		(uuid "62802777-9070-4836-97af-59683e15cdec")
+		(property "Reference" "R20"
+			(at 247.65 97.7899 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100R"
+			(at 247.65 100.3299 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_2512_6332Metric"
+			(at 243.332 99.06 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/datasheet/pdf/0a975aaa49b7c97f38a963127be4a823.pdf?productCode=C35218"
+			(at 245.11 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "1W 100Ω 200V Thick Film Resistor ±100ppm/℃ ±1% 2512 Chip Resistor - Surface Mount"
+			(at 245.11 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "25121WF1000T4E"
+			(at 245.11 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "UNI-ROYAL"
+			(at 245.11 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB ID" "611"
+			(at 245.11 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/611/info"
+			(at 245.11 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "4a7f3903-ef20-4250-9c32-9879ee3dcbb1")
+		)
+		(pin "2"
+			(uuid "aed58f82-a4d4-4cf3-a40c-0d8816b68791")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "R20")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole")
 		(at 38.1 233.68 0)
 		(unit 1)
@@ -32712,6 +33011,84 @@
 			(project "OH_Node_V0_Prototype"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 245.11 102.87 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "87e28c3d-d1db-43a5-8813-52aae1c46ee8")
+		(property "Reference" "#PWR096"
+			(at 245.11 109.22 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 245.11 107.95 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 245.11 102.87 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 245.11 102.87 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 245.11 102.87 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "12744dce-6438-4e7a-b8d4-ea3ac6ab34c3")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "#PWR096")
 					(unit 1)
 				)
 			)
@@ -35492,7 +35869,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Part-DB:DMN601DWK-7")
+		(lib_id "Part-DB:DMN2004DWK-7")
 		(at 353.06 190.5 0)
 		(unit 1)
 		(body_style 1)
@@ -35513,7 +35890,7 @@
 				)
 			)
 		)
-		(property "Value" "DMN601DWK-7"
+		(property "Value" "DMN2004DWK-7"
 			(at 364.49 185.42 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -35535,7 +35912,7 @@
 				(justify left top)
 			)
 		)
-		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/DMN601DWK.pdf"
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds30935.pdf"
 			(at 372.11 385.42 0)
 			(hide yes)
 			(show_name no)
@@ -35547,7 +35924,7 @@
 				(justify left top)
 			)
 		)
-		(property "Description" "Mosfet Array 60V 305mA 200mW SOT-363"
+		(property "Description" "Mosfet Array 20V 540mA 200mW Surface Mount SOT-363"
 			(at 353.06 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -35582,7 +35959,7 @@
 				(justify left top)
 			)
 		)
-		(property "MPN" "DMN601DWK-7"
+		(property "MPN" "DMN2004DWK-7"
 			(at 372.11 785.42 0)
 			(hide yes)
 			(show_name no)
@@ -35594,7 +35971,7 @@
 				(justify left top)
 			)
 		)
-		(property "Part-DB ID" "28"
+		(property "Part-DB ID" "610"
 			(at 353.06 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -35605,7 +35982,7 @@
 				)
 			)
 		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/28/info"
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/610/info"
 			(at 353.06 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -36000,6 +36377,84 @@
 			(project "OH_Node_V0_Prototype"
 				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
 					(reference "#PWR010")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 245.11 95.25 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "af2cf65e-c94f-400c-9e23-0864a543c09e")
+		(property "Reference" "#PWR095"
+			(at 245.11 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 245.11 90.17 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 245.11 95.25 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 245.11 95.25 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 245.11 95.25 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "3dae6c69-2875-4ec0-bf8f-95eaf6ada1b3")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "#PWR095")
 					(unit 1)
 				)
 			)
@@ -43688,7 +44143,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Part-DB:DMN601DWK-7")
+		(lib_id "Part-DB:DMN2004DWK-7")
 		(at 288.29 190.5 0)
 		(unit 1)
 		(body_style 1)
@@ -43709,7 +44164,7 @@
 				)
 			)
 		)
-		(property "Value" "DMN601DWK-7"
+		(property "Value" "DMN2004DWK-7"
 			(at 299.72 185.42 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -43731,7 +44186,7 @@
 				(justify left top)
 			)
 		)
-		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/DMN601DWK.pdf"
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds30935.pdf"
 			(at 307.34 385.42 0)
 			(hide yes)
 			(show_name no)
@@ -43743,7 +44198,7 @@
 				(justify left top)
 			)
 		)
-		(property "Description" "Mosfet Array 60V 305mA 200mW SOT-363"
+		(property "Description" "Mosfet Array 20V 540mA 200mW Surface Mount SOT-363"
 			(at 288.29 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -43778,7 +44233,7 @@
 				(justify left top)
 			)
 		)
-		(property "MPN" "DMN601DWK-7"
+		(property "MPN" "DMN2004DWK-7"
 			(at 307.34 785.42 0)
 			(hide yes)
 			(show_name no)
@@ -43790,7 +44245,7 @@
 				(justify left top)
 			)
 		)
-		(property "Part-DB ID" "28"
+		(property "Part-DB ID" "610"
 			(at 288.29 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -43801,7 +44256,7 @@
 				)
 			)
 		)
-		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/28/info"
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/610/info"
 			(at 288.29 190.5 0)
 			(hide yes)
 			(show_name no)

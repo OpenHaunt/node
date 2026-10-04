@@ -7,19 +7,23 @@ mainboard schematic; the schematic was completed the same evening. This is the a
 
 | Block | Parts | Notes |
 |---|---|---|
-| Ethernet | Würth 7499511420 magjack, W5500 | Pairs 1-2 and 3-6 only, gigabit pins open. LED1 green = activity, LED2 yellow = link |
+| Ethernet | Würth 7499511420 magjack, W5500 | Pairs 1-2 and 3-6 only, gigabit pins open. LED1 green = activity, LED2 yellow = link. No auto-MDIX in the W5500 (datasheet 5.5.6): fine on any switch, a direct link to an old 10/100 port needs a crossover cable |
 | PoE | 2 × MB10S-50MIL bridges (since 2026-10-01; were 4 × V6K100DUHM3/H), SMAJ58A, AG9905-MTB, 100 µ polymer (Panasonic 16SVPC100M) + 2 × 10 µ | 5 V, 9 W to 70 °C. Class 0, min load 200 mA. The MB10S is Silvertel's own Fig. 14 choice; ~0.2 W more loss than the Schottky pairs |
 | 3.3 V | AMS1117-3.3, 10 µ in, 22 µ out | |
-| Relays | 4 × Omron G2RL-1-E DC5, 2 × DMN601DWK-7, 4 × 1N4148WS | 1 K gate series, 10 K pull-down. Würth 691137710003 screw terminal per relay, pins 1–3: COM / NO / NC. **Max. 10 A per channel**: the 2.5 mm tracks run on all four layers; the two outer layers alone carry about 12 A at 20 K rise; relay and terminal could do 16 A. Relay circuits are at least 4 mm apart (DRC rule `mains_between_relays`, 4.8 mm measured), so neighbouring relays may switch different phases. G2RL since 2026-09-30: 5 kV coil–contact, 8 mm / 8 mm, for 230 V outdoors; the G5LE was basic insulation only |
+| Relays | 4 × Omron G2RL-1-E DC5, 2 × DMN2004DWK-7, 4 × 1N4148WS | 1 K gate series, 10 K pull-down (≈ 3.0 V at the gate). DMN2004DWK since 2026-10-04: VGS(th) ≤ 1.0 V, RDS(on) ≤ 0.7 Ω at 2.5 V; the DMN601DWK (VGS(th) up to 2.5 V, RDS(on) only specified at 5 V) was marginal for the 80 mA coil. Würth 691137710003 screw terminal per relay, pins 1–3: COM / NO / NC. **Max. 10 A per channel**: the 2.5 mm tracks run on all four layers; the two outer layers alone carry about 12 A at 20 K rise; relay and terminal could do 16 A. Relay circuits are at least 4 mm apart (DRC rule `mains_between_relays`, 4.8 mm measured), so neighbouring relays may switch different phases. G2RL since 2026-09-30: 5 kV coil–contact, 8 mm / 8 mm, for 230 V outdoors; the G5LE was basic insulation only |
 | PIR | 2 × Würth 691137710003: 5 V, GND, signal | 1 K series, 100 K pull-down |
 | WS2812 | 2 × 74AHCT1G125 + 150 R | Würth 691137710002: data, GND. No 5 V on the terminal |
-| Audio | MAX98357A, CUI SJ1-3523N | Jack carries the bridged speaker output: tip OUTP, ring open, sleeve OUTN. Not line-out, and the sleeve is not ground |
+| Audio | MAX98357A, CUI SJ1-3523N, C21 100 µ 1206 bulk at U6 | Jack carries the bridged speaker output: tip OUTP, ring open, sleeve OUTN. Not line-out, and the sleeve is not ground |
 | Debug | USB-C GCT USB4215-03-A, 2 × 5K1 on CC, 1N5819HW from VBUS to +5V | USB Serial/JTAG on the S3, no bridge chip. Board runs from USB on the bench |
 | Expansion | 1×8 pin header: 5 V, four GPIOs, SCL, SDA, GND | 4K7 I2C pull-ups on board |
 | Chassis | R1 1 M (0603) ∥ C1 1 n 2 kV (1206, FH 1206B102K202NT) between CHASSIS and GND, R5 0 R DNP | D30 bonding option, magjack shield on CHASSIS. Added 2026-09-29; missing before |
 
 Removed against the mainboard: etherCON, discrete magnetics, Halo LEDs, all board-to-board connectors,
 the console header, the status LED. No eFuses, no metering, no descriptor EEPROM.
+
+Deferred to V1 (decided 2026-10-04): ESD protection on USB and on the PIR / WS2812 terminals, and a reset
+button. V0 is a bench prototype; USB Serial/JTAG resets the S3 and enters download mode without buttons,
+BOOT is SW1, and power-cycling covers the rest.
 
 ## ESP32-S3 pin plan
 
@@ -58,7 +62,8 @@ typical, 3.5 W flat out. About 4.5 W typical, 7.5 W worst case, against 9 W from
 Netlist parsed for single-node nets and non-Part-DB symbols, ERC clean apart from the MAX98357A thermal
 pad warning. All 113 symbols come from Part-DB (2026-10-01; the four mounting holes are stock `Mechanical:MountingHole`). The bridge topology was verified against `OH_Node_PWR_BT4`
 (A1/A2 to the taps and K1/K2 to VIN+ on the high side, K1/K2 to the taps and A1/A2 to VIN− on the low side).
-Relay pinout verified against the Omron drawing: 1 COM, 3 NO, 4 NC, 2 and 5 coil.
+Relay pinout verified against the Omron G2RL-1-E drawing (datasheet p. 6, bottom view): coil 1/8, NC 2/7,
+COM 3/6, NO 4/5, each contact on two pins. Symbol pins: A1/A2 coil, 12 NC, 11 COM, 14 NO.
 
 ## Before layout
 
