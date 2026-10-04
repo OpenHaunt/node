@@ -51,7 +51,8 @@
 
 #----------------------------------------------------------------------------------------------------
 # Mains on the relay contacts, net class "MAINS" (docs/09: basic ~3 mm, reinforced 6-8 mm at 230 V).
-# MAINS to MAINS uses the net class clearance of 3.0 mm (basic insulation, between different relays).
+# MAINS to MAINS between different relays: 4.0 mm (rule "mains_between_relays" below), so neighbouring
+# relays may switch different phases (400 V). Net class clearance stays 3.0 mm.
 # MAINS to everything else is reinforced insulation to SELV: 6.4 mm here. Raise to 8 mm if the enclosure
 # or pollution degree asks for it.
 
@@ -69,9 +70,13 @@
 
 # Contacts of one relay (NO / COM / NC): functional insulation. The terminal (Würth 691137710003, 5 mm
 # pitch) has its own pads 2.7 mm apart, so the 3 mm MAINS class clearance cannot be met there. 2.5 mm is a
-# working figure, not checked against IEC 60664-1. Between different relays the 3 mm class value stays.
+# working figure, not checked against IEC 60664-1. Between different relays 4.0 mm applies.
 # The relay is an Omron G2RL-1-E (5 kV coil to contacts, 8 mm / 8 mm): its coil pads are 13 mm from the
 # contact pads, so it needs no exemption from mains_to_selv.
+
+(rule "mains_between_relays"
+   (constraint clearance (min 4.0mm))
+   (condition "A.NetClass == 'MAINS' && B.NetClass == 'MAINS'"))
 
 (rule "K1 contacts: same relay"
    (constraint clearance (min 2.5mm))
@@ -95,3 +100,19 @@
 (rule "J3: magjack pin spacing"
    (constraint clearance (min 0.2mm))
    (condition "A.memberOfFootprint('J3') && B.memberOfFootprint('J3')"))
+
+# Power pads that carry module or regulator heat: solid zone connection instead of thermal spokes.
+# Ag9900 datasheet: minimal thermal relief and power planes on both output pins. PS1 pad 2 is -VDC
+# (up to 1.8 A), C2 pad 2 its bulk return, U3 pin 1 the LDO ground. Set as a rule so it survives
+# footprint updates from the library.
+
+(rule "Solid zone connection on power return pads"
+   (constraint zone_connection solid)
+   (condition "A.Type == 'Pad' && ((A.memberOfFootprint('PS1') && A.Pad_Number == '2') || (A.memberOfFootprint('C2') && A.Pad_Number == '2') || (A.memberOfFootprint('U3') && A.Pad_Number == '1'))"))
+
+# C27 (U6 supply, 0402) sits between C26, U6 and the OUTP track, so the pour reaches its GND pad from one
+# side only. The pad is tied to C26 pad 2 and to the pour by two GND tracks; the spoke check ignores tracks.
+
+(rule "C27 GND pad: one spoke plus tracks"
+   (constraint min_resolved_spokes 1)
+   (condition "A.Type == 'Pad' && A.memberOfFootprint('C27') && A.Pad_Number == '2'"))

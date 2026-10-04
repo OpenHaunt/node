@@ -6145,7 +6145,7 @@
 					)
 				)
 			)
-			(property "Footprint" "LRV:AG9900-MTB"
+			(property "Footprint" "LRV:AG9900-MTB_HandSolder"
 				(at 0 -12.7 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -10903,6 +10903,194 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Part-DB:GRM31CR61A107MEA8L"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "100u"
+				(at 0.635 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
+				(at 0.9652 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM31CR61A107MEA8-01A.pdf"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "100 µF ±20% 10V Ceramic Capacitor X5R 1206 (3216 Metric)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "MPN" "GRM31CR61A107MEA8L"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Manufacturer" "Murata Electronics"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Part-DB ID" "252"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Part-DB URL" "http://parts.hive.service42.me/en/part/252/info"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Capacitor_SMD:C_1206_3216Metric"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "GRM31CR61A107MEA8L_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762) (xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762) (xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "GRM31CR61A107MEA8L_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Part-DB:MAX98357AETE+T"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -13580,7 +13768,7 @@
 					)
 				)
 			)
-			(property "Footprint" "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal"
+			(property "Footprint" "LRV:Jack_3.5mm_CUI_SJ1-3523N_Horizontal"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -13657,7 +13845,7 @@
 					)
 				)
 			)
-			(property "ki_fp_filters" "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal"
+			(property "ki_fp_filters" "LRV:Jack_3.5mm_CUI_SJ1-3523N_Horizontal"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -17152,16 +17340,16 @@
 		(uuid "41504128-ff7d-4540-8fe4-199a3120e403")
 	)
 	(junction
-		(at 186.69 223.52)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "43af49bc-14b8-4e9e-abc5-5da68f4554e3")
-	)
-	(junction
 		(at 196.85 50.8)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "467a68d2-16e6-4e3c-9fd4-1d9c71ea87f0")
+	)
+	(junction
+		(at 189.23 223.52)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "4ca7db87-88ea-475e-9050-d9ea2e81f4de")
 	)
 	(junction
 		(at 227.33 54.61)
@@ -17180,12 +17368,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "59f888a7-bf87-4981-88d3-39a596c5da1d")
-	)
-	(junction
-		(at 186.69 231.14)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "5b1f334a-26f2-4a85-b7e1-d48b93a360de")
 	)
 	(junction
 		(at 212.09 64.77)
@@ -17366,6 +17548,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "ee6e43a6-3d5b-419a-b6ef-69f3bd394afa")
+	)
+	(junction
+		(at 189.23 231.14)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f02dbc68-e645-4f9d-b84c-933d1f992991")
 	)
 	(junction
 		(at 134.62 151.13)
@@ -17549,7 +17737,7 @@
 	)
 	(wire
 		(pts
-			(xy 184.15 223.52) (xy 186.69 223.52)
+			(xy 184.15 223.52) (xy 189.23 223.52)
 		)
 		(stroke
 			(width 0)
@@ -17676,16 +17864,6 @@
 			(type default)
 		)
 		(uuid "0e4a32f5-5614-4df6-b869-a629cbfb2c54")
-	)
-	(wire
-		(pts
-			(xy 184.15 231.14) (xy 186.69 231.14)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1132005b-ad47-406c-8ce3-3b43a9f68ab5")
 	)
 	(wire
 		(pts
@@ -17839,16 +18017,6 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 223.52) (xy 189.23 223.52)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "20dbff7b-8334-4671-ac60-bd600a88f2b4")
-	)
-	(wire
-		(pts
 			(xy 149.86 175.26) (xy 153.67 175.26)
 		)
 		(stroke
@@ -17909,7 +18077,7 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 231.14) (xy 189.23 231.14)
+			(xy 184.15 231.14) (xy 189.23 231.14)
 		)
 		(stroke
 			(width 0)
@@ -18926,6 +19094,16 @@
 			(type default)
 		)
 		(uuid "729defb5-505f-47ad-ac21-720afe3f9006")
+	)
+	(wire
+		(pts
+			(xy 189.23 223.52) (xy 194.31 223.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "738417cf-a5c8-487c-8b05-bc0a90ff163c")
 	)
 	(wire
 		(pts
@@ -20126,6 +20304,16 @@
 			(type default)
 		)
 		(uuid "e256e422-325a-488b-9e17-5701fb24c1c5")
+	)
+	(wire
+		(pts
+			(xy 189.23 231.14) (xy 194.31 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e2c4c607-f923-46a1-900a-cac56078cb58")
 	)
 	(wire
 		(pts
@@ -26333,6 +26521,132 @@
 		)
 	)
 	(symbol
+		(lib_id "Part-DB:GRM31CR61A107MEA8L")
+		(at 194.31 227.33 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "339c052e-8962-4e8c-9a0a-fc57588365c9")
+		(property "Reference" "C21"
+			(at 198.12 226.0599 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100u"
+			(at 198.12 228.5999 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
+			(at 195.2752 231.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM31CR61A107MEA8-01A.pdf"
+			(at 194.31 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "100 µF ±20% 10V Ceramic Capacitor X5R 1206 (3216 Metric)"
+			(at 194.31 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "GRM31CR61A107MEA8L"
+			(at 194.31 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Murata Electronics"
+			(at 194.31 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB ID" "252"
+			(at 194.31 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/252/info"
+			(at 194.31 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "fadf2f55-0b71-4cbb-bfd5-638620a560d2")
+		)
+		(pin "1"
+			(uuid "109dcec1-cb8c-429f-b82e-b4356b49ee65")
+		)
+		(instances
+			(project "OH_Node_V0_Prototype"
+				(path "/b6338282-1898-4193-8a9f-730e9cd1ee39"
+					(reference "C21")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Part-DB:0402WGF499JTCE")
 		(at 132.08 100.33 270)
 		(unit 1)
@@ -26691,7 +27005,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal"
+		(property "Footprint" "LRV:Jack_3.5mm_CUI_SJ1-3523N_Horizontal"
 			(at 240.03 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -29935,7 +30249,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LRV:AG9900-MTB"
+		(property "Footprint" "LRV:AG9900-MTB_HandSolder"
 			(at 90.17 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -33537,7 +33851,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 186.69 231.14 0)
+		(at 189.23 231.14 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -33548,7 +33862,7 @@
 		(fields_autoplaced yes)
 		(uuid "94f4bdca-c454-4e8a-8a9c-82894998153c")
 		(property "Reference" "#PWR060"
-			(at 186.69 237.49 0)
+			(at 189.23 237.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33559,7 +33873,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 186.69 236.22 0)
+			(at 189.23 236.22 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -33569,7 +33883,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 186.69 231.14 0)
+			(at 189.23 231.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33580,7 +33894,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 186.69 231.14 0)
+			(at 189.23 231.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33591,7 +33905,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 186.69 231.14 0)
+			(at 189.23 231.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -38159,7 +38473,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 186.69 223.52 0)
+		(at 189.23 223.52 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -38170,7 +38484,7 @@
 		(fields_autoplaced yes)
 		(uuid "c4eac41e-0db9-4bf0-b139-3908d979b84a")
 		(property "Reference" "#PWR061"
-			(at 186.69 227.33 0)
+			(at 189.23 227.33 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -38181,7 +38495,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 186.69 218.44 0)
+			(at 189.23 218.44 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -38191,7 +38505,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 186.69 223.52 0)
+			(at 189.23 223.52 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -38202,7 +38516,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 186.69 223.52 0)
+			(at 189.23 223.52 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -38213,7 +38527,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 186.69 223.52 0)
+			(at 189.23 223.52 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
