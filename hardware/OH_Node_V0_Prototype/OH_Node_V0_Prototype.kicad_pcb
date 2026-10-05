@@ -6890,6 +6890,19 @@
 				)
 			)
 		)
+		(property "Description" "Bluetooth, WiFi 802.11b/g/n, Bluetooth v5.0 Transceiver Module 2.4GHz PCB Trace Surface Mount"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "5fd09664-7e96-42da-b8b2-2274facb2a59")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property "FT Position Offset" "0,0.12"
 			(at 0 0 0)
 			(unlocked yes)
@@ -6909,19 +6922,6 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "c162e2d0-d67b-44d2-81d6-db512a9035de")
-			(effects
-				(font
-					(size 1.27 1.27)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Description" "Bluetooth, WiFi 802.11b/g/n, Bluetooth v5.0 Transceiver Module 2.4GHz PCB Trace Surface Mount"
-			(at 0 0 0)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "5fd09664-7e96-42da-b8b2-2274facb2a59")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7749,17 +7749,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "90"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "685f5db1-26ab-4f4a-ac00-368c92b851b5")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Description" "Buffer, Non-Inverting 1 Element 1 Bit per Element 3-State Output SOT-25"
 			(at 0 0 270)
 			(layer "F.Fab")
@@ -7768,6 +7757,18 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 270)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "685f5db1-26ab-4f4a-ac00-368c92b851b5")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
 				)
 			)
 		)
@@ -10416,17 +10417,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "90"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "c4f8af80-56a5-4003-87a3-0e3c9b419a4e")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Description" "Mosfet Array 20V 540mA 200mW Surface Mount SOT-363"
 			(at 0 0 180)
 			(layer "F.Fab")
@@ -10435,6 +10425,18 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 180)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "c4f8af80-56a5-4003-87a3-0e3c9b419a4e")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
 				)
 			)
 		)
@@ -11702,17 +11704,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "-90"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "c0827442-0f3f-4a07-8f60-96cf82190eb5")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Description" "Amplifier IC 1-Channel (Mono) Class D 16-TQFN (3x3)"
 			(at 0 0 0)
 			(layer "F.Fab")
@@ -11721,6 +11712,18 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "-90"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "c0827442-0f3f-4a07-8f60-96cf82190eb5")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
 				)
 			)
 		)
@@ -14218,17 +14221,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "90"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "31ddc713-701e-4812-a923-b45b01c211af")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Description" "Buck Switching Regulator IC Positive Fixed 5V 1 Output 2A SOT-23-6 Thin, TSOT-23-6"
 			(at 0 0 90)
 			(layer "F.Fab")
@@ -14237,6 +14229,18 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 90)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "31ddc713-701e-4812-a923-b45b01c211af")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
 				)
 			)
 		)
@@ -15181,11 +15185,11 @@
 				)
 			)
 		)
-		(property "FT Origin" "Center"
+		(property "Description" "USB-C (USB TYPE-C) USB 2.0 Receptacle Connector 24 (16+8 Dummy) Position Surface Mount, Right Angle; Through Hole"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "65db3ea7-0c29-4237-b109-3fcfc8f8e7cb")
+			(uuid "95c16f93-822c-443f-b7e1-9c69839d7530")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15193,11 +15197,11 @@
 				)
 			)
 		)
-		(property "Description" "USB-C (USB TYPE-C) USB 2.0 Receptacle Connector 24 (16+8 Dummy) Position Surface Mount, Right Angle; Through Hole"
+		(property "FT Origin" "Center"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "95c16f93-822c-443f-b7e1-9c69839d7530")
+			(uuid "65db3ea7-0c29-4237-b109-3fcfc8f8e7cb")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20771,17 +20775,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "90"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "03fface4-b728-49aa-96ad-8609949163b7")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Description" "Buffer, Non-Inverting 1 Element 1 Bit per Element 3-State Output SOT-25"
 			(at 0 0 270)
 			(layer "F.Fab")
@@ -20790,6 +20783,18 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 270)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "03fface4-b728-49aa-96ad-8609949163b7")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
 				)
 			)
 		)
@@ -34463,17 +34468,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "90"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "0d75f8d6-7fab-4898-b14b-14b4145dc847")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Description" "Mosfet Array 20V 540mA 200mW Surface Mount SOT-363"
 			(at 0 0 180)
 			(layer "F.Fab")
@@ -34482,6 +34476,18 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 180)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "0d75f8d6-7fab-4898-b14b-14b4145dc847")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
 				)
 			)
 		)
@@ -39797,6 +39803,15 @@
 		(uuid "250132ee-4039-4731-b32a-6768d7366cdf")
 	)
 	(via
+		(at 136.825 96.175)
+		(size 0.45)
+		(drill 0.25)
+		(layers "F.Cu" "B.Cu")
+		(free yes)
+		(net "GND")
+		(uuid "25457ecd-ef75-49db-87cb-0ef894a2fb7a")
+	)
+	(via
 		(at 144.975 87.261)
 		(size 0.6)
 		(drill 0.3)
@@ -40144,6 +40159,15 @@
 		(free yes)
 		(net "GND")
 		(uuid "3ca3e0fd-abb5-4c9d-bb9f-0ec6531e34ed")
+	)
+	(via
+		(at 138.075 97.375)
+		(size 0.45)
+		(drill 0.25)
+		(layers "F.Cu" "B.Cu")
+		(free yes)
+		(net "GND")
+		(uuid "3de03538-e35f-4c2f-ae06-6538ccf0baeb")
 	)
 	(via
 		(at 99.268 95.214)
@@ -41498,6 +41522,15 @@
 		(uuid "85b513dd-ce42-45bf-b365-384b08000556")
 	)
 	(via
+		(at 134.125 100.6)
+		(size 0.45)
+		(drill 0.25)
+		(layers "F.Cu" "B.Cu")
+		(free yes)
+		(net "GND")
+		(uuid "85b832bf-83fb-41e6-b0e9-c47128dc60d6")
+	)
+	(via
 		(at 174.75 108.25)
 		(size 0.45)
 		(drill 0.25)
@@ -42712,14 +42745,6 @@
 		(free yes)
 		(net "GND")
 		(uuid "d1690b38-cf51-45be-8f70-d23816a86ab4")
-	)
-	(via
-		(at 136.83 97.47)
-		(size 0.45)
-		(drill 0.25)
-		(layers "F.Cu" "B.Cu")
-		(net "GND")
-		(uuid "d1e91f62-a51f-454d-9992-563712580168")
 	)
 	(via
 		(at 151 89.1)
