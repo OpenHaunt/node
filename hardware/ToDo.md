@@ -135,14 +135,22 @@ Checked against the board of 2026-10-05; findings in italics.
 
 ### Stitching
 
-- [ ] GND stitching with via arrays at every GND connection of the connectors and at the PoE module.
+- [x] GND stitching with via arrays at every GND connection of the connectors and at the PoE module.
+      _Done 2026-10-05 together with the item below: the connector GND pins are plated through-holes and tie the
+      layers themselves; PS1 pad 2 sits under the module keep-out (no vias allowed, datasheet Fig. 17), the
+      stitching vias sit right below it; J11 has its GND pad vias from the pad pass._
 - [x] At least 2 stitching vias wherever signals change layers.
       _Done 2026-10-05: 37 GND return vias placed by script, then the SPI via columns at U1 and the ESP32 were
       loosened by hand around marker vias. Of 53 signal vias, 50 now have a GND via within 1.2 mm (5 at the
       start), 16 have two; median distance 0.75 mm (was 3.1). The rest (ACTLED, LINKLED, RLY3, all slow) have one
       at 1.3–1.5 mm. DRC clean. List: `OH_Node_V0_Prototype/analysis/2026-10-05_gnd/return_vias.csv`
       (state after the script, before the manual pass)._
-- [ ] At the end, stitch the whole board with the via stitching plugin, e.g. with these settings:
+- [x] At the end, stitch the whole board with the via stitching plugin, e.g. with these settings:
+      _Done 2026-10-05 by script with the plugin's settings (GND, 0.6/0.3, hexagonal 5 mm, avoid other zones and
+      GND pads) plus a gap pass: 209 vias, each inside the GND fill on all four layers, DRC-checked. First the
+      +12V run to F1/F2 moved down to y 126.0 (mains_to_selv limit), which removed a 0.5 mm GND sliver and an
+      island with no via. Max path through copper to a GND via: F.Cu 55.8 → 10.1 mm, B.Cu 29.0 → 10.6 mm. Maps:
+      `OH_Node_V0_Prototype/analysis/2026-10-05_gnd/after_stitching/`._
 
     ![](ToDo-assets/via-stitching-plugin.png)
 
