@@ -156,7 +156,9 @@ Checked against the board of 2026-10-05; findings in italics.
 
 ## Minor
 
-- [ ] DRC silkscreen warnings: 149 overlaps, 117 over copper, 9 at the board edge. Cosmetic.
+- [x] DRC silkscreen warnings: 149 overlaps, 117 over copper, 9 at the board edge. Cosmetic.
+      _Done 2026-10-05: cleaned up in the board; 6 `silk_edge_clearance` hits at the top edge (y 70, x 120.7–129.7)
+      excluded. DRC now reports nothing at all, parity clean._
 - [x] 12V für Bewegungsmelder wie? und passt das mit Kontakt, der zu GND schließt
       _2026-10-05: decided — V0 moves to the product power path (docs/10 D37 amendment): AG9912-MTB 12 V +
       AP63205WU-7 buck to 5 V; J8/J10 carry 12 V through PPTCs F1/F2; inputs get a 10K pull-up at the terminal
