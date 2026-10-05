@@ -64,7 +64,7 @@ along with the text.
 - [x] **Order files regenerated** 2026-10-05 evening in `production/jlc_final/` after all items above: gerbers
       and CPL from the plugin CLI, BOM from `make_bom.py`. 104 SMD parts, 41 lines (R20/R49 joined the 10K
       line), BOM designators == CPL designators. Against the afternoon set only R20/R49, C3 and L2 changed.
-- [ ] JLC placement preview: confirm polarity and pin 1 of C2, D1, D2, D9, D10, D11/D12, Q1/Q2, U1, U3, U4/U5,
-      U6, U7, J11, Y1 after uploading the new CPL. Start with D9: the symbol is the bidirectional TVS graphic
-      but the SMAJ58A is unidirectional, cathode (pad 1) on VIN+. A wrong rotation puts a forward diode
-      across the PoE input.
+- [x] JLC placement preview checked 2026-10-05: D9 correct (cathode on VIN+), diodes and bridges as marked.
+      U2/J11 position and Q1/Q2, U4/U5, U6, U7 rotation fixed with plugin fields (see
+      `production/jlc_final/README.md`). C2 and Y1 have no 3D model at JLC: order with "Confirm Parts
+      Placement" and the C2 polarity remark from the README.

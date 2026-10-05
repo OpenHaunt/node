@@ -6890,6 +6890,32 @@
 				)
 			)
 		)
+		(property "FT Position Offset" "0,0.12"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "49238ff6-069b-4d9a-9dba-b372e9394126")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "FT Origin" "Center"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "c162e2d0-d67b-44d2-81d6-db512a9035de")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property "Description" "Bluetooth, WiFi 802.11b/g/n, Bluetooth v5.0 Transceiver Module 2.4GHz PCB Trace Surface Mount"
 			(at 0 0 0)
 			(unlocked yes)
@@ -7717,6 +7743,17 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "b94b226c-aa8b-47f3-a9ff-3efba917e6b2")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 270)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "685f5db1-26ab-4f4a-ac00-368c92b851b5")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10379,6 +10416,17 @@
 				)
 			)
 		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 180)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "c4f8af80-56a5-4003-87a3-0e3c9b419a4e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Description" "Mosfet Array 20V 540mA 200mW Surface Mount SOT-363"
 			(at 0 0 180)
 			(layer "F.Fab")
@@ -11648,6 +11696,17 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "562e1da8-e66c-4d67-abd3-bd55dab23e49")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "-90"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "c0827442-0f3f-4a07-8f60-96cf82190eb5")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14159,6 +14218,17 @@
 				)
 			)
 		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 90)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "31ddc713-701e-4812-a923-b45b01c211af")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Description" "Buck Switching Regulator IC Positive Fixed 5V 1 Output 2A SOT-23-6 Thin, TSOT-23-6"
 			(at 0 0 90)
 			(layer "F.Fab")
@@ -15104,6 +15174,18 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "dddb57f3-bbd8-4aa5-8752-5d273e3f8feb")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "FT Origin" "Center"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "65db3ea7-0c29-4237-b109-3fcfc8f8e7cb")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20683,6 +20765,17 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "2352275e-6920-4747-8d2b-7aef922eba1c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 270)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "03fface4-b728-49aa-96ad-8609949163b7")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -34364,6 +34457,17 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "162c7c52-feb4-490a-aeb6-c5aa5fdd6f65")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 180)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "0d75f8d6-7fab-4898-b14b-14b4145dc847")
 			(effects
 				(font
 					(size 1.27 1.27)

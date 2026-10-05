@@ -27,15 +27,33 @@ otherwise; hand-soldered parts unchanged.
 ## Assembly
 
 - Top side only, **104 SMD parts, 41 BOM lines**; every line has an LCSC number.
-- 24 lines are basic/preferred. **17 extended** (loading fee each): C2 FP-025ME101M-SAR, C5/C27/C33
-  GRM155R61A106ME11D, C21 GRM31CR61A107MEA8L, D1 KT-0603Y, F1/F2 0805L020/30XR, J11 USB4215-03-A, L1 BLM15,
-  L2 SWPA6045S4R7MT, Q1/Q2 DMN2004DWK-7, R8 12k4, U1 W5500, U2 ESP32-S3-WROOM-1-N16R2, U3 AMS1117-3.3,
-  U4/U5 74AHCT1G125W5-7, U6 MAX98357A, U7 AP63205WU-7, Y1 ECS-250-18-33-JGN-TR3.
+- 20 lines are basic/preferred. **21 extended** (loading fee each), as JLC's BOM tool classified them on
+  2026-10-05: C2 FP-025ME101M-SAR, C5/C27/C33 GRM155R61A106ME11D, C17/C18 27p 0402CG270J500NT, C21
+  GRM31CR61A107MEA8L, C22/C23 6n8 0402B682K500NT, D1 KT-0603Y, D9 SMAJ58A, F1/F2 0805L020/30XR, J11
+  USB4215-03-A, L1 BLM15, L2 SWPA6045S4R7MT, Q1/Q2 DMN2004DWK-7, R8 12k4, R26/R27/R28/R33 150R, U1 W5500,
+  U2 ESP32-S3-WROOM-1-N16R2, U3 AMS1117-3.3, U4/U5 74AHCT1G125W5-7, U6 MAX98357A, U7 AP63205WU-7, Y1
+  ECS-250-18-33-JGN-TR3. JLC's matcher picked the same LCSC number as `bom.csv` on all 41 lines.
 - Thin stock on 2026-10-05: U4/U5 (323), Y1 (477), J11 (1285), C2 (1800). C2 has a drop-in fallback:
   RVT1E101M0607 (C72477), same CP_Elec_6.3x7.7 footprint.
 - **Check in JLC's placement preview**, polarity and pin 1 of: C2 (polymer cap), D1/D2 (LEDs), D9 (TVS), D10,
   D11/D12 (bridges, + on pin 1), Q1/Q2, U1, U3, U4/U5, U6, **U7**, J11, Y1. The plugin rotated C2, Q1/Q2, U1,
   U3, U4/U5 and U7 to JLC's conventions (`transformations.csv`); the preview is where that gets confirmed.
+- **U2 and J11 carry `FT Origin = Center`** (schematic and board field), so the plugin writes the centre of the
+  pads instead of the KiCad anchor. Without it, JLC's preview put the ESP32 module 3.6 mm towards the antenna
+  (antenna past the board edge) and the USB-C pins short of their pads. CPL: U2 y 83.0 → 86.65 (with
+  `FT Position Offset = 0,0.12`, matched to the preview), J11 y 73.25 → 74.125.
+- **Rotation fixes from JLC's preview** (`FT Rotation Offset`, schematic and board): Q1/Q2, U4/U5 and U7 +90°
+  (counter-clockwise), U6 −90°. The plugin's `transformations.csv` entries left them 90° off for these JLC
+  models. Pad 1 on the board: Q1/Q2 lower right, U4/U5 and U7 upper right, U6 right side towards the bottom;
+  the pink pin-1 dot in the preview must sit there.
+- Diodes: JLC marks anode "+" and cathode "−". Pad 1 is the cathode on every diode here, so "−" sits in the
+  closed end of the silkscreen bracket. D11/D12: "+" at pad 1 (the pin with the triangle marker, `/VIN+`).
+- Y1 has no 3D model at JLC either. Pads 1/3 (crystal) and 2/4 (GND) are interchangeable by the ECS
+  datasheet, so 0° and 180° both work; 90° does not fit the 1.7 × 2.2 mm pad pattern.
+- **C2 has no 3D model at JLC** (C50146718), so the preview cannot show its polarity. Pin 1 (+, +12V) is the
+  upper pad (y 109.8, the end with the "+" on the silkscreen), pin 2 (GND) the lower one; the CPL says 90°
+  after the plugin's `CP_Elec_` +180° rule. Order with "Confirm Parts Placement" and add the remark
+  "C2: polarized, + (pin 1) at the '+' silkscreen mark (upper pad)".
 
 ## Not assembled by JLC — hand-soldered
 

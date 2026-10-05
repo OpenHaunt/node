@@ -24583,6 +24583,28 @@
 				)
 			)
 		)
+		(property "FT Position Offset" "0,0.12"
+			(at 311.15 81.28 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Origin" "Center"
+			(at 311.15 81.28 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Description" "Bluetooth, WiFi 802.11b/g/n, Bluetooth v5.0 Transceiver Module 2.4GHz PCB Trace Surface Mount"
 			(at 311.15 81.28 0)
 			(hide yes)
@@ -27922,6 +27944,17 @@
 			)
 		)
 		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP63200-AP63201-AP63203-AP63205.pdf"
+			(at 232.41 95.25 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
 			(at 232.41 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -34597,6 +34630,17 @@
 				)
 			)
 		)
+		(property "FT Origin" "Center"
+			(at 361.95 81.28 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Description" "USB-C (USB TYPE-C) USB 2.0 Receptacle Connector 24 (16+8 Dummy) Position Surface Mount, Right Angle; Through Hole"
 			(at 358.14 81.28 0)
 			(hide yes)
@@ -38817,6 +38861,17 @@
 				)
 			)
 		)
+		(property "FT Rotation Offset" "-90"
+			(at 215.9 251.46 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Description" "Amplifier IC 1-Channel (Mono) Class D 16-TQFN (3x3)"
 			(at 215.9 248.92 0)
 			(hide yes)
@@ -40439,6 +40494,18 @@
 				(justify left top)
 			)
 		)
+		(property "FT Rotation Offset" "90"
+			(at 372.11 385.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
 		(property "Description" "Mosfet Array 20V 540mA 200mW Surface Mount SOT-363"
 			(at 353.06 190.5 0)
 			(hide yes)
@@ -41671,6 +41738,17 @@
 			)
 		)
 		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/74AHCT1G125.pdf"
+			(at 83.82 243.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
 			(at 83.82 243.84 0)
 			(hide yes)
 			(show_name no)
@@ -43152,6 +43230,17 @@
 			)
 		)
 		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/74AHCT1G125.pdf"
+			(at 137.16 243.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
 			(at 137.16 243.84 0)
 			(hide yes)
 			(show_name no)
@@ -50067,6 +50156,18 @@
 			)
 		)
 		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds30935.pdf"
+			(at 307.34 385.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(property "FT Rotation Offset" "90"
 			(at 307.34 385.42 0)
 			(hide yes)
 			(show_name no)
