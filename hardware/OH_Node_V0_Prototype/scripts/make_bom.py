@@ -17,7 +17,19 @@ for m in re.finditer(r'\(symbol\s*\n',sch):
             if d==0: b+=1; break
     blk=sch[a:b]
     if '(lib_id' in blk and re.search(r'\n\t\t\(dnp yes\)',blk): dnp.add(re.search(r'\(property "Reference" "([^"]+)"',blk).group(1))
-pcb=open(PCB).read(); attr={m.group(2):m.group(3).strip() for m in re.finditer(r'\n\t\(footprint "([^"]+)"[\s\S]*?\(property "Reference" "([^"]+)"[\s\S]*?\n\t\t\(attr([^\n]*)\)',pcb)}
+# Footprint attributes, parsed per footprint block by paren matching. A regex scanning forward from a
+# footprint without an (attr ...) line (test points) used to take the next footprint's attr and drop
+# that footprint from the BOM.
+pcb=open(PCB).read(); attr={}
+for m in re.finditer(r'\n\t\(footprint "',pcb):
+    a=m.start()+1; d=0
+    for b in range(a,len(pcb)):
+        if pcb[b]=='(': d+=1
+        elif pcb[b]==')':
+            d-=1
+            if d==0: b+=1; break
+    blk=pcb[a:b]; r=re.search(r'\(property "Reference" "([^"]+)"',blk); at=re.search(r'\n\t\t\(attr([^\n]*)\)',blk)
+    if r: attr[r.group(1)]=at.group(1).strip() if at else ""
 rows=[]; cache={}
 for c in fa(f1(t,"components"),"comp"):
     ref=v(c,"ref"); props={x[1][1]:x[2][1] for x in fa(c,"property") if len(x)>2}; pid=props.get("Part-DB ID")

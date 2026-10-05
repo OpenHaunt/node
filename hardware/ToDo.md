@@ -169,9 +169,13 @@ Checked against the board of 2026-10-05; findings in italics.
 
 ## Last step
 
-- [ ] **Order files are stale.** `production/jlc_final/` was generated 2026-10-01; parts and routing have
+- [x] **Order files are stale.** `production/jlc_final/` was generated 2026-10-01; parts and routing have
       changed since. Regenerate gerbers, drill, `positions.csv` and `bom.csv` after the items above. New in the
       BOM since 2026-10-03: C21 (GRM31CR61A107MEA8L, LCSC C883598), Q1/Q2 DMN2004DWK-7 (C156343, was
       C156344), D1 KT-0603Y (C2287), D2 KT-0603R (C2286), R45/R46 1K, C34 (CL21A226MAQNNNE, C45783, same line as C25); R20 is DNP.
-- [ ] JLC placement preview: confirm polarity and pin 1 of C2, D1, D2, D9, D10, D11/D12, U1, U3, U4/U5, U6,
-      J11, Y1, Q1/Q2 after uploading the new CPL.
+      _Regenerated 2026-10-05 in `production/jlc_final/` (see its README): plugin CLI for gerbers/CPL,
+      `make_bom.py` for the BOM, 102 SMD parts / 41 lines, all with LCSC numbers; BOM == CPL designators.
+      `make_bom.py` fixed: footprints without an (attr) line (test points) made it drop C18, D12, R41, U4, Y1.
+      Q1/Q2 LCSC C156343 added to Part-DB._
+- [ ] JLC placement preview: confirm polarity and pin 1 of C2, D1, D2, D9, D10, D11/D12, Q1/Q2, U1, U3, U4/U5, U6, U7,
+      J11, Y1 after uploading the new CPL.

@@ -3,7 +3,9 @@
 
 Usage:  python3 scripts/hand_parts.py [--boards N] [--netlist FILE]
 Reads PARTDB_TOKEN, DIGIKEY_CLIENT_ID/SECRET from ../../.env (repo root).
-Writes production/jlc_final/hand_parts.csv, hand_parts.md and hand_parts_digikey.csv (DigiKey cart upload).
+Writes production/jlc_final/hand_parts.csv, hand_parts.md, hand_parts_digikey.csv (DigiKey cart upload) and
+hand_parts_wurth.csv (direct order). Würth Elektronik parts are bought from Würth directly, everything else
+from DigiKey; the manufacturer comes from Part-DB. DigiKey prices for Würth parts are a reference only.
 """
 import os,sys,re,csv,json,argparse,subprocess,urllib.request,urllib.parse,collections
 from datetime import date
@@ -27,7 +29,18 @@ def f1(n,k): r=fa(n,k); return r[0] if r else None
 def v(n,k): r=f1(n,k); return r[1] if r and len(r)>1 else None
 t=parse_file(net)
 pcb=open(os.path.join(PROJ,"OH_Node_V0_Prototype.kicad_pcb")).read()
-attr={m.group(2):m.group(3).strip() for m in re.finditer(r'\n\t\(footprint "([^"]+)"[\s\S]*?\(property "Reference" "([^"]+)"[\s\S]*?\n\t\t\(attr([^\n]*)\)',pcb)}
+# Footprint attributes per footprint block (paren matching). A forward regex took the next footprint's
+# attr for footprints without an (attr ...) line, such as the test points.
+attr={}
+for m in re.finditer(r'\n\t\(footprint "',pcb):
+    s0=m.start()+1; d=0
+    for b in range(s0,len(pcb)):
+        if pcb[b]=='(': d+=1
+        elif pcb[b]==')':
+            d-=1
+            if d==0: b+=1; break
+    blk=pcb[s0:b]; rr=re.search(r'\(property "Reference" "([^"]+)"',blk); at=re.search(r'\n\t\t\(attr([^\n]*)\)',blk)
+    if rr: attr[rr.group(1)]=at.group(1).strip() if at else ""
 sch=open(os.path.join(PROJ,"OH_Node_V0_Prototype.kicad_sch")).read(); dnp=set()
 for m in re.finditer(r'\(symbol\s*\n',sch):
     s0=m.start(); d=0
@@ -62,21 +75,33 @@ for pid,refs in groups.items():
             price1=tiers[0][1]; priceN=next((pr for bq,pr in reversed(tiers) if bq<=max(qty,1)),tiers[0][1])
     except Exception as e: avail=f"lookup failed: {e}"
     unit=priceN if priceN!="" else None
-    rows.append({"refs":", ".join(sorted(refs,key=refkey)),"qty_per_board":len(refs),"needed":qty,"part":p["name"],"description":(p.get("description") or "")[:60],"partdb_id":pid,"digikey_pn":dkpn,"digikey_stock":avail,"price_1":price1,"unit_price":priceN,"cost_needed":round(qty*unit,2) if unit is not None else "","tiers":"; ".join(f"{bq}:{pr}" for bq,pr in tiers)})
+    mfr=(p.get("manufacturer") or {}).get("name","") if isinstance(p.get("manufacturer"),dict) else ""
+    src="Würth direct" if re.search(r"w[uü]rth",mfr,re.I) else "DigiKey"
+    rows.append({"refs":", ".join(sorted(refs,key=refkey)),"qty_per_board":len(refs),"needed":qty,"part":p["name"],"manufacturer":mfr,"source":src,"description":(p.get("description") or "")[:60],"partdb_id":pid,"digikey_pn":dkpn,"digikey_stock":avail,"price_1":price1,"unit_price":priceN,"cost_needed":round(qty*unit,2) if unit is not None else "","tiers":"; ".join(f"{bq}:{pr}" for bq,pr in tiers)})
 out=os.path.join(PROJ,"production","jlc_final"); os.makedirs(out,exist_ok=True)
 with open(os.path.join(out,"hand_parts.csv"),"w",newline="") as f:
     w=csv.DictWriter(f,fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
+dkrows=[r for r in rows if r["source"]=="DigiKey"]; werows=[r for r in rows if r["source"]!="DigiKey"]
 # DigiKey cart upload (digikey.de > Cart > Upload a list): full quantity for the boards, no stock deduction
 with open(os.path.join(out,"hand_parts_digikey.csv"),"w",newline="") as f:
     w=csv.writer(f); w.writerow(["Digi-Key Part Number","Manufacturer Part Number","Quantity","Customer Reference"])
-    for r in rows: w.writerow([r["digikey_pn"],r["part"],r["needed"],r["refs"][:48]])
-nodk=[r["part"] for r in rows if not r["digikey_pn"]]
-tot_needed=sum(r["cost_needed"] or 0 for r in rows)
+    for r in dkrows: w.writerow([r["digikey_pn"],r["part"],r["needed"],r["refs"][:48]])
+# Würth direct order: order code is the MPN
+with open(os.path.join(out,"hand_parts_wurth.csv"),"w",newline="") as f:
+    w=csv.writer(f); w.writerow(["Order Code","Description","Quantity","Customer Reference"])
+    for r in werows: w.writerow([r["part"],r["description"],r["needed"],r["refs"]])
+nodk=[r["part"] for r in dkrows if not r["digikey_pn"]]
+tot_dk=sum(r["cost_needed"] or 0 for r in dkrows); ref_we=sum(r["cost_needed"] or 0 for r in werows)
+def table(f,rs):
+    f.write("| Refs | Per board | Needed | Part | Manufacturer | Part-DB | DigiKey | DK stock | € unit | € needed |\n|---|---|---|---|---|---|---|---|---|---|\n")
+    for r in rs: f.write(f"| {r['refs']} | {r['qty_per_board']} | {r['needed']} | {r['part']} | {r['manufacturer']} | {r['partdb_id']} | {r['digikey_pn']} | {r['digikey_stock']} | {r['unit_price']} | {r['cost_needed']} |\n")
 with open(os.path.join(out,"hand_parts.md"),"w") as f:
     f.write(f"# Hand-soldered THT parts — {a.boards} board(s), DigiKey prices (EUR) fetched {date.today()}\n\nGenerated by `scripts/hand_parts.py --boards {a.boards}`. Cost = needed × unit price at that quantity.\n\n")
-    f.write("| Refs | Per board | Needed | Part | Part-DB | DigiKey | DK stock | € unit | € needed |\n|---|---|---|---|---|---|---|---|---|\n")
-    for r in rows: f.write(f"| {r['refs']} | {r['qty_per_board']} | {r['needed']} | {r['part']} | {r['partdb_id']} | {r['digikey_pn']} | {r['digikey_stock']} | {r['unit_price']} | {r['cost_needed']} |\n")
-    f.write(f"\n**Hand-soldered THT parts cost for {a.boards} board(s): €{tot_needed:.2f}** at DigiKey, excl. shipping/VAT. Plus 4 × M2.5 screws per board (H1–H4).\n\nDNP, not fitted: {', '.join(sorted(dnp,key=refkey))}.\n")
-print(f"{len(rows)} lines for {a.boards} board(s): hand-soldered THT parts €{tot_needed:.2f} -> {out}/hand_parts.csv + .md")
-print(f"DigiKey cart: {len(rows)} lines -> {out}/hand_parts_digikey.csv" + (f"  (no DigiKey PN, map by MPN: {', '.join(nodk)})" if nodk else ""))
-for r in rows: print(f"  {r['refs']:28s} {r['part']:22s} needed {r['needed']:2d}  @{r['unit_price']} = {r['cost_needed']}")
+    f.write(f"## From DigiKey\n\nCart upload: `hand_parts_digikey.csv`.\n\n"); table(f,dkrows)
+    f.write(f"\n**DigiKey cost for {a.boards} board(s): €{tot_dk:.2f}**, excl. shipping/VAT.\n\n")
+    f.write(f"## From Würth Elektronik directly\n\nOrder list: `hand_parts_wurth.csv` (order code = MPN). The DigiKey prices are a reference only.\n\n"); table(f,werows)
+    f.write(f"\nReference at DigiKey prices: €{ref_we:.2f}.\n\nPlus 4 × M2.5 screws per board (H1–H4).\n\nDNP, not fitted: {', '.join(sorted(dnp,key=refkey))}.\n")
+print(f"{len(rows)} lines for {a.boards} board(s): DigiKey €{tot_dk:.2f} ({len(dkrows)} lines), Würth direct {len(werows)} lines (DK reference €{ref_we:.2f}) -> {out}/hand_parts.csv + .md")
+print(f"DigiKey cart: {len(dkrows)} lines -> {out}/hand_parts_digikey.csv" + (f"  (no DigiKey PN, map by MPN: {', '.join(nodk)})" if nodk else ""))
+print(f"Würth order: {len(werows)} lines -> {out}/hand_parts_wurth.csv")
+for r in rows: print(f"  {r['source']:13s} {r['refs']:28s} {r['part']:22s} needed {r['needed']:2d}  @{r['unit_price']} = {r['cost_needed']}")
