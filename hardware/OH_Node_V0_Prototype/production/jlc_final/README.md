@@ -13,7 +13,7 @@ otherwise; hand-soldered parts unchanged.
 | `OH_Node_V0_Prototype_gerbers.zip` | Gerber file | Fabrication Toolkit plugin (CLI, options from `fabrication-toolkit-options.json`), run 2026-10-05 evening on the board committed with these files |
 | `bom.csv` | BOM | `scripts/make_bom.py` from the netlist and Part-DB LCSC order details |
 | `positions.csv` | CPL / pick-and-place | plugin output, reduced to the 104 SMD parts in the BOM |
-| `hand_parts.*` | — | `scripts/hand_parts.py --boards 5`: hand-soldered parts, split into a DigiKey cart upload and a Würth direct order list |
+| `hand_parts.*` | — | `scripts/hand_parts.py --boards 5 --spares`: hand-soldered parts with spares (1 from €5 unit price, 2 from €1, 3 below), split into a DigiKey cart upload and a Würth direct order list |
 
 ## PCB options
 
@@ -71,7 +71,7 @@ DigiKey (`hand_parts_digikey.csv`, cart upload).
 | J12 | Würth 61300811121 1×8 header | Würth direct |
 | H1–H4 | M2.5 mounting holes | — |
 
-Prices and quantities for 5 boards in `hand_parts.md`.
+Prices and quantities for 5 boards plus spares in `hand_parts.md`.
 
 DNP, not in BOM or CPL: R5 (chassis 0 R bond option), R9–R14 (W5500 PMODE straps), R47/R48/R50 (0 R from
 mounting holes H1/H2/H4 to GND, fit for a metal enclosure). Test points TP1–TP8 are bare pads, not placed.
