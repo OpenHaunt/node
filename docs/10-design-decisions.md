@@ -1199,6 +1199,11 @@ and D29: **AG9912-MTB** (12 V, 12 W to 70 °C, min load 100 mA, same Ag9900 data
 **Correction:** the AP3441 named above is not usable for 12 V → 5 V; its input range is 2.7–5.5 V. Details
 and the new budget in docs/12.
 
+**Amended 2026-10-05: header and speaker as built.** The spare-GPIO header is a 1×8 (`J12`: 5 V, 3V3, GPIO2,
+GPIO38, GPIO39, SCL, SDA, GND), not the 1×10 above. 3V3 took the place of GPIO1 because the I2C pull-ups go
+to +3V3 and a 3.3 V sensor otherwise had no supply on the header. The WAGO 2601-1102 speaker terminal was
+not fitted; the 3.5 mm jack alone carries the speaker output, which is enough for a bench prototype.
+
 **Why the magjack and not the etherCON with discrete magnetics.** D26 and D28 stand for the product.
 For a prototype the NE8FAH-LR-DAE, the 7490220122 transformer, the Halo LEDs and the external Bob Smith
 network cost more than the magjack and take a board edge the prototype does not need. The magjack is

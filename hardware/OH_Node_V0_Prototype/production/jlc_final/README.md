@@ -1,13 +1,18 @@
-# OH_Node_V0_Prototype — JLCPCB order files (2026-10-05)
+# OH_Node_V0_Prototype — JLCPCB order files (2026-10-05, evening)
 
 Replaces the 2026-10-01 set. Since then: the external layout review (ToDo.md), the move to 12 V (AG9912-MTB +
 AP63205 buck, 12 V sensor terminals), GND stitching and the silkscreen cleanup.
 
+Evening update of the same day, second layout review and schematic review (ToDo.md): R20/R49 10K pull-downs on
+the WS2812 buffer inputs (new in BOM and CPL), C3 moved next to PS1, L2 rotated, J12 pin 2 now 3V3, PS1.2 via
+moved out of the pad, GND via arrays at PS1.2 and the screw terminals, more return vias. No part changes
+otherwise; hand-soldered parts unchanged.
+
 | File | Upload as | Source |
 |---|---|---|
-| `OH_Node_V0_Prototype_gerbers.zip` | Gerber file | Fabrication Toolkit plugin (CLI, options from `fabrication-toolkit-options.json`), run 2026-10-05 on commit `22dd484` |
+| `OH_Node_V0_Prototype_gerbers.zip` | Gerber file | Fabrication Toolkit plugin (CLI, options from `fabrication-toolkit-options.json`), run 2026-10-05 evening on the board committed with these files |
 | `bom.csv` | BOM | `scripts/make_bom.py` from the netlist and Part-DB LCSC order details |
-| `positions.csv` | CPL / pick-and-place | plugin output, reduced to the 102 SMD parts in the BOM |
+| `positions.csv` | CPL / pick-and-place | plugin output, reduced to the 104 SMD parts in the BOM |
 | `hand_parts.*` | — | `scripts/hand_parts.py --boards 5`: hand-soldered parts, split into a DigiKey cart upload and a Würth direct order list |
 
 ## PCB options
@@ -21,7 +26,7 @@ AP63205 buck, 12 V sensor terminals), GND stitching and the silkscreen cleanup.
 
 ## Assembly
 
-- Top side only, **102 SMD parts, 41 BOM lines**; every line has an LCSC number.
+- Top side only, **104 SMD parts, 41 BOM lines**; every line has an LCSC number.
 - 24 lines are basic/preferred. **17 extended** (loading fee each): C2 FP-025ME101M-SAR, C5/C27/C33
   GRM155R61A106ME11D, C21 GRM31CR61A107MEA8L, D1 KT-0603Y, F1/F2 0805L020/30XR, J11 USB4215-03-A, L1 BLM15,
   L2 SWPA6045S4R7MT, Q1/Q2 DMN2004DWK-7, R8 12k4, U1 W5500, U2 ESP32-S3-WROOM-1-N16R2, U3 AMS1117-3.3,
@@ -60,5 +65,5 @@ mounting holes H1/H2/H4 to GND, fit for a metal enclosure). Test points TP1–TP
 - Mains copper ≥ 6.4 mm from everything else on every layer (`mains_to_selv`); PoE barrier rule
   `isolation_barrier` (1.5 mm) clean.
 - Gerber set complete: 4 copper layers, mask, paste, silk, edge, PTH + NPTH drills and drill maps.
-- BOM designators == CPL designators (102), all on the top layer.
+- BOM designators == CPL designators (104), all on the top layer.
 - Enclosure collision check against the current board: only the known J1 false positive.
