@@ -1,128 +1,161 @@
-# OH_Node_V0_Prototype — pre-fab review 2026-10-03
+# OH_Node_V0_Prototype — open items before fab
 
 Order: JLCPCB, all SMD assembled, THT by hand (docs/12 "Fabrication"). Relays switch **230 V mains**.
-Evidence: `OH_Node_V0_Prototype/analysis/2026-10-03_1454-3/` (analyzer JSON), datasheets in `datasheets/`.
-State checked: schematic of 2026-10-01 18:45, board of 2026-10-03 14:32. KiCad ERC/DRC clean (0 errors,
-0 unconnected, parity clean, also with zones refilled); everything from the 2026-09-29 review is closed
-except the items carried over under Minor.
+Datasheets in `OH_Node_V0_Prototype/datasheets/`. Items from the 2026-10-03 pre-fab review are closed (see git
+history of this file); state of 2026-10-05: ERC clean, DRC 0 errors, 0 unconnected, parity clean.
 
-## Blockers
+## Layout review (external feedback, 2026-10-05)
 
-- [x] **J1 audio jack slots too narrow.** Stock footprint `Jack_3.5mm_CUI_SJ1-3523N_Horizontal` drills
-      0.4 × 1.4 mm slots; CUI's recommended layout is 1.5 × 0.8 mm, and JLC's minimum plated slot width is
-      0.5 mm. Copy the footprint into LRV with 0.8 × 1.5 mm slots and larger pads (about 1.6 × 2.4 mm).
-      _2026-10-04:_ `LRV:Jack_3.5mm_CUI_SJ1-3523N_Horizontal` created (0.8 × 1.5 slots, 1.6 × 2.4 pads,
-      3D model in LRV, BOM/pos exclusion removed). DRC with the larger pads at J1's position: 0 errors.
-      Part-DB 581 and J1 on the board now use it; DRC 0 errors, 0 unconnected, parity clean.
+Checked against the board of 2026-10-05; findings in italics.
 
-## Major
+- [x] Keep CLK traces at least 3 trace widths from other traces (see SCLK).
+      _2026-10-05: DRC rule `clock_3w` (SCLK, I2S_BCLK, I2S_LRCLK to other signal tracks 0.4 mm, GND
+      exempt). SPI and I2S bundles on B.Cu respaced to 0.2 mm tracks with 0.4 mm gaps around the clocks;
+      GND via under U2's pad moved from (155.44, 84.0) to (153.7, 84.0), LRCLK/DIN vias nudged.
+      After rerouting, the only hits were SCLK/SCSn and MISO/SCLK in U1's 0.5 mm pin fan-out (0.30 / 0.34 mm).
+      DRC exclusions kept flipping (KiCad reports a different track pair each run and drops the others on save),
+      so that spot is now the F.Cu rule area `clk_fanout_U1` (no keepout) and the rule skips it. No exclusions._
+- [x] Lower the GND zone clearance and thermal settings to: clearance 0.2, minimum width 0.15, thermal relief
+      gap 0.3, spoke width 0.3. _Now 0.5 / 0.25 / 0.5 / 0.5. The isolation, mains and PoE clearances come
+      from `.kicad_dru` rules and stay in force._
+      _Done 2026-10-05 (GND zone, all four layers). DRC after refill: no new errors; one new warning
+      `connection_width` 0.0745 mm on the GND loop under U5 (167.55–169.05, 141.2), next to the +5V ends of
+      the dangling-tracks item. The GND stub at Q2.1 now touches the pour and no longer reports as
+      dangling; still remove it._
 
-- [x] **W5500 digital VDD (pin 28) has no local decoupling.** The only +3V3 caps near U1, C14 (1 µ) and C15
-      (100 n), sit at the ferrite on the other side of the chip: 24–25 mm of 0.25 mm track to pin 28.
-      Move C15 to pins 28/29 (between U1 and Y1), or add a 100 n there.
-      _2026-10-04:_ after the reroute pin 28 is fed from the right, straight from U3's tab (24 mm); C14 is
-      24 mm the other way, no +3V3 plane. Plan: C15 to about (131.7, 100.9), horizontal, +3V3 pad on the
-      x = 132.16 track (2.7 mm from pin 28), GND pad into the pour at U1's corner plus a via.
-      Done: C15 at (131.8, 99.55), vertical, +3V3 pad 1.9 mm from pin 28; GND pad on a 1.1 mm track to a
-      via at (131.4, 100.95) into the inner GND planes. DRC 0 errors, 0 unconnected, parity clean.
-- [x] **PS1 has the reflow land pattern but is hand-soldered.** Pads are 3.81 mm long and end at the module
-      edge (Ag9900 datasheet Fig. 21: G 16.59, D 15.19, E 17.53). The hand-soldering pattern (Fig. 22) uses
-      5.00 mm pads, G 17.88, D 15.85, E 18.19, about 1.2 mm visible outside the module. Change the
-      footprint, or solder with paste and hot air.
-      _2026-10-04:_ `LRV:AG9900-MTB_HandSolder` created (Fig. 22: 5.00 mm pads, pads 1/4/5 0.66 mm further
-      out, pads 2/3 centre 0.32 mm off the pad-1 line; module body, keep-out and 3D unchanged). DRC with
-      these pads at PS1: +5V 1.5 mm track at y 108.325 is 0.145 mm from pad 2 (POWER needs 0.15), and pad 2
-      gets only one thermal spoke. Silk/fab recentred on the body (21.21 × 13.92, x −0.36), 3D offset −5.63.
-      Done: Part-DB 577 and PS1 use it, +5V track moved to y 109.6; DRC 0 errors, 0 unconnected, parity clean.
-- [x] **U3 (AMS1117) has no heat-spreading copper.** Tab on its pad and tracks only. 0.94 W at 0.55 A,
-      estimated Tj ≈ 81 °C at 25 °C ambient (analyzer estimate, SOT-223 table value). Add a +3V3 pour
-      around the tab, ideally with vias to a B.Cu island.
-      _2026-10-04:_ +3V3 zone "U3 heat spreader" on F.Cu (priority 1, solid, 145–153 × 105.6–112.2, notched
-      at C5 so its GND pad keeps two spokes). No B.Cu island: a signal bundle runs under the tab.
-- [x] **3.3 V distribution on 0.25 mm tracks.** U3 → ESP32 pin 2: 50 mm, ≈ 67 mΩ (17.6 mm at 0.25 mm),
-      about 35 mV at 0.5 A. U3 → W5500: 24 mm at 0.25 mm. Works, but widen to 0.5 mm; USB bench power
-      already leaves little LDO headroom.
-      _2026-10-04:_ U3 → ESP32 and U3 → L1/C14 0.5 mm throughout; U3 → W5500 pin 28 0.5 mm except the last
-      5.7 mm around C15 (no room, C15 is local now). DRC 0 errors, 0 unconnected, parity clean.
+    ![](ToDo-assets/gnd-zone-settings.png)
 
-- [x] **PS1 return pad on two thermal spokes.** Pad 2 (−VDC → GND, up to 1.8 A) touches the pour over
-      1.0 mm of copper in total; the +VDC side has a 1.5 mm track. The Ag9900 datasheet asks for minimal
-      thermal relief and power planes on both output pins to pull heat out of the module. Set that pad
-      (and C2 pad 2, U3 pin 1) to a solid zone connection.
-      _2026-10-04:_ DRC rule "Solid zone connection on power return pads" in `.kicad_dru` (PS1 pad 2,
-      C2 pad 2, U3 pin 1); survives footprint updates. DRC after refill: 0 errors, 0 unconnected.
-- [x] **Amplifier tracks are thin for 3 W.** OUTP/OUTN 0.25 mm over 25 / 17 mm (≈ 0.9 A at 10 K rise,
-      which is the RMS current at 3 W into 4 Ω), GND pins 3/11/15 on single 0.2 mm tracks, last 3.3 mm of
-      +5V at 0.25 mm. Widen the outputs and the supply to 0.4–0.5 mm. Uncritical with a small speaker.
-      _2026-10-04:_ OUTP/OUTN 0.6 mm (fan-out at the pins narrower). +5V into pins 7/8 stays two parallel
-      0.25 mm feeds. U6 exposed pad got 4 GND vias (0.45/0.25, 0.7 mm grid); the B.Cu +3V3 diagonal under
-      it moved ~2 mm away. DRC 0 errors, 0 unconnected, parity clean.
+- [x] Keep distance to the Ethernet pairs; the +3V3A via also eats away the GND under the pair.
+      _+3V3A vias at (114.30, 91.27) and (112.96, 93.98)._
+      _Done 2026-10-05: via at (112.96, 93.98) and the F.Cu diagonal along ETH_TXT_P (4 mm at 0.30 mm) removed.
+      R21/R42 are now fed on B.Cu (0.3 mm, x 114.5) from a new via on the y 100.4 trunk, with a new via at
+      (114.5, 94.75) for R21. +3V3A vias now 0.65 / 0.81 / 3.5 mm from the nearest ETH track (was 0.15)._
+
+    ![](ToDo-assets/eth-pair-3v3a-via.png)
+
+- [x] What are the caps in the Ethernet pair for? Is that circuitry the PHY asks for?
+      _Checked 2026-10-05: C22/C23 (6n8) are the series caps on RXP/RXN from WIZnet's W5500 reference
+      schematic (W5500-Ref-RJ45WithMag: C9/C10 6.8 nF, R6/R7 49R9 to C15 10 nF, TX 49R9 to 3V3A, TCT 10R to
+      3V3A plus 22 nF). Ours matches value for value (R43/R44 49R9 + C30 10n, R21/R42 49R9, R4 10R + C20).
+      They AC-couple the RX termination; WIZnet calls them mandatory when the magjack ties the centre taps
+      together. J3 (7499511420) has separate CD1/CD2, so here they are not strictly needed but harmless
+      (≈ 0.8 Ω at 30 MHz). Only deviations: RX centre tap CD2 goes to its own C6 100n instead of the 49R9
+      midpoint, and TCT has 100n instead of 22n; both AC-ground the tap, no change. Pair polarity checked
+      against the WE drawing: WE labels pin 11 "D1−" but it is cable pin 1 (TD+), pin 4 "D2−" is cable pin 3
+      (RD+), so TXP→11 and RXP→4 are correct._
+- [x] Stitching vias as close as possible to GND pads (without putting them in the pad).
+      _Done 2026-10-05: 53 SMD GND pads had their nearest via > 1 mm away (31 > 2 mm, worst C2.2 18 mm, C5.2
+      6.6 mm). 49 new GND vias (0.45/0.25, ≥ 0.25 mm from the pad, 0.25 mm track to the pad), placed by script
+      and DRC-checked. Now 9 pads at 1.1–1.4 mm, none > 2 mm; U1.9/U1.14/U5.3/C9.2 have no free spot closer.
+      Maps before/after: `OH_Node_V0_Prototype/analysis/2026-10-05_gnd/`, tool: `tools/gnd_reach/`._
+
+    ![](ToDo-assets/stitching-near-gnd-pads.png)
+
+- [x] Compensate the skew in the USB pair with local meandering.
+      _Done 2026-10-05: D+ was 0.61 mm longer (J11 → U2: 42.81 vs 42.20 mm; +0.44 at the bend behind J11,
+      +0.29 at (136.6, 93.5), −0.12 at the U2 fan-out). Skew tuned on D− in KiCad; now both 42.812 mm.
+      Uncritical anyway: the ESP32-S3 USB is Full Speed (0.6 mm ≈ 4 ps)._
+- [x] Put the crystal's load caps into the signal path between chip and crystal.
+      _Done 2026-10-05: Y1 moved right, C17/C18 vertical at x 133.7 between U1 and Y1; now U1.31 → C18 →
+      Y1.3 → R15 and U1.30 → C17 → Y1.1 → R15, no stubs. GND side: C18.2 and Y1.2 got vias
+      (pad to via 0.79 / 0.52 mm, was 10 mm through copper for C18.2); `starved_thermal` on C18.2 gone._
+
+    ![](ToDo-assets/crystal-caps-in-path.png)
+
+- [x] Replace traces narrower than 0.15 mm with wider ones; better avoid 0.15 too and use 0.2 as the
+      minimum, which should fit everywhere on this board. _Net class Default is 0.13 mm._
+      _2026-10-05: Default is 0.2 mm; 271 segments widened in place (to 0.2, or 0.175/0.15 where clearance
+      stops it). DRC rule `min_track_width` 0.15 flags the rest: bundles RLY1–4, PIR1/2, GPIO1/2, LED_R/Y,
+      I2S_LRCLK at U6, GND at Q1 — rerouted by hand 2026-10-05, `min_track_width` clean._
+
+    ![](ToDo-assets/thin-traces-io0.png)
+
+- [x] Add an input capacitor at the AMS1117 (there is none at the moment?). _Confirmed: no +5V capacitor
+      within 12 mm of U3 pin 3; the nearest are C3/C4 at PS1. docs/12 "3.3 V: 10 µ in" is wrong._
+      _Done 2026-10-05: C34 = Part-DB 593 CL21A226MAQNNNE (22 µ 25 V X5R 0805, LCSC C45783, same as C25) at
+      (154.35, 111.65) on the +5V trunk, ≈ 3 mm from U3.3, GND via 0.7 mm from pad 2. docs/12 updated._
+- [x] Trace not connected properly (K3 pad A1, track ends at the pad edge).
+      _Fixed 2026-10-05: /K3_C 0.5 mm track now ends at the pad centre (120.81, 119.25)._
+
+    ![](ToDo-assets/k3-a1-connection.png)
+
+- [x] Add test points?
+      _Decided 2026-10-05: yes, for +5V, +3V3, +3V3A, GND, /EN, /IO0 and UART0 TX/RX (U2.37 TXD0 / U2.36 RXD0
+      now carry NC flags; replace them with labels). Stock `Connector:TestPoint` + `TestPoint:TestPoint_Pad_D1.5mm`,
+      no Part-DB entry (deliberate exception: a bare pad, nothing to buy). The footprint is
+      `exclude_from_pos_files exclude_from_bom` without `smd`, so `make_bom.py` already leaves it out.
+      Done: TP1 +5V, TP2 +3V3, TP3 +3V3A, TP4 GND, TP5 /EN, TP6 /IO0, TP7 /RXD0, TP8 /TXD0; ERC 0, DRC clean._
+- [x] USB diff pair and the Ethernet diff pair on the back side do not have the widths their net classes
+      give. _Confirmed: USB 0.2 mm (class 90R 0.247), ETH RX on B.Cu 0.22 mm (class 100R 0.183)._
+      _2026-10-05: the classes are right. JLC impedance calculator, JLC04161H-7628 (Standard, the stackup in the
+      board): 90 Ω diff = 0.2474 / 0.1501, 100 Ω diff = 0.1826 / 0.1501 (L1 over L2; L4 the same by symmetry).
+      (Earlier note calling them AISLER widths was wrong; AISLER is 0.260/0.135 and 0.220/0.150.)
+      To do: re-route USB (whole pair, 0.20 → 0.247, then redo skew) and ETH_RXT on B.Cu (26.6 mm, 0.22 →
+      0.183) with the diff pair router; the other ETH pairs are at 0.183 except 2 mm fan-out stubs._
+      _Done 2026-10-05 (re-routed in KiCad): USB 0.247 / 0.15 (1 mm at 0.20 in the connector breakout), skew
+      0.03 mm (42.80 / 42.84); ETH_RXT on B.Cu 0.183 / 0.15. DRC clean._
+- [x] Move the ESP32 decoupling caps closer.
+      _Done 2026-10-05: C32 (100n) now 1.5 mm and C31 (22u) 3.0 mm from U2.2 (were 5.6 / 4.0, 100n was the
+      farther one); the +3V3 feed runs over C31.1 → C32.1 → U2.2, no stubs. GND pad to via 0.9 / 1.5 mm._
+- [x] Put the TVS diode (D9) into the power path; at the moment it sits on branches.
+      _Done 2026-10-05: VIN+ D11/D12 → D9.1 → PS1.4 and VIN− D11/D12 → D9.2 → PS1.5, 0.6 mm. Checked on the
+      track graph: with D9's pads removed, neither bridge reaches PS1, so nothing bypasses the TVS._
+
+    ![](ToDo-assets/tvs-on-branch.png)
+
+- [x] Ugly but harmless: a stray zone finger stays at the right-hand edge (top right corner, next to J12).
+      _Done 2026-10-05: the strip lies between U2's antenna keepout (footprint, ends at x 179.435) and the board
+      edge (x 180). Board-level rule area `antenna_edge` (all copper layers, no fill/tracks/vias, x 179.3–180.6,
+      y 69.5–76.12) closes the gap; no GND fill left there after refill._
+
+    ![](ToDo-assets/zone-finger-corner.png)
+
+- [x] Three loose track ends (also DRC `track_dangling`): GND stub at Q2.1 (135.04, 116.49), remove;
+      +5V 0.66 mm at (171.38, 141.62) with its horizontal piece, remove; +5V 3.89 mm at (170.00, 139.09)
+      feeds U4/U5, **do not delete**, move its end to (172.20, 136.34) on the vertical track.
+      _Done 2026-10-05: both stubs removed; the U4/U5 feed now goes 45° to (172.20, 136.89) and straight up into
+      the end of the vertical track at (172.20, 136.34). DRC: no `track_dangling` left._
+
+    ![](ToDo-assets/dangling-ends.png)
+
+- [x] Change supply layers with more than one via (e.g. 2). _Single vias: +5V at (119.19, 90.6) D10 → B.Cu,
+      (126.44, 107.1) B.Cu → 1.5 mm backbone, (136.54, 79.35) → U6; +3V3 at (131.24, 89.8) and
+      (140.14, 80.6)._
+      _Done 2026-10-05: second via (same 0.6/0.3) 0.9 mm beside each of the five, tied in on F.Cu and B.Cu with
+      0.5 mm links: +5V (127.34, 107.10), (137.44, 79.35), (120.09, 90.60); +3V3 (141.04, 80.60), (132.14, 89.80).
+      Left single: three +3V3A vias of the R21/R42 bias feed (114.5/114.3, 91.3–100.4), a few mA only._
+
+    ![](ToDo-assets/single-via-layer-changes.png)
+
+- [x] Connect at least two mounting holes to GND. _H1–H4 have no net now._
+      _Done 2026-10-05: enclosure is 3D-printed plastic, so no chassis to bond to. H1/H2/H4 are now
+      `MountingHole_Pad` with a 0R DNP to GND (R47/R48/R50, Part-DB 598, GND via 0.7–1.0 mm from pad 2): fit them
+      for a metal enclosure. H3 (64, 74) stays unconnected on purpose: it sits on the PoE side of the barrier,
+      3.5 mm from /V2 and 28 mm from the nearest GND; in a metal enclosure it must not be bonded either._
+
+### Stitching
+
+- [ ] GND stitching with via arrays at every GND connection of the connectors and at the PoE module.
+- [x] At least 2 stitching vias wherever signals change layers.
+      _Done 2026-10-05: 37 GND return vias placed by script, then the SPI via columns at U1 and the ESP32 were
+      loosened by hand around marker vias. Of 53 signal vias, 50 now have a GND via within 1.2 mm (5 at the
+      start), 16 have two; median distance 0.75 mm (was 3.1). The rest (ACTLED, LINKLED, RLY3, all slow) have one
+      at 1.3–1.5 mm. DRC clean. List: `OH_Node_V0_Prototype/analysis/2026-10-05_gnd/return_vias.csv`
+      (state after the script, before the manual pass)._
+- [ ] At the end, stitch the whole board with the via stitching plugin, e.g. with these settings:
+
+    ![](ToDo-assets/via-stitching-plugin.png)
 
 ## Minor
 
-- [x] Four leftover track stubs from the block move (DRC `track_dangling`): `+5V` at (75.0, 108.3) and
-      (95.98, 108.06), `+3V3` at (159.75, 107.35) and (160.61, 107.35). Delete. _Done 2026-10-04, DRC has
-      no `track_dangling` left._
-- [x] Amplifier supply: U6 is fed over 112 mm (42 mm at 0.5 mm on B.Cu, ≈ 70 mΩ) with only C27 10 µ 0402
-      and C26 100 n nearby. Expect supply sag at high volume; add bulk (≥ 47 µ) at U6 on the next revision.
-      *2026-10-04, for V0:* Part-DB 252 GRM31CR61A107MEA8L (100 µ 10 V X5R 1206, LCSC C883598, extended,
-      54k stock), +5V/GND at U6. Place at (138.075, 77.4), rot 0: pad 1 (+5V) above the via at
-      (136.535, 79.35), pad 2 GND into the pour plus a via. A 6.3 mm polymer like C2 does not fit there.
-      Done as C21 at (138.2, 79.0), vertical, next to C26/C27; C27 GND pad tied by tracks, DRC rule
-      `min_resolved_spokes 1` for it. DRC 0 errors, 0 unconnected, parity clean.
-- [x] Adjacent relay circuits are 3.0 mm apart: fine on one phase, tight if two relays switch different
-      phases (400 V). Document "all relays on the same phase" or widen.
-      *2026-10-04:* widened. DRC rule `mains_between_relays` 4.0 mm; measured K1/K2 5.29, K2/K3 4.81,
-      K3/K4 5.44 mm, tracks still 2.5 mm on all four layers. docs/12 relay row updated.
-- [x] No ESD protection on USB or on the PIR / WS2812 terminals; no reset button (BOOT only).
-      *Deferred to V1 (2026-10-04), noted in docs/12.*
-- [x] W5500 has no auto-MDIX (datasheet 5.5.6). Fine on any switch with auto-MDIX; a direct link to an
-      old 10/100 port needs a crossover cable.
-      *Noted in docs/12 Ethernet row (2026-10-04).*
-- [x] docs/12 "Checks run" still gives the G5LE pin numbers for the relay (1 COM, 3 NO, 4 NC, 2/5 coil).
-      G2RL-1-E: coil 1/8, NC 2/7, COM 3/6, NO 4/5 (symbol pins A1/A2, 12, 11, 14). The relay row also
-      says the 2.5 mm mains tracks are on both outer layers; they are on all four.
-      *Fixed 2026-10-04, checked against the G2RL-1-E drawing; relay row already says all four layers.*
-- [x] C3, C4, C27 (10 µ 0402 10 V) on 5 V keep ~3–4 µF under bias (accepted for V0; 0603 CL10A106KP8NNNC
-      C19702 would fix it); AMS1117 output all-ceramic (D36 wants ESR).
-      *Closed 2026-10-04:* C3/C4 sit in parallel with C2 (100 µ polymer), C27 is backed by C21 (100 µ). The
-      AMS1117 datasheet in `datasheets/` (Slkor) only asks for output ESR ≤ 0.5 Ω, no minimum; C5 + C25 meet
-      that. D36's "wants ESR" is the usual AMS1117 advice, not in this datasheet.
-- [x] DMN601DWK VGS(th) max 2.5 V vs 3.3 V drive — marginal for the 80 mA coil at a worst-case part.
-      *2026-10-04:* gate sees ≈ 3.0 V (1 K / 10 K). Q1/Q2 swapped to pin-compatible DMN2004DWK-7 (Part-DB 610,
-      LCSC C156343, symbol `LRV:DMN2004DWK-7` extends DMN601DWK-7). Pin nets unchanged, DRC/parity clean.
-- [x] Ag9905 min load 200 mA is borderline with Wi-Fi off (below it the module only gets audibly noisy);
-      USB bench supply leaves little LDO headroom.
-      *2026-10-04 estimate (datasheets):* 5 V idle with Wi-Fi off ≈ 175–250 mA, ≈ 200 typ (W5500 132, S3
-      modem-sleep 240 MHz 33–81 + flash ≤ 10, LDO Iq 3–10, magjack LEDs 8–16, amp idle ≤ 3). Below 200 mA only
-      the module whine; MPS is safe (≈ 20–25 mA at 48 V vs 10 mA). Plan: DNP bleeder R20, 100R 2512 1 W
-      (UniOhm 25121WF1000T4E, LCSC C35218, new Part-DB entry) from +5V to GND, 50 mA / 0.25 W if fitted.
-      Done: R20 (Part-DB 611) DNP at (92.86, 106.31) on the +5V trunk. Bring-up check: listen for module
-      whine with Wi-Fi off, measure 5 V idle current; fit R20 if below 200 mA and audible.
-- [x] Symbol pin types: MAX98357A PAD (unspecified → passive), W5500 INTn (input → output).
-      *2026-10-04:* both are KiCad stock symbols (`Audio:MAX98357A` pin 17, `Interface_Ethernet:W5500` pin 36).
-      Decision: leave the symbols, ERC-exclude the U6 pin 17 pin_to_pin warning; W5500 INT raises no warning.
-      Exclusion set ("GND exposed pad").
-- [ ] Stiching Vias
-- [x] Status LEDs
-      *Done 2026-10-05:* GPIO35 → R46 1K → D2 red KT-0603R (Part-DB 392, LCSC C2286) = error; GPIO36 → R45 1K
-      → D1 yellow KT-0603Y (Part-DB 395, LCSC C2287, extended) = status. 1K is Part-DB 604 (0402WGF1001TCE).
-      Placed at (167.4 / 169.1, 93.7), silkscreen "STAT" / "ERR" above them; DRC/ERC/parity clean. docs/12 pin
-      plan updated.
-- [x] Powering with both PoE and USB
-      *2026-10-04:* analysed, no hardware change (documented in docs/12 "Power budget"). Normal case PoE
-      wins; worst case (module 4.75 V, VBUS 5.25 V) USB takes the load and PoE may drop MPS; USB-only
-      back-drives PS1 output (not in datasheet). Use a VBUS blocker for PoE + USB debugging; bench checks.
-- [ ] DRC silkscreen warnings: 139 overlaps, 112 over copper, 9 at the board edge. Cosmetic.
+- [ ] DRC silkscreen warnings: 149 overlaps, 117 over copper, 9 at the board edge. Cosmetic.
+- [ ] 12V für Bewegungsmelder wie? und passt das mit Kontakt, der zu GND schließt
 
 ## Last step
 
-- [ ] **Order files are stale.** `production/jlc_final/` was generated 2026-10-01; since then ~75 parts
-      (magjack, W5500, ESP32, USB, audio, PoE front end) moved 9.065 mm left and routing changed. 127 of 209
-      plated drill hits and 64 of 88 CPL rows no longer match the board. Regenerate gerbers, drill and
-      `positions.csv` after the fixes above. `bom.csv` must be regenerated too: C21 (100 µ 1206,
-      GRM31CR61A107MEA8L, LCSC C883598) was added and Q1/Q2 changed to DMN2004DWK-7 (C156343, was C156344) on
-      2026-10-04; D1/D2 (C2287, C2286) and R45/R46 (1K) added 2026-10-05; R20 is DNP. The other lines were
-      correct on 2026-10-03.
-- [ ] JLC placement preview: confirm polarity and pin 1 of C2, D9, D10, D11/D12, U1, U3, U4/U5, U6, J11,
-      Y1, Q1/Q2 after uploading the new CPL.
+- [ ] **Order files are stale.** `production/jlc_final/` was generated 2026-10-01; parts and routing have
+      changed since. Regenerate gerbers, drill, `positions.csv` and `bom.csv` after the items above. New in the
+      BOM since 2026-10-03: C21 (GRM31CR61A107MEA8L, LCSC C883598), Q1/Q2 DMN2004DWK-7 (C156343, was
+      C156344), D1 KT-0603Y (C2287), D2 KT-0603R (C2286), R45/R46 1K, C34 (CL21A226MAQNNNE, C45783, same line as C25); R20 is DNP.
+- [ ] JLC placement preview: confirm polarity and pin 1 of C2, D1, D2, D9, D10, D11/D12, U1, U3, U4/U5, U6,
+      J11, Y1, Q1/Q2 after uploading the new CPL.

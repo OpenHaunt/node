@@ -145,13 +145,13 @@
           "hatch_smoothing_level": 0,
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
-          "min_clearance": 0.5,
-          "min_island_area": 9.99999999996,
-          "min_thickness": 0.25,
+          "min_clearance": 0.2,
+          "min_island_area": 10.0,
+          "min_thickness": 0.15,
           "pad_connection": 1,
           "remove_islands": 0,
-          "thermal_relief_gap": 0.5,
-          "thermal_relief_spoke_width": 0.5
+          "thermal_relief_gap": 0.3,
+          "thermal_relief_spoke_width": 0.3
         }
       },
       "diff_pair_dimensions": [
@@ -653,7 +653,7 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.13,
+        "track_width": 0.2,
         "tuning_profile": "",
         "via_diameter": 0.45,
         "via_drill": 0.25,
@@ -981,7 +981,7 @@
         "uuid": "b6338282-1898-4193-8a9f-730e9cd1ee39"
       }
     ],
-    "used_designators": "#FLG1-5,PS1,Q1-3,D1-12,#PWR1-88,#PWR95-96,Y1,U1-6,K1-5,SW1,C1-31,R1-46,H1-4,L1,T1,J1-13",
+    "used_designators": "TP1-8,#FLG1-5,PS1,Q1-3,D1-12,Y1,#PWR1-88,#PWR95-103,C1-31,C34,K1-5,SW1,U1-6,R1-50,H1-4,L1,T1,J1-13",
     "variants": []
   },
   "sheets": [

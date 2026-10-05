@@ -123,6 +123,12 @@ K="/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli"
 
 `LRV_CUSTOM_LIBS` must be exported or library lookups fail.
 
+### GND pour and via coverage
+
+`hardware/tools/gnd_reach/gnd_reach.sh <board.kicad_pcb>` renders how far each point of the GND copper is
+from the nearest GND via (through the copper), marks thin pour sections and lists SMD GND pads without a
+nearby via. See its README. It only reads the board, so save in KiCad first.
+
 ### Reviewing a schematic
 
 Export the netlist and parse it. That is more precise than reading the `.kicad_sch` directly and it

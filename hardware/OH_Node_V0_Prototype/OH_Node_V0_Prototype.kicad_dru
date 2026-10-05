@@ -116,3 +116,21 @@
 (rule "C27 GND pad: one spoke plus tracks"
    (constraint min_resolved_spokes 1)
    (condition "A.Type == 'Pad' && A.memberOfFootprint('C27') && A.Pad_Number == '2'"))
+
+#----------------------------------------------------------------------------------------------------
+# Layout review 2026-10-05: no signal track below 0.15 mm. Net class Default routes at 0.2 mm; 0.15 is
+# only for short necks at vias and fine-pitch pads. Diff pairs keep their impedance widths.
+
+(rule "min_track_width"
+   (constraint track_width (min 0.15mm))
+   (condition "A.Type == 'Track' && A.NetClass != '100R' && A.NetClass != '90R'"))
+
+#----------------------------------------------------------------------------------------------------
+# Clock nets: 3W spacing (centre-to-centre 3 x 0.2 mm, i.e. 0.4 mm edge gap) to other signal tracks.
+# Layout review 2026-10-05. Track to track only, GND exempt. U1's 0.5 mm pin fan-out cannot meet it; it is
+# fenced off by the rule area "clk_fanout_U1" (F.Cu, no keepout) instead of DRC exclusions, which KiCad
+# drops whenever it reports a different track pair from the same spot.
+
+(rule "clock_3w"
+   (constraint clearance (min 0.4mm))
+   (condition "(A.NetName == '/SCLK' || A.NetName == '/I2S_BCLK' || A.NetName == '/I2S_LRCLK') && A.Type == 'Track' && B.Type == 'Track' && B.NetName != 'GND' && !A.intersectsArea('clk_fanout_U1')"))
