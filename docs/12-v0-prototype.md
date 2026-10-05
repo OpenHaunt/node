@@ -8,10 +8,11 @@ mainboard schematic; the schematic was completed the same evening. This is the a
 | Block | Parts | Notes |
 |---|---|---|
 | Ethernet | Würth 7499511420 magjack, W5500 | Pairs 1-2 and 3-6 only, gigabit pins open. LED1 green = activity, LED2 yellow = link. No auto-MDIX in the W5500 (datasheet 5.5.6): fine on any switch, a direct link to an old 10/100 port needs a crossover cable |
-| PoE | 2 × MB10S-50MIL bridges (since 2026-10-01; were 4 × V6K100DUHM3/H), SMAJ58A, AG9905-MTB, 100 µ polymer (Panasonic 16SVPC100M) + 2 × 10 µ | 5 V, 9 W to 70 °C. Class 0, min load 200 mA. The MB10S is Silvertel's own Fig. 14 choice; ~0.2 W more loss than the Schottky pairs |
+| PoE | 2 × MB10S-50MIL bridges (since 2026-10-01; were 4 × V6K100DUHM3/H), SMAJ58A, AG9912-MTB, C2 100 µ/25 V polymer (FP-025ME101M-SAR) + C3, C4 22 µ/25 V | **12 V** (since 2026-10-05; was AG9905-MTB, 5 V), 12 W to 70 °C, 9 W at 85 °C, 1.0 A. Class 0, min load 100 mA. Output caps per the datasheet: ≥ 100 µF / 25 V at the module. The MB10S is Silvertel's own Fig. 14 choice; ~0.2 W more loss than the Schottky pairs |
+| 5 V | AP63205WU-7 (U7), L2 4.7 µH SWPA6045S4R7MT, C35 22 µ in, C36 + C37 22 µ out, C38 100 n bootstrap | 12 V → 5 V, 2 A, fixed output (FB to +5V), EN tied to VIN, spread spectrum. Values from table 3 of the AP63205 datasheet. Feeds every former +5V load |
 | 3.3 V | AMS1117-3.3, C34 22 µ in, C5 10 µ + C25 22 µ out | C34 (CL21A226MAQNNNE, 0805, ≈ 10–14 µF at 5 V) on the +5V trunk about 3 mm from U3 pin 3; the datasheet recommends 10 µF at the input |
 | Relays | 4 × Omron G2RL-1-E DC5, 2 × DMN2004DWK-7, 4 × 1N4148WS | 1 K gate series, 10 K pull-down (≈ 3.0 V at the gate). DMN2004DWK since 2026-10-04: VGS(th) ≤ 1.0 V, RDS(on) ≤ 0.7 Ω at 2.5 V; the DMN601DWK (VGS(th) up to 2.5 V, RDS(on) only specified at 5 V) was marginal for the 80 mA coil. Würth 691137710003 screw terminal per relay, pins 1–3: COM / NO / NC. **Max. 10 A per channel**: the 2.5 mm tracks run on all four layers; the two outer layers alone carry about 12 A at 20 K rise; relay and terminal could do 16 A. Relay circuits are at least 4 mm apart (DRC rule `mains_between_relays`, 4.8 mm measured), so neighbouring relays may switch different phases. G2RL since 2026-09-30: 5 kV coil–contact, 8 mm / 8 mm, for 230 V outdoors; the G5LE was basic insulation only |
-| PIR | 2 × Würth 691137710003: 5 V, GND, signal | 1 K series, 100 K pull-down |
+| PIR | 2 × Würth 691137710003: **12 V**, GND, signal | 12 V through a PPTC per terminal (F1/F2, 0805L020/30XR, 200 mA hold). Signal: 10 K pull-up to +3V3 at the terminal (R35/R37), 10 K series to the GPIO (R34/R36). Works with a contact to GND (NO or NC, polarity in firmware) and with an active 3.3 V output; a 12 V level on the signal pin injects only ~0.8 mA. Changed 2026-10-05 from 5 V, 1 K series, 100 K pull-down, which a contact to GND could not drive |
 | WS2812 | 2 × 74AHCT1G125 + 150 R | Würth 691137710002: data, GND. No 5 V on the terminal |
 | Audio | MAX98357A, CUI SJ1-3523N, C21 100 µ 1206 bulk at U6 | Jack carries the bridged speaker output: tip OUTP, ring open, sleeve OUTN. Not line-out, and the sleeve is not ground |
 | Debug | USB-C GCT USB4215-03-A, 2 × 5K1 on CC, 1N5819HW from VBUS to +5V | USB Serial/JTAG on the S3, no bridge chip. Board runs from USB on the bench |
@@ -42,25 +43,40 @@ pins and stay off connectors.
 | 40, 41, 42 | I2S DIN, BCLK, LRCLK |
 | 48 | `AMP_EN` (MAX98357A SD_MODE, high = on, left channel) |
 | 38, 39 + two more | header GPIOs. Use 1 and 2 for the other two, not 45/46 |
-| 43, 44 | UART0, unused, no header |
+| 43, 44 | UART0 TX/RX, on TP8/TP7 (since 2026-10-05) |
 | 35 | `LED_R`: D2 red KT-0603R via R46 1K, error (high = on) |
 | 36 | `LED_Y`: D1 yellow KT-0603Y via R45 1K, status (high = on) |
 | 8, 37 | spare, unconnected |
 
-## Power budget at 5 V
+## Power budget
 
-ESP32-S3 and W5500 through the LDO 1.8 W typical, 2.5 W peak. Four relays held 1.6 W. Amplifier 1 W
-typical, 3.5 W flat out. About 4.5 W typical, 7.5 W worst case, against 9 W from the module and 6 W above
-70 °C. From USB on the bench: processor and network only, do not hold relays and drive the speaker at once.
+**At 5 V** (unchanged loads): ESP32-S3 and W5500 through the LDO 1.8 W typical, 2.5 W peak. Four relays held
+1.6 W. Amplifier 1 W typical, 3.5 W flat out. About 4.5 W typical, 7.5 W worst case.
 
-**PoE and USB at the same time.** USB VBUS feeds +5V through D10 (1N5819HW), in parallel with the AG9905
-output. Normally the module wins: 5.0 V against VBUS minus 0.2–0.3 V, so D10 stays off, nothing flows back into
-the host, and the module's isolation keeps the PoE barrier intact with a laptop on USB. Worst case (module
-4.75 V, VBUS 5.25 V) USB takes the load; PoE can then fall below its MPS current and be dropped by the switch,
-and the node reboots when USB is unplugged. With USB only, VBUS back-drives the unpowered module output,
-which the AG9905 datasheet does not cover. For a guaranteed PoE feed while debugging, use a USB data-only
-adapter (VBUS blocker) or lift D10. Bring-up check: with both connected, measure which source carries the
-load; with USB only, measure the current into PS1 +VDC.
+**At 12 V** (since 2026-10-05): the 5 V loads through the AP63205 at roughly 90 %, so 5.0 W typical and
+8.3 W worst case, plus the two sensor terminals, 12 V PIRs at 15–40 mA each, ≤ 1 W. About 5.5 W typical and
+9.3 W worst case, against 12 W from the AG9912-MTB to 70 °C and 9 W at 85 °C. Worst case fits below 70 °C;
+above that it is marginal, which V0 accepts. Min load 100 mA at 12 V (1.2 W), covered by the processor alone,
+so the bleeder R20 is gone. Each terminal's PPTC holds 200 mA, so a terminal can draw up to 2.4 W before it
+trips; the budget assumes sensors, not loads, on these terminals.
+
+From USB on the bench: processor and network only, do not hold relays and drive the speaker at once. The
+12 V rail is not powered from USB (see below), so 12 V sensors do not run on the bench.
+
+**PoE and USB at the same time.** USB VBUS feeds +5V through D10 (1N5819HW), in parallel with the output of
+the AP63205 buck (written for the AG9905 before 2026-10-05; the argument is the same with the buck in its
+place). Normally the buck wins: 5.0 V against VBUS minus 0.2–0.3 V, so D10 stays off, nothing flows back into
+the host, and the module's isolation keeps the PoE barrier intact with a laptop on USB. Worst case (buck at
+the low end of its tolerance, VBUS 5.25 V) USB takes the load; PoE can then fall below its MPS current and be
+dropped by the switch, and the node reboots when USB is unplugged. For a guaranteed PoE feed while debugging,
+use a USB data-only adapter (VBUS blocker) or lift D10. Bring-up check: with both connected, measure which
+source carries the load.
+
+**USB only.** +5V sits at VBUS minus D10, about 4.7 V. The body diode of the AP63205's high-side FET then
+charges +12V from the output side to roughly 4.3 V; that is above its 3.5 V UVLO, so the buck starts and runs
+at full duty, and +12V settles near +5V. Harmless, but the sensor terminals and the module output see ~4.5 V
+instead of 12 V, and the AG9912 output is back-driven, which its datasheet does not cover (the AG9905 had the
+same issue). Bring-up check: with USB only, measure +12V and the current into PS1 +VDC.
 
 ## Library additions made for V0
 

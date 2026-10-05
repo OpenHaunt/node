@@ -1190,6 +1190,15 @@ so do not put the ESP32 into deep sleep on V0.
 of an AP3441 buck with inductor and capacitors on a board that has no switcher otherwise. Every V0 load
 runs from 5 V, so the 5 V module removes a whole stage.
 
+**Amended 2026-10-05: V0 moves to 12 V after all.** The sensors the haunt actually uses run from 12 V and
+switch a contact to GND, so the PIR terminals need 12 V, and D11's argument applies to V0 too: boosting
+5 V to 12 V would have needed a boost stage that cannot limit a short on the sensor cable, on top of a 5 V
+budget that was already 7.5 W worst case against 9 W. V0 now carries the product's own power path from D12
+and D29: **AG9912-MTB** (12 V, 12 W to 70 °C, min load 100 mA, same Ag9900 datasheet and MTB footprint) and an
+**AP63205WU-7** buck to 5 V. The original reasoning above stays true; the sensor requirement outweighed it.
+**Correction:** the AP3441 named above is not usable for 12 V → 5 V; its input range is 2.7–5.5 V. Details
+and the new budget in docs/12.
+
 **Why the magjack and not the etherCON with discrete magnetics.** D26 and D28 stand for the product.
 For a prototype the NE8FAH-LR-DAE, the 7490220122 transformer, the Halo LEDs and the external Bob Smith
 network cost more than the magjack and take a board edge the prototype does not need. The magjack is
