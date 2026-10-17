@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Hand-sourced parts list (everything JLC does not assemble) with live DigiKey prices.
 
-Usage:  python3 scripts/hand_parts.py [--boards N] [--spares] [--netlist FILE]
+Usage:  python3 scripts/hand_parts.py [--boards N] [--spares] [--netlist FILE] [--out FOLDER]
 Reads PARTDB_TOKEN, DIGIKEY_CLIENT_ID/SECRET from ../../.env (repo root).
-Writes production/jlc_final/hand_parts.csv, hand_parts.md, hand_parts_digikey.csv (DigiKey cart upload) and
+Writes production/<FOLDER, default jlc_final>/hand_parts.csv, hand_parts.md, hand_parts_digikey.csv (DigiKey cart upload) and
 hand_parts_wurth.csv (direct order). Würth Elektronik parts are bought from Würth directly, everything else
 from DigiKey; the manufacturer comes from Part-DB. DigiKey prices for Würth parts are a reference only.
 --spares adds spares per line by unit price: 1 from €5, 2 from €1, 3 below.
@@ -15,7 +15,7 @@ ROOT=os.path.dirname(os.path.dirname(PROJ))
 for line in open(os.path.join(ROOT,".env")):
     if "=" in line and not line.startswith("#"): k,v=line.rstrip("\n").split("=",1); os.environ.setdefault(k,v)
 B="https://parts.hive.service42.me"
-ap=argparse.ArgumentParser(); ap.add_argument("--boards",type=int,default=1); ap.add_argument("--netlist"); ap.add_argument("--spares",action="store_true"); a=ap.parse_args()
+ap=argparse.ArgumentParser(); ap.add_argument("--boards",type=int,default=1); ap.add_argument("--netlist"); ap.add_argument("--spares",action="store_true"); ap.add_argument("--out",default="jlc_final",help="folder under production/"); a=ap.parse_args()
 SPARES=((5.0,1),(1.0,2),(0.0,3))   # unit price threshold in EUR -> spares per line
 HAND={"PS1"}   # SMD parts deliberately hand-soldered
 # --- netlist (export fresh unless given)
@@ -83,7 +83,7 @@ for pid,refs in groups.items():
     mfr=(p.get("manufacturer") or {}).get("name","") if isinstance(p.get("manufacturer"),dict) else ""
     src="Würth direct" if re.search(r"w[uü]rth",mfr,re.I) else "DigiKey"
     rows.append({"refs":", ".join(sorted(refs,key=refkey)),"qty_per_board":len(refs),"needed":qty,"spares":spares,"order":order,"part":p["name"],"manufacturer":mfr,"source":src,"description":(p.get("description") or "")[:60],"partdb_id":pid,"digikey_pn":dkpn,"digikey_stock":avail,"price_1":price1,"unit_price":priceN,"cost_needed":round(order*unit,2) if unit is not None else "","tiers":"; ".join(f"{bq}:{pr}" for bq,pr in tiers)})
-out=os.path.join(PROJ,"production","jlc_final"); os.makedirs(out,exist_ok=True)
+out=os.path.join(PROJ,"production",a.out); os.makedirs(out,exist_ok=True)
 with open(os.path.join(out,"hand_parts.csv"),"w",newline="") as f:
     w=csv.DictWriter(f,fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
 dkrows=[r for r in rows if r["source"]=="DigiKey"]; werows=[r for r in rows if r["source"]!="DigiKey"]

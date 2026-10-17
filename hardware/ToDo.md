@@ -1,70 +1,85 @@
-# OH_Node_V0_Prototype — open items before fab
+# OH_Node_V0_Prototype — V0.2
 
-Order: JLCPCB, all SMD assembled, THT by hand (docs/12 "Fabrication"). Relays switch **230 V mains**.
-Datasheets in `OH_Node_V0_Prototype/datasheets/`. Closed items are removed from this file; the 2026-10-03
-pre-fab review and the first layout review of 2026-10-05 are in its git history. State of 2026-10-05: ERC
-clean, DRC 0 errors, 0 unconnected, parity clean.
+The first V0 was ordered at JLCPCB on 2026-10-05 from commit `756af21`, tagged `v0.1` (its order files are in `production/jlc_final/` at that tag; the folder now holds V0.2).
+The pre-fab list, its schematic review and both layout reviews are in the git history of this file. This
+list covers the second revision of the same board, from bring-up findings and later feedback.
 
-## Schematic review (2026-10-05)
+## State (2026-10-17)
 
-From the exported netlist and the datasheets. No wrong pin, no open net, no swapped pair. Pinouts of PS1,
-D11/D12, Q1/Q2, J3, U1, U2, U6 and U7 were compared with their datasheets, and the docs/12 pin plan matches the
-netlist pin for pin.
+Schematic and layout are done and routed. DRC is clean on the board saved 18:17 (refilled zones, schematic
+parity): no errors, 0 unconnected, only 4 × `silk_edge_clearance` from J1's frame on the top edge. SW1/SW2
+3D model rotation fixed in the footprint (`-90 0 90`) and updated on the board. ERC: only the old U6
+PAD warning. Every symbol except the test points and mounting holes comes from Part-DB.
 
-- [x] Schematic items closed 2026-10-05: R20/R49 10K (Part-DB 597) pull down `/WS_OUT1`/`/WS_OUT2`; J12 pin 2
-      is 3V3 instead of GPIO1 (U2.39 NC); no speaker WAGO (D37 amended); power symbols match their rails, and
-      the analog rail is renamed `+3V3A` → `+3.3VA` (stock symbol; netclass pattern and board renamed with it);
-      docs/12 corrected; datasheets for U7, D9, F1/F2, L2, D10 added. ERC 0.
-- [x] Board: R20/R49 placed on F.Cu at (166.3, 124.75) / (167.1, 123.05) on the WS_OUT tracks, GND pad to
-      via 0.85 / 0.75 mm. DRC 0, parity clean (2026-10-05).
+## Open before ordering
 
-## Layout review, second round (external feedback, 2026-10-05)
+- [ ] **Optional: +VDC plane at PS1 pad 1** (datasheet Fig. 12). VIN− and −VDC planes are in; VPOE leaves pad 1 as
+      a 1.0 mm track only. A VPOE zone on F.Cu/B.Cu at about x 74.1–78.4, y 108.9–114.7 with a few vias.
+- [ ] Board marking: name, "Node v0.2" and "Designed by hrueger" are on; date and project URL/licence are not.
+- [x] JLC files regenerated in `production/jlc_final/` (2026-10-17 20:44, board saved 20:42): 154 SMD parts, 54
+      lines, hand-parts lists.
+- [ ] Check the new parts in JLC's placement preview (list in `production/jlc_final/README.md`), set
+      `FT Rotation Offset` where one is off and regenerate. Add LCSC C23630 to Part-DB for CL10A225KO8NNNC.
+- [x] Docs: docs/12 "V0.2 board changes" (PIR stage, LEDs, audio, buttons, PS1 thermal, STX-3000 pinout,
+      stitching) and the V0.2 pin plan.
+- [x] kicad-custom-libs committed and pushed (`fabc0bb`..`c865e47`): TPS22919 QOD fix, TPS2121RUX + VQFN-HR-12,
+      STX-3000, Ag9900 thermal vias, TS-1187A 3D rotation, CJ431.
+- [x] **U8 to XREF mode (fast switchover, datasheet 10.4).** CJ431 (C3113, JLC basic, `LRV:CJ431`: pin 1 REF,
+      2 K, 3 A, *not* the TL431DBZ order) as 2.5 V shunt reference: 1K from +5V to K, REF tied to K, A to GND,
+      K to U8 CP2 (pin 3, now GND). PR1 divider R66 33K → 10K, R68 10K → 12K (0402WGF1202TCE, C25752, JLC
+      basic): PoE preferred above 2.5 V × 22/12 = 4.57 V (±1 % reference, 1 % resistors: about 4.45–4.69 V),
+      switchover in 5 µs instead of 100 µs. Without +5V, CP2 is low and the internal reference picks PoE as before.
+      _Done 2026-10-17 (net `PWRMUX_REF`, Part-DB 631/632), together with L3 BLM15AG601SN1D for the DAC's
+      AVDD/CPVDD (C40, C41, C43, C49 on `/AVDD`, PWR_FLAG). U10 sits 2.7 mm from CP2. `LRV:CJ431` in kicad-custom-libs
+      `c865e47`._
+- [ ] Tag `v0.2` on the commit that is ordered.
 
-Checked against the board of 2026-10-05 16:31; findings in italics. The screenshots of this round did not come
-along with the text.
+## Done in V0.2
 
-- [x] One of the two decoupling caps after the PoE module should sit directly behind the module.
-      _Done 2026-10-05: C3 moved to (70.1, 110.3), on the 0.6 mm +12V track from PS1.1 to U7, 7.5 mm from PS1.1
-      (C2 4.9 mm); GND pad to via 0.95 mm. C4 stays at C35/U7. The /WS_OUT1 reroute to R20 starved U5.3's
-      thermal; fixed with a GND track to the via at (167.3, 138.95). DRC 0, parity clean._
-- [x] Remove the via in pad at the GND pad of the PoE module; via arrays at the larger GND pads.
-      _Done 2026-10-05: via and stub in PS1.2 removed. Fig. 17's keep-out is the mechanical envelope above the
-      board, not a via ban; Fig. 12 asks for a via-stitched pour at the output pins (the first-round note was
-      wrong). PS1.2 has two rows of four 0.45/0.25 GND vias at y 101.95 and 107.9, 0.25 mm from the pad.
-      J7.2, J8.2, J9.2, J10.2: ring of eight 0.45/0.25 GND vias each, 1.75 mm from the pad centre (0.38 mm
-      copper to the pad). DRC 0, parity clean._
-- [x] Stitching via placement at layer changes can be much better in places: sometimes there is only "0.5"
-      of a via per transition, or the via lies beyond another trace. Target: the "bottom right widget board"
-      of the reviewer.
-      _Done 2026-10-05: goal is at least two GND vias within 2 mm of every signal via, with no cut in its
-      reference planes in between. Check: `hardware/tools/return_vias/return_via_check.py <board> [csv]`.
-      GND fills In1 and In2, so a F.Cu ↔ B.Cu signal returns over In1/In2 and changes planes through the GND via; only tracks on
-      In1/In2 can block that path (the first version of the script counted F.Cu/B.Cu tracks and overstated
-      the problem). Bottom right fixed by hand, then seven 0.45/0.25 GND vias added by script at AMP_EN, IO0,
-      PIR2, RLY2, WS_OUT1 (2×), WS_OUT2. Now 52 of 53 have two or more; the C30 net (RX centre-tap AC bias,
-      116.86/94.8) keeps one at 1.05 mm, no free spot. DRC 0, parity clean.
-      List: `analysis/2026-10-05_gnd/return_vias_clear.csv`._
-- [x] Rotate L2 by 90°. _Done 2026-10-05, L2 at (102.15, 108.2), rotation 90._
+- [x] **5 V PoE module, boost to 12 V, runs from a power bank** (decided 2026-10-17, docs/12 "V0.2 power
+      path"). PS1 AG9905-MTB, U8 TPS2121 power mux (PoE on IN1 preferred, USB on IN2, 2.4 A limit, soft
+      start), U3 straight on +5V, MT3608 (U7) boost to +12V for F1/F2 and J12. The AP63205 buck, the
+      TPS22919, D10, D13 and D20 are gone. Switch node 1.0–1.5 mm, VBUS 1.0 mm (12 mm at 0.6 mm).
+- [x] **Limit USB inrush:** U8's soft start (C38 100 n, ~0.14 A into ~180 µF). Still confirm on the hub that broke
+      V0.1 (bring-up).
+- [x] **Back-feed with USB only:** U8 blocks reverse current, and VBUS only reaches J11, C39 and U8 IN2.
+- [x] **Reset button:** SW2 on EN (silk RST), BOOT is SW1 on IO0.
+- [x] **Line out with PCM5102A, MAX98357A stays.** Both share IO40/41/42; XSMT on GPIO39 with 10K pull-down,
+      AMP_EN on IO48, output RC 470 Ω / 2.2 nF per channel. MAX98357A on J13 (691137710002). Firmware calls
+      `audioBegin(..., false)` for stereo.
+- [x] **J1 (STX-3000) tip/ring fixed in the footprint** (2026-10-17). Kycon pin 1 = sleeve, pin 2 = middle
+      spring (ring), pin 3 = end contact (tip), the same symbol as CUI's SJ1-3523N and Kycon's STX-3501-3N
+      (where the end-contact pin sits at the back of the jack). The LRV footprint had 2 = "T", 3 = "R"; now
+      swapped, J1 updated and AUD_L/AUD_R re-routed. Pins 2 and 3 sit at the same depth, so the symbol is the
+      only evidence: confirm with a plug and a meter on a real STX-3000.
+- [x] **Speaker plays (L+R)/2:** SD_MODE through R69 47K from GPIO48 with R70 10K to GND, ~0.53 V (window
+      0.355–0.65 V, datasheet Table 5). GPIO48 low or floating = shutdown. Volume cannot be set per output:
+      neither chip has a volume control, both get the same stream; XSMT and AMP_EN mute each output.
+- [x] **PIR1/PIR2 swapped in the schematic** to match the board: J8 → Q3 → `/PIR2`, J10 → Q4 → `/PIR1`. The LED
+      labels followed when the LEDs moved: D16 next to J8 is `LED_PIR2` (GPIO45), D17 next to J10 `LED_PIR1`
+      (GPIO46).
+- [x] **Motion sensor inputs (J8/J10), 12 V tolerant, no back-feed into 3V3:** MMBT3904 stage per input,
+      terminal pull-up through a 1N4148WS, 10K to the base, 100K base–GND, collector to the GPIO with 10K to
+      3V3. Logic is inverted (firmware). +12V to the terminals through F1/F2.
+- [x] **PS1 footprint** checked against the Ag9900 datasheet V3.5: pads, pitch and the isolation keep-out match
+      Fig. 22 (hand soldering) and Fig. 21 (reflow) to 0.01 mm, the pin order matches Table 2.
+- [x] **PS1 thermal relief (Fig. 12):** 25 VIN− vias with a silk frame added to both `LRV:AG9900-MTB*`
+      footprints; VIN− zone on all four layers inside the isolation ring; −VDC is the GND pour with vias at x 78.
+- [x] **Status LEDs:** relays D3/D4/D14/D15 (KT-0603R), PIRs D16/D17 (KT-0805Y), each on its own GPIO, low-side.
+      Relay LEDs at the same offset from each relay.
+- [x] **GND stitching:** 162 GND vias added (pads near far GND pads, return vias at signal vias, general
+      stitching). Maps in `OH_Node_V0_Prototype/analysis/2026-10-17_gnd/`. Left: U1 pins 9/14/16, R8, C33 are
+      1.1–1.4 mm from a via; LED_RLY4's via has no return via (slow signal).
+- [x] Silkscreen: COM/NO/NC on the relay terminals, labels on J7–J10 and J12, BOOT/RST, STAT/ERR, test points.
 
 ## Bring-up checks
 
-- [ ] USB hot-plug: +5V holds about 176 µF nominal (C21, C34, C36, C37, C27) and the body diode of U7 adds the
-      166 µF on +12V (C2, C3, C4, C35). USB allows 10 µF. Watch VBUS on the first plug-in; a weak port may
-      droop or trip.
-- [ ] Input ripple at U7: C35 is 22 µ/25 V 0805 at 12 V bias, an estimated 5 µF effective against the 10 µF of
-      the AP63205 application circuit. Since C3 moved to PS1, C4 (22 µ, 2 mm away) stays at U7 too, so the
-      input has about 10 µF effective. Probe +12V at C35 under load.
-- [ ] W5500 SPI: SCLK, MOSI, MISO, SCSn are on GPIO9 to 12 and run through the GPIO matrix (the direct FSPI
-      pins are GPIO10 to 13 in a different order). Start at 20 MHz. For V1, consider the direct pins.
+- [ ] ~~Input ripple at U7 (AP63205)~~: the buck is gone in V0.2. Still worth probing on the ordered V0.1.
+- [ ] V0.2: +12V from the MT3608 at no load and with both sensors; C36/C37 are 22 µ/25 V 0805 at 12 V bias,
+      an estimated 10 µF effective together.
+- [ ] W5500 SPI: SCLK, MOSI, MISO, SCSn are on GPIO9 to 12 and run through the GPIO matrix (the direct FSPI pins
+      are GPIO10 to 13 in a different order). Start at 20 MHz. For the next revision, consider the direct pins.
 - [ ] The checks already listed in docs/12: which source carries the load with PoE and USB together; +12V and
-      the current into PS1 +VDC with USB only.
-
-## Last step
-
-- [x] **Order files regenerated** 2026-10-05 evening in `production/jlc_final/` after all items above: gerbers
-      and CPL from the plugin CLI, BOM from `make_bom.py`. 104 SMD parts, 41 lines (R20/R49 joined the 10K
-      line), BOM designators == CPL designators. Against the afternoon set only R20/R49, C3 and L2 changed.
-- [x] JLC placement preview checked 2026-10-05: D9 correct (cathode on VIN+), diodes and bridges as marked.
-      U2/J11 position and Q1/Q2, U4/U5, U6, U7 rotation fixed with plugin fields (see
-      `production/jlc_final/README.md`). C2 and Y1 have no 3D model at JLC: order with "Confirm Parts
-      Placement" and the C2 polarity remark from the README.
+      the current into PS1 +VDC with USB only (V0.1). For V0.2: +5V on PoE only, USB only and both; the +5V
+      dip when PoE is unplugged with USB connected; USB inrush on the hub that broke V0.1.
+- [ ] J1: tip = left, ring = right with a stereo test signal.

@@ -1221,4 +1221,26 @@ boards are for.
 the Ag9905 input pins. The 1500 V barrier is the module's transformer and the magjack's. Keep the
 Domain 1 keep-out around that corner exactly as D17 required for `J1`.
 
+**Amended 2026-10-14: the audio row needs a line output.** The MAX98357A was chosen for a passive speaker,
+and V0 has no line level output; a line input on `J1` shorts the bridged `OUTN` to ground. Installations
+with their own amplification are a stated use case (docs/01), so the next board carries both, as two chips:
+an I2S DAC (PCM5102A class) on a Kycon STX-3000 3.5 mm jack for ground-referenced line out, and the
+MAX98357A on a separate speaker terminal. A single DAC-plus-amplifier chip was rejected for its ~1 W output,
+I2C setup and extra 1.8 V rail. V0 was already ordered and uses a PCM5102A breakout on `J12` instead;
+details in docs/12 "Line out". The speaker-only choice was fine for a bench prototype; it did not cover how
+a haunt plugs into existing sound.
+
+**Amended 2026-10-17: V0.2 goes back to the 5 V module, with a boost for the sensors.** The node should run
+from a USB power bank, which only offers 5 V. With a 12 V module that means a second power path or a boost
+to 12 V anyway, so the boost moves to the sensor rail instead: **AG9905-MTB**, an **MT3608** boost to 12 V
+for the two PIR terminals and `J12`, and a **TPS2121** priority power mux that feeds +5V from PoE when it is
+present and from USB otherwise, with soft start, current limit and reverse blocking. A Schottky OR was
+drawn first and dropped: 0.4–0.8 W per diode against the B5819W's 500 mW, and it needed the module raised
+to 5.65 V to make up for the drop. The 2026-10-05 objections were checked rather than dropped. The short on
+the sensor cable is limited by the per-terminal PPTCs (F1/F2), which the 12 V board needed too; the boost
+cannot open its own output, so a short pulls +5V down through the inductor and diode until the PPTC trips,
+and the S3 may reset. The budget is tight again: about 5 W typical and 8.9 W worst case against 9 W to
+70 °C. The 12 V relay argument of D11 does not apply to V0, whose relays are 5 V coils. Details in docs/12
+"V0.2 power path".
+
 **Does not supersede** D16, D17, D19, D20, D26, D28, D29 or D35. V0 is a prototype, not a variant.
