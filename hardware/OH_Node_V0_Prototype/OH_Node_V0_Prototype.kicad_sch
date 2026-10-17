@@ -23509,6 +23509,16 @@
 	)
 	(wire
 		(pts
+			(xy 326.39 66.04) (xy 337.82 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4d070021-4c40-4d29-b9a9-d08d704b9751")
+	)
+	(wire
+		(pts
 			(xy 176.53 59.69) (xy 179.07 59.69)
 		)
 		(stroke
@@ -24329,7 +24339,7 @@
 	)
 	(wire
 		(pts
-			(xy 326.39 66.04) (xy 337.82 66.04)
+			(xy 326.39 83.82) (xy 337.82 83.82)
 		)
 		(stroke
 			(width 0)
@@ -25056,16 +25066,6 @@
 			(type default)
 		)
 		(uuid "ab0bc26e-8854-4da4-bea3-60e4387c405a")
-	)
-	(wire
-		(pts
-			(xy 326.39 83.82) (xy 337.82 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ab17d927-a59e-4f6c-855c-a8ab2e111361")
 	)
 	(wire
 		(pts
@@ -26847,6 +26847,16 @@
 		)
 		(uuid "36e3b7fe-2879-48a0-b32d-e3b6333d1a74")
 	)
+	(label "GPIO38"
+		(at 337.82 66.04 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "375fc09b-1102-45cc-9692-01ca132d3529")
+	)
 	(label "LED_PIR2"
 		(at 337.82 96.52 180)
 		(effects
@@ -27196,16 +27206,6 @@
 			(justify right bottom)
 		)
 		(uuid "6fef5a11-a15c-42f4-94a6-d9353ea45086")
-	)
-	(label "GPIO38"
-		(at 337.82 83.82 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "71266f93-851f-4a08-80e6-e4b1441e6005")
 	)
 	(label "LDOO"
 		(at 259.08 273.05 180)
@@ -28018,7 +28018,7 @@
 		(uuid "e4c73d3f-cede-4a9c-b2fd-c72af7d943d4")
 	)
 	(label "WS_OUT2"
-		(at 337.82 66.04 180)
+		(at 337.82 83.82 180)
 		(effects
 			(font
 				(size 1.27 1.27)
