@@ -26847,7 +26847,7 @@
 		)
 		(uuid "36e3b7fe-2879-48a0-b32d-e3b6333d1a74")
 	)
-	(label "GPIO38"
+	(label "GPIO18"
 		(at 337.82 66.04 180)
 		(effects
 			(font
@@ -27597,7 +27597,7 @@
 		)
 		(uuid "a3f38ce2-b21e-4989-8c9b-b55e4510713b")
 	)
-	(label "GPIO38"
+	(label "GPIO18"
 		(at 226.06 142.24 0)
 		(effects
 			(font

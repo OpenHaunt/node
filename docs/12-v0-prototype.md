@@ -49,7 +49,7 @@ pins and stay off connectors.
 | 36 | `LED_Y`: D1 yellow KT-0603Y via R45 1K, status (high = on) |
 | 1, 8, 37 | spare, unconnected |
 
-V0.2 (2026-10-17) uses the spares and GPIO39:
+V0.2 (2026-10-17) uses the spares and GPIO39, and swaps GPIO18 and GPIO38:
 
 | GPIO | Function |
 |---:|---|
@@ -57,8 +57,12 @@ V0.2 (2026-10-17) uses the spares and GPIO39:
 | 45, 46 | `LED_PIR2` (D16, at J8), `LED_PIR1` (D17, at J10) |
 | 39 | `XSMT` (PCM5102A mute), taken from J12 |
 | 15, 16 | `PIR1` from J10, `PIR2` from J8 (inverted logic, see "V0.2 board changes") |
+| 38 | `WS_OUT2` (U5), moved from GPIO18 for routing |
+| 18 | header GPIO on J12 pin 5, in place of GPIO38 (ADC2_CH7, digital use only while WiFi runs) |
 
-J12 in V0.2: 3V3, 5V, 12V, GPIO2, GPIO38, SCL, SDA, GND (pins 1–8).
+`WS_OUT1` stays on GPIO17. Firmware: the second WS2812 output is GPIO38 on V0.2 and GPIO18 on V0.1.
+
+J12 in V0.2: 3V3, 5V, 12V, GPIO2, GPIO18, SCL, SDA, GND (pins 1–8).
 
 ## Power budget
 

@@ -8,7 +8,7 @@ GND stitching.
 
 | File | Upload as | Source |
 |---|---|---|
-| `OH_Node_V0_Prototype_gerbers.zip` | Gerber file | Fabrication Toolkit plugin CLI (`-t -f -e`, options as in `fabrication-toolkit-options.json`), run 2026-10-17 23:29 on the board saved 23:28 |
+| `OH_Node_V0_Prototype_gerbers.zip` | Gerber file | Fabrication Toolkit plugin CLI (`-t -f -e`, options as in `fabrication-toolkit-options.json`), run 2026-10-17 23:48 on the board saved 23:47 |
 | `bom.csv` | BOM | `scripts/make_bom.py` from the netlist and Part-DB LCSC order details; C45/C48 (CL10A225KO8NNNC) set to C23630 by hand, Part-DB has no LCSC order detail for it yet |
 | `positions.csv` | CPL / pick-and-place | plugin output, reduced to the 154 SMD parts in the BOM |
 | `hand_parts.*` | — | `scripts/hand_parts.py --boards 5 --spares` |
