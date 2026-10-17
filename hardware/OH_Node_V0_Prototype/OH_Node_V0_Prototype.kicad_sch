@@ -43742,6 +43742,17 @@
 				)
 			)
 		)
+		(property "FT Rotation Offset" "90"
+			(at 240.03 97.79 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "8663d208-facf-4278-96c2-ee41ad8ee5bc")
 		)
@@ -48134,6 +48145,17 @@
 			)
 		)
 		(property "Part-DB URL" "http://parts.hive.service42.me/en/part/628/info"
+			(at 453.39 73.66 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "-90"
 			(at 453.39 73.66 0)
 			(hide yes)
 			(show_name no)

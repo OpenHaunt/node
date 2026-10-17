@@ -35,11 +35,13 @@ HASL is fine. Mains on the relay contacts J2/J4/J5/J6.
   RVT1E101M0607 (C72477), same CP_Elec_6.3x7.7 footprint.
 - Unchanged from V0.1 and still set in the schematic and board: `FT Origin = Center` on U2 and J11,
   `FT Position Offset = 0,0.12` on U2, `FT Rotation Offset` +90° on Q1/Q2 and U4/U5, −90° on U6.
+- New after the V0.2 order, from JLC's preview: `FT Rotation Offset` +90° on U7 MT3608 (CPL 90° → 180°),
+  −90° on U8 TPS2121 (CPL 180° → 90°). Set in the schematic and board; the files here (tag `v0.2`) predate it,
+  and for that order both were rotated in JLC's placement editor. The next regeneration picks it up.
 - **Check in JLC's placement preview** (pin 1 dot or polarity):
   - Carried over: C2, D1/D2, D9, D11/D12, Q1/Q2, U1, U2, U3, U4/U5, U6, J11, Y1.
-  - **New, no rotation offset yet:** U7 MT3608 (SOT-23-6; the AP63205 in the same place needed +90°), U8
-    TPS2121 (VQFN-HR, pin 1 at the lower right of the body on the board), U9 PCM5102A (TSSOP-20; the plugin
-    wrote 270° for a 0° footprint, pin 1 upper left), Q3/Q4 MMBT3904, D3/D4/D14/D15 and D16/D17 LEDs, D18/D19
+  - **New, no rotation offset yet:** U9 PCM5102A (TSSOP-20; the plugin wrote 270° for a 0° footprint, pin 1
+    upper left), Q3/Q4 MMBT3904, D3/D4/D14/D15 and D16/D17 LEDs, D18/D19
     1N4148WS, D21 B5819W, L2, U10 CJ431 (SOT-23, pin 1 REF, 2 K, 3 A; the CPL says 180°). SW1/SW2 are
     symmetric.
   - If a part is off, set `FT Rotation Offset` on it (schematic and board) and regenerate, as for V0.1.
