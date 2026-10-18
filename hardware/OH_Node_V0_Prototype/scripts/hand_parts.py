@@ -106,7 +106,7 @@ with open(os.path.join(out,"hand_parts.md"),"w") as f:
     f.write(f"## From DigiKey\n\nCart upload: `hand_parts_digikey.csv`.\n\n"); table(f,dkrows)
     f.write(f"\n**DigiKey cost for {a.boards} board(s): €{tot_dk:.2f}**, excl. shipping/VAT.\n\n")
     f.write(f"## From Würth Elektronik directly\n\nOrder list: `hand_parts_wurth.csv` (order code = MPN). The DigiKey prices are a reference only.\n\n"); table(f,werows)
-    f.write(f"\nReference at DigiKey prices: €{ref_we:.2f}.\n\nPlus 4 × M2.5 screws per board (H1–H4).\n\nDNP, not fitted: {', '.join(sorted(dnp,key=refkey))}.\n")
+    f.write(f"\nReference at DigiKey prices: €{ref_we:.2f}.\n\nPlus the enclosure hardware per board (4 × M2.5 × 25 screws through H1–H4, 4 × M2.5 heat-set inserts, wall screws): see `enclosure/v0.2/README.md`.\n\nDNP, not fitted: {', '.join(sorted(dnp,key=refkey))}.\n")
 print(f"{len(rows)} lines for {a.boards} board(s): DigiKey €{tot_dk:.2f} ({len(dkrows)} lines), Würth direct {len(werows)} lines (DK reference €{ref_we:.2f}) -> {out}/hand_parts.csv + .md")
 print(f"DigiKey cart: {len(dkrows)} lines -> {out}/hand_parts_digikey.csv" + (f"  (no DigiKey PN, map by MPN: {', '.join(nodk)})" if nodk else ""))
 print(f"Würth order: {len(werows)} lines -> {out}/hand_parts_wurth.csv")

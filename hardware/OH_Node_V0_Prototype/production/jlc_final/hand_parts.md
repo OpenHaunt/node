@@ -27,6 +27,6 @@ Order list: `hand_parts_wurth.csv` (order code = MPN). The DigiKey prices are a 
 
 Reference at DigiKey prices: €106.77.
 
-Plus 4 × M2.5 screws per board (H1–H4).
+Plus the enclosure hardware per board (4 × M2.5 × 25 screws through H1–H4, 4 × M2.5 heat-set inserts, wall screws): see `enclosure/v0.2/README.md`.
 
 DNP, not fitted: R5, R9, R10, R11, R12, R13, R14, R47, R48, R50.
