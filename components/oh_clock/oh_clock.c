@@ -74,3 +74,16 @@ bool oh_clock_console_locked(void)
 {
     return console_ready && oh_clock_sync_locked(&console);
 }
+
+int64_t oh_clock_console_now_us(void)
+{
+    int64_t local_us;
+    if (oh_clock_is_unix()) {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        local_us = (int64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+    } else {
+        local_us = esp_timer_get_time();
+    }
+    return local_us + oh_clock_console_offset_ms() * 1000;
+}

@@ -10,6 +10,7 @@
 #include "freertos/semphr.h"
 #include "mqtt_client.h"
 #include "oh_app.h"
+#include "oh_audio.h"
 #include "oh_clock.h"
 #include "oh_config.h"
 #include "oh_json.h"
@@ -25,6 +26,7 @@ static temperature_sensor_handle_t s_tsens;
 static const char *TAG = "oh_mqtt";
 
 #define HEALTH_PERIOD_US (10 * 1000000ULL)
+#define AUDIO_STATUS_PERIOD_US (1000000ULL)
 #define BACKLOG 32
 
 /* An input event that happened while the broker was out of reach. Kept, in
@@ -42,6 +44,7 @@ static struct {
     bool connected;
     bool net_up;
     esp_timer_handle_t health;
+    esp_timer_handle_t audio_status;
     SemaphoreHandle_t lock;
     queued_t backlog[BACKLOG];
     size_t backlog_n;
@@ -146,6 +149,25 @@ static void publish_health(void *arg)
     }
 }
 
+/* openhaunt/<sn>/audio/status: once a second while anything plays, once when it stops. */
+static void publish_audio_status(void *arg)
+{
+    (void)arg;
+    if (!s.client || !s.connected) {
+        return;
+    }
+    cJSON *st = oh_audio_status_poll();
+    if (!st) {
+        return;
+    }
+    char *payload = cJSON_PrintUnformatted(st);
+    cJSON_Delete(st);
+    if (payload) {
+        publish("audio/status", payload, 0, false);
+        free(payload);
+    }
+}
+
 /* ── Receiving ────────────────────────────────────────────────────────── */
 
 /* One `openhaunt/clock` message: what time the console thinks it is. */
@@ -216,6 +238,19 @@ static void on_message(const char *topic, size_t topic_len, const char *data, si
     }
 
     size_t plen = strlen(s.prefix);
+    /* openhaunt/<sn>/audio/<verb>: doc 13. */
+    if (topic_len > plen + 7 && strncmp(topic, s.prefix, plen) == 0 && strncmp(topic + plen, "/audio/", 7) == 0) {
+        char verb[12];
+        const size_t verb_len = topic_len - plen - 7;
+        if (verb_len > 0 && verb_len < sizeof(verb)) {
+            memcpy(verb, topic + plen + 7, verb_len);
+            verb[verb_len] = 0;
+            if (strcmp(verb, "status") != 0) {
+                oh_audio_command(verb, data, data_len);
+            }
+        }
+        return;
+    }
     if (topic_len < plen + 8 || strncmp(topic, s.prefix, plen) != 0 || strncmp(topic + plen, "/output/", 8) != 0) {
         return;
     }
@@ -259,6 +294,10 @@ static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
          * value. */
         snprintf(topic, sizeof(topic), "%s/output/+/+", s.prefix);
         esp_mqtt_client_subscribe(s.client, topic, 1);
+        if (oh_audio_available()) {
+            snprintf(topic, sizeof(topic), "%s/audio/+", s.prefix);
+            esp_mqtt_client_subscribe(s.client, topic, 1);
+        }
         /* Not under this node's prefix. The console publishes one clock for every
          * node on the broker, because the whole point is that they agree with each
          * other about when a cycle started. Retained, so this subscribe brings the
@@ -404,6 +443,11 @@ esp_err_t oh_mqtt_start(void)
     esp_timer_create_args_t args = {.callback = publish_health, .name = "health"};
     ESP_ERROR_CHECK(esp_timer_create(&args, &s.health));
     ESP_ERROR_CHECK(esp_timer_start_periodic(s.health, HEALTH_PERIOD_US));
+    if (oh_audio_available()) {
+        esp_timer_create_args_t a = {.callback = publish_audio_status, .name = "audio-status"};
+        ESP_ERROR_CHECK(esp_timer_create(&a, &s.audio_status));
+        ESP_ERROR_CHECK(esp_timer_start_periodic(s.audio_status, AUDIO_STATUS_PERIOD_US));
+    }
     s.net_up = oh_net_is_up();
     client_start();
     return ESP_OK;

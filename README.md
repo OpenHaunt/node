@@ -85,10 +85,63 @@ Decisions, and why:
   board with a red LED (GPIO35) a fault double-flashes that instead of riding on the yellow.
   On V0.2 the LED beside each relay and each sensor terminal follows the pin itself, whichever
   module is bound.
-- **Audio is silent until a driver claims it.** The I2S pins (40, 41, 42), `AMP_EN` (48) and the
-  V0.2 DAC's `XSMT` (39) are defined in the board config; boot holds the amplifier off and the
-  DAC muted. No audio driver exists yet.
+- **Audio is the `oh_audio` component** (below). Boot holds the amplifier off and the DAC
+  muted, as before, until it starts. V0.2's line out is enabled for good from then on; the
+  speaker amplifier is powered only while something is playing.
 - **The console is the USB-C socket** (the S3's USB Serial/JTAG). UART0 is on test points.
+
+## Audio
+
+A V0 node plays **clips stored on its flash** and **an RTP stream**, mixed, each started at a
+**show time** on the console's clock, so a skeleton's voice on the node's speaker lands with its
+jaw on a relay. The protocol is OpenHaunt/node [13 — Audio](https://github.com/OpenHaunt/node/blob/main/docs/13-audio.md):
+an `audio` object in `/info`, `PUT|GET|DELETE /api/v1/audio/clips[/<sha256>]`, and
+`openhaunt/<sn>/audio/{play,stop,gain,output,stream}` with `audio/status` back.
+
+| | |
+|---|---|
+| Mix | 48 kHz stereo, 4 clip voices plus the stream, 32-bit sum clipped to 16 |
+| Clips | RIFF WAVE, PCM16 or IMA ADPCM, mono/stereo, any rate (resampled), on FAT partition `clips` (9.8 MiB) |
+| Stream | RTP L16, any rate, 1 s buffer, played by its mapping to show time |
+| V0.1 | MAX98357A only, wired to one I2S slot, so the mix is **downmixed to mono** |
+| V0.2 | PCM5102A stereo line out (`XSMT` GPIO39) and the MAX98357A on the same bus, mixing (L+R)/2 itself |
+
+Decisions, and why:
+
+- **WAV with IMA ADPCM, not MP3.** Same density as 128 kbit/s MP3 (about ten minutes of 32 kHz mono
+  in the store), a table lookup per sample to decode, about a hundred lines with host tests, no
+  licence to carry, and blocks that make a seek exact. ESP-IDF ships no MP3 decoder.
+- **Every sample is placed by its show time.** The I2S `on_sent` interrupt timestamps each DMA
+  buffer leaving for the DAC, so the task knows when the next frame it writes will be heard. The
+  mixer is told that time and nothing else, which is what makes it a pure function the host tests
+  can drive. Latency in the output buffer then costs nothing, so the ring is six 10 ms buffers:
+  enough to ride out a flash erase.
+- **A late command joins where the clip would be by now** instead of starting late from the
+  beginning. That rule keeps a voice in step with everything else started at the same `at`.
+- **The console chooses the stream's delay; the node only follows the mapping.** The node plays
+  RTP timestamp `ts` at show time `at` and nothing earlier. Drift between the two crystals is
+  trimmed by ±0.1% between 1 and 20 ms apart, and anything further is a jump, counted as `resyncs`.
+- **A lost packet is a fade, not a stall.** The last sample decays over about 20 ms, and the rest
+  of the stream stays where it belongs in time.
+- **Not a port.** Sound has no value to set, and an unknown `dataType` would make every console that
+  predates it reject the node. The `audio` object sits beside the ports, and if it is absent the
+  node has no audio, as with effects.
+- **`littlefs` became `clips`.** The 16 MB table's data partition was declared and never mounted.
+  It is FAT with wear levelling now, because ESP-IDF carries both in-tree and long file names
+  (`<sha256>.wav`) need nothing more than `FATFS_LFN_HEAP`. **Changing the partition table needs a
+  USB flash**: OTA cannot do it.
+
+Traps worth knowing:
+
+- **Uploading while playing can underrun.** Writing flash stops the caches for a sector erase. The
+  60 ms ring covers one, but not a long upload during a scare. Upload before the show.
+- **V0.1's jack is the bridged amplifier output**, not a line out. Never plug it into a mixer.
+- **Gains add up.** Four voices at 1.0 clip. Setting levels is the console's job.
+- **Show time steps once, when SNTP first sets the clock.** Schedule against the console's clock
+  (`audio/status` says `"locked": true` once the node has it).
+
+`scripts/oh-audio.py` uploads, plays, stops and streams from a laptop with no dependencies, and
+can stand in for the console's clock on a bench.
 
 ## Building
 
@@ -172,8 +225,9 @@ wire is unix milliseconds once SNTP has synced and milliseconds since boot befor
 ```
 components/
   oh_core      pure C, no IDF: port/module model, EEPROM descriptor, every wire
-               shape (info/state/payloads/input/health), virtual-module parser,
-               presets, debounce, E1.31 parser        <- host tests cover this
+               shape (info/state/payloads/input/health/audio), virtual-module parser,
+               presets, debounce, E1.31 parser, WAV/ADPCM, RTP, the jitter buffer
+               and the audio mixer                    <- host tests cover this
   oh_board     Kconfig board choice and the pin table
   oh_node      state store, driver registry, module bind, event fan-out, errors
   oh_drivers   the drivers above; oh_i2c the shared bus; oh_font Spleen 8x16
@@ -183,6 +237,8 @@ components/
   oh_mqtt      status/input/health/output topics, offline will, event backlog
   oh_sacn      E1.31 receiver for a node that forwards a universe
   oh_ota       firmware update into the other slot, with rollback
+  oh_audio     I2S out, the clip store on FAT, the RTP receiver, the output task;
+               the WAV reader, mixer, jitter buffer and wire shapes are in oh_core
   oh_status    status LED patterns and identify
   oh_display   ST7789 status screen (boards with one)
   oh_console   the `oh` REPL
@@ -202,15 +258,17 @@ scripts/oh-serial.py /dev/cu.usbserial-110 --daemon build/serial &
 scripts/oh-cmd.sh "oh info" "oh vmod preset input" "oh in 1 1"
 ```
 
-`scripts/mqtt-sub.py` watches a broker with no dependencies, and
+`scripts/mqtt-sub.py` watches a broker with no dependencies, `scripts/oh-audio.py` drives a
+node's audio (see *Audio*), and
 `scripts/pult-call.mjs` adopts or identifies a node in a running the-pult.
 
 ## Status
 
 The V0 boards build cleanly for both revisions and the host tests pass, but **no V0 board
 has run this firmware yet**: the W5500 bring-up, the Wi-Fi fallback on that board, the sensor
-polarity on real terminals, the strips on GPIO17/18/38 and the indicator LEDs are all written
-from the schematic and unverified.
+polarity on real terminals, the strips on GPIO17/18/38, the indicator LEDs, and all of audio (I2S
+on both revisions, the clip store, the stream, the timing against the DAC) are written from the
+schematic and the datasheets and unverified.
 
 Verified on the ESP32-1732S019 against the-pult: setup AP and captive portal,
 discovery and the TXT record, every `/api/v1` endpoint, adoption, MQTT in both

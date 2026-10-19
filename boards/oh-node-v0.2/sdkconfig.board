@@ -16,3 +16,8 @@ CONFIG_OH_TRANSPORT_ETH_W5500=y
 CONFIG_OH_STATUS_LED_MONO_GPIO=y
 # The USB-C socket is the S3's own USB Serial/JTAG; UART0 is on test points.
 CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+# Audio (OpenHaunt/node doc 13): clips live on the "clips" FAT partition, named by
+# their sha256, which needs long file names.
+CONFIG_OH_AUDIO=y
+CONFIG_FATFS_LFN_HEAP=y
+CONFIG_FATFS_MAX_LFN=255

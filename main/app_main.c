@@ -7,6 +7,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "oh_app.h"
+#include "oh_audio.h"
 #include "oh_console.h"
 #include "oh_http.h"
 #include "oh_mqtt.h"
@@ -58,6 +59,12 @@ void app_main(void)
     }
 #endif
 
+    /* Before the network, so /info and the MQTT subscriptions know there is audio.
+     * A board without it answers ESP_OK and does nothing; a failure is a node error
+     * and the rest of the node carries on. */
+    if (oh_audio_start() != ESP_OK) {
+        oh_node_error_set("audio");
+    }
     ESP_ERROR_CHECK(oh_app_start_network());
     ESP_ERROR_CHECK(oh_http_start());
     ESP_ERROR_CHECK(oh_mqtt_start());

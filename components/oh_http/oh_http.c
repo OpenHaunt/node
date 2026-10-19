@@ -9,6 +9,7 @@
 #include "esp_ota_ops.h"
 #include "esp_log.h"
 #include "oh_app.h"
+#include "oh_audio.h"
 #include "oh_board.h"
 #include "oh_clock.h"
 #include "oh_config.h"
@@ -93,6 +94,11 @@ static esp_err_t get_info(httpd_req_t *req)
     oh_node_lock();
     cJSON *info = oh_json_info(oh_node_module(), &id);
     oh_node_unlock();
+    if (oh_audio_available()) {
+        oh_audio_caps_t caps;
+        oh_audio_caps(&caps);
+        oh_json_audio_caps(info, &caps);
+    }
     return send_json(req, info, NULL);
 }
 
@@ -230,6 +236,116 @@ static esp_err_t post_ota(httpd_req_t *req)
     err = send_json(req, ok, NULL);
     oh_app_reboot(1000);
     return err;
+}
+
+/* ── Audio clips (OpenHaunt/node doc 13) ──────────────────────────────── */
+
+static const char *status_line(int code)
+{
+    switch (code) {
+    case 200:
+        return "200 OK";
+    case 201:
+        return "201 Created";
+    case 204:
+        return "204 No Content";
+    case 400:
+        return "400 Bad Request";
+    case 404:
+        return "404 Not Found";
+    case 409:
+        return "409 Conflict";
+    case 413:
+        return "413 Payload Too Large";
+    case 503:
+        return "503 Service Unavailable";
+    default:
+        return "500 Internal Server Error";
+    }
+}
+
+#define CLIPS_PREFIX "/api/v1/audio/clips/"
+
+/* The sha in /api/v1/audio/clips/<sha>, or "" when the URI has none. */
+static void clip_sha(const httpd_req_t *req, char out[OH_CLIP_ID_MAX])
+{
+    out[0] = 0;
+    const size_t n = strlen(CLIPS_PREFIX);
+    if (strncmp(req->uri, CLIPS_PREFIX, n) == 0) {
+        const char *sha = req->uri + n;
+        size_t len = strcspn(sha, "?");
+        if (len < OH_CLIP_ID_MAX) {
+            memcpy(out, sha, len);
+            out[len] = 0;
+        }
+    }
+}
+
+static esp_err_t put_clip(httpd_req_t *req)
+{
+    char sha[OH_CLIP_ID_MAX];
+    clip_sha(req, sha);
+    const char *msg = "";
+    int code = oh_clips_upload_begin(sha, req->content_len, &msg);
+    if (code == 200) {
+        cJSON *ok = oh_json_ok();
+        cJSON_AddStringToObject(ok, "sha", sha);
+        cJSON_AddBoolToObject(ok, "stored", false);
+        return send_json(req, ok, NULL);
+    }
+    if (code != 0) {
+        return send_error(req, status_line(code), msg);
+    }
+    char *buf = malloc(4096);
+    if (!buf) {
+        oh_clips_upload_abort();
+        return send_error(req, "500 Internal Server Error", "out of memory");
+    }
+    size_t got = 0;
+    while (got < req->content_len) {
+        int n = httpd_req_recv(req, buf, 4096);
+        if (n == HTTPD_SOCK_ERR_TIMEOUT) {
+            continue;
+        }
+        if (n <= 0 || oh_clips_upload_write(buf, (size_t)n) != ESP_OK) {
+            free(buf);
+            oh_clips_upload_abort();
+            return send_error(req, n <= 0 ? "400 Bad Request" : "500 Internal Server Error",
+                              n <= 0 ? "upload interrupted" : "write to the clip store failed");
+        }
+        got += (size_t)n;
+    }
+    free(buf);
+    code = oh_clips_upload_finish(&msg);
+    if (code != 201) {
+        return send_error(req, status_line(code), msg);
+    }
+    cJSON *ok = oh_json_ok();
+    cJSON_AddStringToObject(ok, "sha", sha);
+    cJSON_AddBoolToObject(ok, "stored", true);
+    return send_json(req, ok, "201 Created");
+}
+
+static esp_err_t get_clips(httpd_req_t *req)
+{
+    cJSON *list = oh_clips_list();
+    if (!list) {
+        return send_error(req, "404 Not Found", "this node has no audio");
+    }
+    return send_json(req, list, NULL);
+}
+
+static esp_err_t delete_clip(httpd_req_t *req)
+{
+    char sha[OH_CLIP_ID_MAX];
+    clip_sha(req, sha);
+    const int code = oh_clips_delete(sha);
+    if (code == 204) {
+        httpd_resp_set_status(req, "204 No Content");
+        httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+        return httpd_resp_send(req, NULL, 0);
+    }
+    return send_error(req, status_line(code), code == 409 ? "a voice is playing it" : "no such clip");
 }
 
 /* ── Beyond the protocol: what the web UI and the console need ────────── */
@@ -413,7 +529,9 @@ esp_err_t oh_http_start(void)
 {
     httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
     cfg.server_port = 80;
-    cfg.max_uri_handlers = 24;
+    cfg.max_uri_handlers = 28;
+    /* /api/v1/audio/clips/<sha> names its clip in the path. */
+    cfg.uri_match_fn = httpd_uri_match_wildcard;
     cfg.stack_size = 8192;
     cfg.lru_purge_enable = true;
     cfg.recv_wait_timeout = 10;
@@ -438,6 +556,9 @@ esp_err_t oh_http_start(void)
         {"/api/v1/module", HTTP_POST, post_module, NULL},
         {"/api/v1/reboot", HTTP_POST, post_reboot, NULL},
         {"/api/v1/reset", HTTP_POST, post_reset, NULL},
+        {"/api/v1/audio/clips", HTTP_GET, get_clips, NULL},
+        {"/api/v1/audio/clips/*", HTTP_PUT, put_clip, NULL},
+        {"/api/v1/audio/clips/*", HTTP_DELETE, delete_clip, NULL},
         /* Captive-portal detection URLs. */
         {"/generate_204", HTTP_GET, redirect_root, NULL},
         {"/hotspot-detect.html", HTTP_GET, redirect_root, NULL},

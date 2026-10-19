@@ -41,6 +41,13 @@ int64_t oh_clock_console_now_ms(void);
 int64_t oh_clock_console_offset_ms(void);
 bool oh_clock_console_locked(void);
 
+/*
+ * The console's clock in microseconds, for audio, which places a sample to within a
+ * fraction of a millisecond. Same estimate as oh_clock_console_now_ms(); the extra
+ * digits come from this node's own clock rather than from a finer estimate.
+ */
+int64_t oh_clock_console_now_us(void);
+
 #ifdef __cplusplus
 }
 #endif
