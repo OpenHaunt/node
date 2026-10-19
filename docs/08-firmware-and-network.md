@@ -172,6 +172,12 @@ show software can react rather than silently losing an effect.
 
 Node-RED's MQTT integration makes this the natural path for show logic.
 
+### Audio
+
+A node with an audio output plays clips stored on its flash, and an RTP stream, each started at a
+stated show time. The `audio` object in `/api/v1/info`, `/api/v1/audio/clips` and
+`openhaunt/<serial>/audio/*` are specified in [13 — Audio](13-audio.md).
+
 ### 3. Art-Net / sACN — DMX
 
 For nodes carrying the DMX module. Both are supported; **sACN (E1.31) is preferred** — see the bandwidth
