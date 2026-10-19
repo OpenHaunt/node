@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "esp_eth.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
@@ -174,13 +175,28 @@ static void on_ap_close(void *arg)
     }
 }
 
-#ifdef CONFIG_OH_TRANSPORT_ETH_RMII
+#ifdef CONFIG_OH_TRANSPORT_ETH
 static void on_eth_fallback(void *arg)
 {
     (void)arg;
     if (s.state != OH_NET_UP && !s.wifi_started) {
         ESP_LOGW(TAG, "no Ethernet address; falling back to Wi-Fi");
         wifi_init();
+    }
+}
+
+/* A cable pulled after boot: the fallback timer only ran once, at boot, so
+ * without this a node whose switch went away would stay off the network. */
+static void on_eth_link(void *arg, esp_event_base_t base, int32_t id, void *data)
+{
+    (void)arg;
+    (void)base;
+    (void)data;
+    if (id == ETHERNET_EVENT_DISCONNECTED && !s.wifi_started) {
+        esp_timer_stop(s.eth_fallback);
+        esp_timer_start_once(s.eth_fallback, (uint64_t)CONFIG_OH_WIFI_STA_TIMEOUT_S * 1000000);
+    } else if (id == ETHERNET_EVENT_CONNECTED) {
+        esp_timer_stop(s.eth_fallback);
     }
 }
 #endif
@@ -386,7 +402,7 @@ esp_err_t oh_net_init(const char *hostname)
     ESP_ERROR_CHECK(esp_timer_create(&t2, &s.reconnect));
     ESP_ERROR_CHECK(esp_timer_create(&t3, &s.ap_close));
 #endif
-#ifdef CONFIG_OH_TRANSPORT_ETH_RMII
+#ifdef CONFIG_OH_TRANSPORT_ETH
     extern esp_err_t oh_eth_init(const char *hostname, esp_netif_t **netif);
     err = oh_eth_init(s.hostname, &s.eth);
     if (err != ESP_OK) {
@@ -399,6 +415,9 @@ esp_err_t oh_net_init(const char *hostname)
     ESP_ERROR_CHECK(esp_timer_create(&t4, &s.eth_fallback));
     esp_timer_start_once(s.eth_fallback,
                          err == ESP_OK ? (uint64_t)CONFIG_OH_WIFI_STA_TIMEOUT_S * 1000000 : 1000000);
+    if (err == ESP_OK) {
+        ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, on_eth_link, NULL));
+    }
     return ESP_OK;
 #else
     return err;

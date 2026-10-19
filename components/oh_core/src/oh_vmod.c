@@ -473,3 +473,82 @@ bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *ou
     }
     return false;
 }
+
+/* ── Built-in I/O ─────────────────────────────────────────────────────── */
+
+bool oh_vmod_board_v0(const oh_vmod_board_io_t *io, oh_module_t *out)
+{
+    begin(out, OH_MODULE_TYPE_NODE_V0, "Node V0", "", OH_MODULE_FLAG_MAINS);
+    strncpy(out->module.rev, io->rev ? io->rev : "", OH_REV_MAX - 1);
+    out->source = OH_MOD_SRC_BOARD;
+
+    /* Ports 0-3: the relays, which may switch mains (G2RL, 10 A). */
+    for (uint8_t n = 0; n < 4; n++) {
+        char name[OH_NAME_MAX];
+        snprintf(name, sizeof(name), "Relay %u", n + 1);
+        oh_port_desc_t p = oh_port_new(n, name, OH_ACCESS_READWRITE, OH_DT_BOOLEAN);
+        oh_port_set_default(&p, 0);
+        oh_port_set_class(&p, "switch");
+        oh_port_set_effects(&p, OH_EFFECT_SQUARE | OH_EFFECT_STEPS);
+        if (!oh_module_add_port(out, &p)) {
+            return false;
+        }
+        if (io->relays[n] >= 0) {
+            bind1(out, "gpio_out", n, ",\"gpio\":%d", io->relays[n]);
+        }
+    }
+
+    /* Ports 4-5: the sensor terminals. Both revisions pull up on the board, so
+     * the GPIO needs no pull of its own. */
+    for (uint8_t n = 0; n < 2; n++) {
+        char name[OH_NAME_MAX];
+        snprintf(name, sizeof(name), "Sensor %u", n + 1);
+        uint8_t port = 4 + n;
+        oh_port_desc_t p = oh_port_new(port, name, OH_ACCESS_READONLY, OH_DT_BOOLEAN);
+        oh_port_set_class(&p, "contact");
+        if (!oh_module_add_port(out, &p)) {
+            return false;
+        }
+        if (io->inputs[n] >= 0) {
+            bind1(out, "gpio_in", port, io->input_contact_low ? ",\"gpio\":%d,\"pull\":\"none\",\"invert\":true"
+                                                              : ",\"gpio\":%d,\"pull\":\"none\"",
+                  io->inputs[n]);
+        }
+    }
+
+    /* Ports 6-9: the strips, a colour and a brightness each. Only the first
+     * carries the classes: the console reads `color` and `intensity` as one
+     * parameter per fixture, so a second strip with the same classes would
+     * land on the same key. The second is named instead until the console
+     * keys those by port. */
+    const uint8_t everything = OH_EFFECT_ALL_SHAPES | OH_EFFECT_STEPS | OH_EFFECT_TRANSITIONS;
+    for (uint8_t n = 0; n < 2; n++) {
+        uint8_t ports[2] = {(uint8_t)(6 + 2 * n), (uint8_t)(7 + 2 * n)};
+        char name[OH_NAME_MAX];
+        snprintf(name, sizeof(name), "Strip %u colour", n + 1);
+        oh_port_desc_t c = oh_port_new(ports[0], name, OH_ACCESS_READWRITE, OH_DT_COLOR);
+        snprintf(name, sizeof(name), "Strip %u brightness", n + 1);
+        oh_port_desc_t b = oh_port_new(ports[1], name, OH_ACCESS_READWRITE, OH_DT_NUMBER);
+        oh_port_set_unit(&b, "percent");
+        oh_port_set_range(&b, 0, 1);
+        oh_port_set_default(&b, 0);
+        if (n == 0) {
+            oh_port_set_class(&c, "color");
+            oh_port_set_class(&b, "intensity");
+        }
+        oh_port_set_effects(&c, everything);
+        oh_port_set_effects(&b, everything);
+        if (!oh_module_add_port(out, &c) || !oh_module_add_port(out, &b)) {
+            return false;
+        }
+        if (io->strips[n] >= 0) {
+            char params[OH_BINDING_PARAMS_MAX];
+            snprintf(params, sizeof(params), "{\"driver\":\"ws2812\",\"ports\":[%u,%u],\"gpio\":%d,\"count\":%d}",
+                     ports[0], ports[1], io->strips[n], io->strip_count > 0 ? io->strip_count : 1);
+            if (!oh_module_add_binding(out, "ws2812", ports, 2, params)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}

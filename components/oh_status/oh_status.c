@@ -10,9 +10,9 @@
 #include "led_strip.h"
 static led_strip_handle_t s_strip;
 #endif
-#ifdef CONFIG_OH_STATUS_LED_MONO_GPIO
 #include "driver/gpio.h"
-#endif
+#include "soc/gpio_reg.h"
+#include "soc/soc.h"
 
 static const char *TAG __attribute__((unused)) = "oh_status";
 
@@ -53,14 +53,61 @@ static void led_set(bool on, rgb_t colour)
 #endif
 }
 
+static void out_pin(int gpio)
+{
+    if (gpio >= 0) {
+        gpio_config_t cfg = {.pin_bit_mask = 1ULL << gpio, .mode = GPIO_MODE_OUTPUT};
+        gpio_config(&cfg);
+        gpio_set_level(gpio, 0);
+    }
+}
+
+/* What a pin is driving, read back from the output register: an output-only
+ * pad has its input buffer off, so gpio_get_level would always say low. */
+static bool driven_high(int gpio)
+{
+#ifdef GPIO_OUT1_REG
+    uint32_t reg = gpio < 32 ? REG_READ(GPIO_OUT_REG) : REG_READ(GPIO_OUT1_REG);
+#else
+    uint32_t reg = REG_READ(GPIO_OUT_REG);
+#endif
+    return (reg >> (gpio & 31)) & 1;
+}
+
+/* The indicator LEDs beside each relay and sensor terminal (V0.2) follow the
+ * pins rather than the ports, so they say what the hardware is doing whatever
+ * module is bound: a relay LED is lit while its coil is driven, whoever drives
+ * it. Read every tick rather than on port events, which would miss a pin a
+ * driver toggles without going through a port. */
+static void mirror_indicators(void)
+{
+    const oh_board_pins_t *b = oh_board_pins();
+    for (int i = 0; i < 4; i++) {
+        if (b->relay_leds[i] >= 0 && b->relays[i] >= 0) {
+            gpio_set_level(b->relay_leds[i], driven_high(b->relays[i]));
+        }
+    }
+    for (int i = 0; i < 2; i++) {
+        if (b->sensor_leds[i] >= 0 && b->sensors[i] >= 0) {
+            bool level = gpio_get_level(b->sensors[i]);
+            gpio_set_level(b->sensor_leds[i], level != b->sensor_contact_low);
+        }
+    }
+}
+
 /* 50 ms ticks. Each pattern is "on for these ticks out of this period". */
 static void on_tick(void *arg)
 {
     (void)arg;
     uint32_t t = s.n++;
     int64_t now = esp_timer_get_time();
+    mirror_indicators();
+    const int err_led = oh_board_pins()->error_led;
     if (now < s.identify_until_us) {
         led_set((t & 1) == 0, (rgb_t){60, 60, 60});
+        if (err_led >= 0) {
+            gpio_set_level(err_led, (t & 1) == 0);
+        }
         return;
     }
     rgb_t colour;
@@ -88,13 +135,16 @@ static void on_tick(void *arg)
         on = true; /* steady dim green: adopted and talking */
         break;
     }
-    if (s.fault) {
+    uint32_t phase = t % 40;
+    bool flash = phase < 2 || (phase >= 4 && phase < 6);
+    if (err_led >= 0) {
+        /* A board with its own red LED double-flashes that and leaves the
+         * status pattern alone. */
+        gpio_set_level(err_led, s.fault && flash);
+    } else if (s.fault && phase < 8) {
         /* A double red flash rides on top every 2 s. */
-        uint32_t phase = t % 40;
-        if (phase < 8) {
-            colour = (rgb_t){60, 0, 0};
-            on = phase < 2 || (phase >= 4 && phase < 6);
-        }
+        colour = (rgb_t){60, 0, 0};
+        on = flash;
     }
     led_set(on, colour);
 }
@@ -162,6 +212,14 @@ esp_err_t oh_status_start(void)
         gpio_config(&cfg);
     }
 #endif
+    const oh_board_pins_t *b = oh_board_pins();
+    out_pin(b->error_led);
+    for (int i = 0; i < 4; i++) {
+        out_pin(b->relay_leds[i]);
+    }
+    for (int i = 0; i < 2; i++) {
+        out_pin(b->sensor_leds[i]);
+    }
     char codes[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
     s.fault = oh_node_errors(codes, OH_MAX_ERRORS) > 0;
     ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, ESP_EVENT_ANY_ID, on_event, NULL));

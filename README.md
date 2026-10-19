@@ -36,10 +36,59 @@ so it does not start advertising until the module is re-applied — `oh vmod pre
 | `oh-base` | The OpenHaunt base board: ESP32-WROOM-32, RMII Ethernet (RTL8201), W25Q128 | Ethernet, Wi-Fi fallback | compiles; no hardware yet |
 | `esp32c6-devkitc-1` | ESP32-C6-DevKitC-1 | Wi-Fi | compiles; untested |
 | `esp32-1732s019` | Sunton ESP32-1732S019 (ESP32-S3, 1.9" ST7789) | Wi-Fi | tested end to end |
+| `oh-node-v0.1` | OpenHaunt Node V0.1 prototype (ESP32-S3-WROOM-1-N16R2, W5500, 12 V PoE) | Ethernet, Wi-Fi fallback | builds; not yet flashed |
+| `oh-node-v0.2` | OpenHaunt Node V0.2 prototype (same, 5 V PoE or USB power bank, line out) | Ethernet, Wi-Fi fallback | builds; not yet flashed |
 
 Everything board-specific lives in `boards/<board>/sdkconfig.board` and the
 Kconfig menu *OpenHaunt board* (`components/oh_board/Kconfig`): pins, transport,
 status LED, display, the GPIOs presets may bind.
+
+## The V0 prototype
+
+The V0 boards (OpenHaunt/node `hardware/OH_Node_V0_Prototype`, pin plan in docs/12) carry
+their I/O on the board and have no module connector, so there is no EEPROM to read. A V0
+node describes itself from the board instead: module type **`0x0F01` "Node V0"**, source
+`board`, rev `0.1` or `0.2`, with ten ports.
+
+| Port | What | Driver | Pin (V0.1 / V0.2) |
+|---:|---|---|---|
+| 0–3 | Relay 1–4, class `switch` | `gpio_out` | 4, 5, 6, 7 |
+| 4–5 | Sensor 1–2, class `contact` | `gpio_in` | 15, 16 |
+| 6, 7 | Strip 1 colour and brightness, classes `color`, `intensity` | `ws2812` | 17 |
+| 8, 9 | Strip 2 colour and brightness, no class | `ws2812` | 18 / **38** |
+
+The ports and their names are the same on both revisions, so the console derives one fixture
+type for all ten nodes. Only the bindings differ. A stored virtual module still wins over this
+(`oh vmod set ...`), and `oh vmod clear` goes back to it.
+
+Decisions, and why:
+
+- **A sensor port reads true for a contact closed to GND, on both revisions.** V0.1 pulls the
+  GPIO up through the terminal, so a closed contact reads low; V0.2's transistor stage reads
+  it high. The board config (`OH_SENSOR_CONTACT_READS_LOW`) inverts to match, so the port
+  means the same on either. An open terminal reads false on both. A sensor that *drives* its
+  output (an HC-SR501 style 3.3 V "high on motion") reads the other way round on both
+  revisions. Flip `invert` on its binding with a virtual module for that one.
+- **The second strip carries no class.** The console reads `color` and `intensity` as one
+  parameter per fixture, so two strips with the same classes would share a key. Strip 2 is
+  named ("Strip 2 colour") until the console keys those classes by port.
+- **60 pixels per strip, no DMA.** The S3 has one DMA-capable RMT channel and two strips
+  cannot both have it; the driver turns DMA on above 64 pixels. `OH_STRIP_PIXELS` changes it.
+- **Ethernet first, Wi-Fi as the fallback.** The W5500 starts at boot. Wi-Fi starts if the
+  cable has produced no address within `OH_WIFI_STA_TIMEOUT_S` (30 s), if the W5500 does not
+  answer on SPI (after 1 s), or 30 s after the link goes down later. Once Wi-Fi is up it stays
+  up until a reboot; the address reported prefers Ethernet whenever both have one. So a node
+  on the far side of the garden needs only Wi-Fi credentials, and a cabled one needs nothing.
+- **The W5500 is given the S3's Ethernet MAC** from efuse, since it has none of its own.
+  It runs at 20 MHz (`OH_W5500_CLOCK_MHZ`) because the V0 pins go through the GPIO matrix.
+- **Yellow is status, red is faults.** The yellow LED (GPIO36) shows the usual patterns; on a
+  board with a red LED (GPIO35) a fault double-flashes that instead of riding on the yellow.
+  On V0.2 the LED beside each relay and each sensor terminal follows the pin itself, whichever
+  module is bound.
+- **Audio is silent until a driver claims it.** The I2S pins (40, 41, 42), `AMP_EN` (48) and the
+  V0.2 DAC's `XSMT` (39) are defined in the board config; boot holds the amplifier off and the
+  DAC muted. No audio driver exists yet.
+- **The console is the USB-C socket** (the S3's USB Serial/JTAG). UART0 is on test points.
 
 ## Building
 
@@ -49,6 +98,7 @@ ESP-IDF v5.5 (installed with [eim](https://github.com/espressif/idf-im-ui) at
 ```
 scripts/build.sh esp32-1732s019                       # build
 scripts/build.sh esp32-1732s019 -p /dev/cu.usbserial-110 flash monitor
+scripts/build.sh oh-node-v0.2 -p /dev/cu.usbmodem101 flash monitor   # USB-C on the board
 scripts/build.sh oh-base menuconfig
 scripts/build.sh esp32c6-devkitc-1 --fresh build      # after changing sdkconfig defaults
 ```
@@ -156,6 +206,11 @@ scripts/oh-cmd.sh "oh info" "oh vmod preset input" "oh in 1 1"
 `scripts/pult-call.mjs` adopts or identifies a node in a running the-pult.
 
 ## Status
+
+The V0 boards build cleanly for both revisions and the host tests pass, but **no V0 board
+has run this firmware yet**: the W5500 bring-up, the Wi-Fi fallback on that board, the sensor
+polarity on real terminals, the strips on GPIO17/18/38 and the indicator LEDs are all written
+from the schematic and unverified.
 
 Verified on the ESP32-1732S019 against the-pult: setup AP and captive portal,
 discovery and the TXT record, every `/api/v1` endpoint, adoption, MQTT in both

@@ -60,6 +60,19 @@ oh_vmod_pins_t oh_app_preset_pins(void)
     return p;
 }
 
+oh_vmod_board_io_t oh_app_board_io(void)
+{
+    const oh_board_pins_t *b = oh_board_pins();
+    oh_vmod_board_io_t io;
+    memcpy(io.relays, b->relays, sizeof(io.relays));
+    memcpy(io.inputs, b->sensors, sizeof(io.inputs));
+    io.input_contact_low = b->sensor_contact_low;
+    memcpy(io.strips, b->strips, sizeof(io.strips));
+    io.strip_count = b->strip_pixels;
+    io.rev = oh_board_rev();
+    return io;
+}
+
 /* ── Module selection ─────────────────────────────────────────────────── */
 
 static void fill_module_sn(oh_module_t *m)
@@ -133,7 +146,19 @@ esp_err_t oh_app_select_module(void)
         }
         ESP_LOGE(TAG, "stored virtual module is unusable (%s); running headless", err);
     }
-    /* 3. Nothing: headless, but on the network and findable. */
+    /* 3. The board's own I/O, where it has some. */
+    if (oh_board_has_builtin_io()) {
+        oh_vmod_board_io_t io = oh_app_board_io();
+        if (oh_vmod_board_v0(&io, m)) {
+            fill_module_sn(m);
+            ESP_LOGI(TAG, "built-in I/O \"%s\" rev %s", m->module.name, m->module.rev);
+            rc = bind_and_announce(m);
+            free(m);
+            return rc;
+        }
+        ESP_LOGE(TAG, "built-in I/O does not describe; running headless");
+    }
+    /* 4. Nothing: headless, but on the network and findable. */
     oh_module_init_headless(m);
     fill_module_sn(m);
     rc = bind_and_announce(m);
@@ -212,7 +237,16 @@ const char *oh_app_module_source(void)
     oh_node_lock();
     oh_module_source_t src = oh_node_module()->source;
     oh_node_unlock();
-    return src == OH_MOD_SRC_EEPROM ? "eeprom" : src == OH_MOD_SRC_VIRTUAL ? "virtual" : "none";
+    switch (src) {
+    case OH_MOD_SRC_EEPROM:
+        return "eeprom";
+    case OH_MOD_SRC_VIRTUAL:
+        return "virtual";
+    case OH_MOD_SRC_BOARD:
+        return "board";
+    default:
+        return "none";
+    }
 }
 
 void oh_app_announce(void)
@@ -275,6 +309,7 @@ void oh_app_factory_reset(void)
 esp_err_t oh_app_init(void)
 {
     oh_module_reset_hold();
+    oh_board_init();
     uint8_t mac[6];
     esp_efuse_mac_get_default(mac);
     snprintf(s_sn, sizeof(s_sn), "%02x%02x%02x%02x", mac[2], mac[3], mac[4], mac[5]);

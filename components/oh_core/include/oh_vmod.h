@@ -44,6 +44,30 @@ typedef struct {
 bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *out);
 const char *const *oh_vmod_preset_keys(size_t *n);
 
+/*
+ * A board whose I/O is soldered on rather than plugged in: the V0 prototype has
+ * four relays, two sensor terminals and two strip outputs and no module
+ * connector at all, so there is no EEPROM to read and nothing for a preset to
+ * pose as. What it is follows from the board, and this is that description.
+ * A stored virtual module still wins over it, so a terminal can be rebound.
+ */
+#define OH_MODULE_TYPE_NODE_V0 0x0F01
+
+typedef struct {
+    int relays[4];          /* -1 = not fitted */
+    int inputs[2];
+    /* What the board does to a contact closed to GND on the terminal. V0.1
+     * pulls the GPIO up through the terminal, so a closed contact reads low;
+     * V0.2 puts a transistor in the way, so it reads high. Either way the port
+     * reads true for a closed contact, and both revisions describe the same. */
+    bool input_contact_low;
+    int strips[2];
+    int strip_count;        /* pixels driven per strip */
+    const char *rev;        /* "0.1", "0.2" */
+} oh_vmod_board_io_t;
+
+bool oh_vmod_board_v0(const oh_vmod_board_io_t *io, oh_module_t *out);
+
 #ifdef __cplusplus
 }
 #endif

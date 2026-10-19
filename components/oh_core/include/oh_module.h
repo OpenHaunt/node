@@ -62,6 +62,7 @@ typedef enum {
     OH_MOD_SRC_NONE = 0, /* headless: no module found, nothing configured */
     OH_MOD_SRC_EEPROM,
     OH_MOD_SRC_VIRTUAL,
+    OH_MOD_SRC_BOARD, /* built-in I/O, from the board itself (V0 prototype) */
 } oh_module_source_t;
 
 typedef struct {

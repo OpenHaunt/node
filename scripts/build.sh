@@ -13,6 +13,7 @@ case "$BOARD" in
     oh-base) TARGET=esp32 ;;
     esp32c6-devkitc-1) TARGET=esp32c6 ;;
     esp32-1732s019) TARGET=esp32s3 ;;
+    oh-node-v0.1|oh-node-v0.2) TARGET=esp32s3 ;;
     *) echo "unknown board $BOARD (see boards/)"; exit 1 ;;
 esac
 if ! command -v idf.py >/dev/null 2>&1; then

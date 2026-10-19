@@ -30,8 +30,10 @@ esp_err_t oh_app_select_module(void);
 esp_err_t oh_app_set_vmod_json(const char *json, char *err);
 esp_err_t oh_app_set_preset(const char *key, char *err);
 esp_err_t oh_app_clear_vmod(void);
-const char *oh_app_module_source(void); /* "eeprom" | "virtual" | "none" */
+const char *oh_app_module_source(void); /* "eeprom" | "virtual" | "board" | "none" */
 oh_vmod_pins_t oh_app_preset_pins(void);
+/* The board's built-in I/O, for boards that have it (oh_board_has_builtin_io). */
+oh_vmod_board_io_t oh_app_board_io(void);
 
 /* Re-publish the TXT record from the current module and name. */
 void oh_app_announce(void);

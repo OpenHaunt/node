@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "driver/gpio.h"
 #include "sdkconfig.h"
 
 static void parse_list(const char *text, int *out, int cap)
@@ -48,6 +49,31 @@ const oh_board_pins_t *oh_board_pins(void)
 #endif
         parse_list(CONFIG_OH_PRESET_INPUT_GPIOS, pins.preset_inputs, 8);
         parse_list(CONFIG_OH_PRESET_OUTPUT_GPIOS, pins.preset_outputs, 4);
+#ifdef CONFIG_OH_BOARD_OH_NODE_V0
+        parse_list(CONFIG_OH_PIN_RELAYS, pins.relays, 4);
+        parse_list(CONFIG_OH_PIN_SENSORS, pins.sensors, 2);
+#ifdef CONFIG_OH_SENSOR_CONTACT_READS_LOW
+        pins.sensor_contact_low = true;
+#endif
+        parse_list(CONFIG_OH_PIN_STRIPS, pins.strips, 2);
+        pins.strip_pixels = CONFIG_OH_STRIP_PIXELS;
+        parse_list(CONFIG_OH_PIN_RELAY_LEDS, pins.relay_leds, 4);
+        parse_list(CONFIG_OH_PIN_SENSOR_LEDS, pins.sensor_leds, 2);
+        pins.i2s_dout = CONFIG_OH_PIN_I2S_DOUT;
+        pins.i2s_bclk = CONFIG_OH_PIN_I2S_BCLK;
+        pins.i2s_ws = CONFIG_OH_PIN_I2S_WS;
+        pins.amp_en = CONFIG_OH_PIN_AMP_EN;
+        pins.dac_mute = CONFIG_OH_PIN_DAC_MUTE;
+#else
+        parse_list("", pins.relays, 4);
+        parse_list("", pins.sensors, 2);
+        parse_list("", pins.strips, 2);
+        parse_list("", pins.relay_leds, 4);
+        parse_list("", pins.sensor_leds, 2);
+        pins.i2s_dout = pins.i2s_bclk = pins.i2s_ws = -1;
+        pins.amp_en = pins.dac_mute = -1;
+#endif
+        pins.error_led = CONFIG_OH_PIN_ERROR_LED;
         ready = true;
     }
     return &pins;
@@ -69,9 +95,45 @@ bool oh_board_has_display(void)
 
 bool oh_board_has_ethernet(void)
 {
-#ifdef CONFIG_OH_TRANSPORT_ETH_RMII
+#ifdef CONFIG_OH_TRANSPORT_ETH
     return true;
 #else
     return false;
 #endif
+}
+
+bool oh_board_has_builtin_io(void)
+{
+#ifdef CONFIG_OH_BOARD_OH_NODE_V0
+    return true;
+#else
+    return false;
+#endif
+}
+
+const char *oh_board_rev(void)
+{
+#if defined(CONFIG_OH_BOARD_OH_NODE_V0_1)
+    return "0.1";
+#elif defined(CONFIG_OH_BOARD_OH_NODE_V0_2)
+    return "0.2";
+#else
+    return "";
+#endif
+}
+
+void oh_board_init(void)
+{
+    const oh_board_pins_t *b = oh_board_pins();
+    /* Audio stays silent until a driver claims it: the amplifier off and the
+     * DAC muted. Both already default that way through their resistors; this
+     * makes it so after a soft reset as well. */
+    int quiet[] = {b->amp_en, b->dac_mute};
+    for (size_t i = 0; i < sizeof(quiet) / sizeof(quiet[0]); i++) {
+        if (quiet[i] >= 0) {
+            gpio_config_t cfg = {.pin_bit_mask = 1ULL << quiet[i], .mode = GPIO_MODE_OUTPUT};
+            gpio_config(&cfg);
+            gpio_set_level(quiet[i], 0);
+        }
+    }
 }
