@@ -68,8 +68,9 @@ J12 in V0.2: 3V3, 5V, 12V, GPIO2, GPIO18, SCL, SDA, GND (pins 1–8).
 
 OpenHaunt/firmware builds `oh-node-v0.1` and `oh-node-v0.2` (`scripts/build.sh <board>`). A V0 node
 describes its on-board I/O as module type `0x0F01` "Node V0" (source `board`): relays on ports 0–3,
-the sensor terminals on 4–5, strip 1 on 6–7 and strip 2 on 8–9, identical on both revisions so the
-console makes one fixture type of them. The revision only changes the bindings: the sensor polarity
+the sensor terminals on 4–5, and each strip as a head of its own (head 1 on ports 6–14, head 2 on
+15–23, or no ports at all in `sacn` mode: see [14 — Pixel strips, and heads](14-pixels.md)),
+identical on both revisions so the console makes one fixture type per head. The revision only changes the bindings: the sensor polarity
 (a contact closed to GND reads *true* on both, so V0.1 inverts and V0.2 does not) and the second strip
 pin. Ethernet (W5500, 20 MHz, the S3's own Ethernet MAC) comes first and Wi-Fi is the fallback. Details
 and the reasons are in the firmware README, "The V0 prototype". None of it has run on a board yet.
