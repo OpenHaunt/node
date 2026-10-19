@@ -26,6 +26,10 @@ Every board takes 5 V from `J3` and makes its own 3.3 V with an LDO; there is no
 | `0x0009` | `IO-PWM4` | PWM output, 4× 16 bit | 5V, 12V or 24V by jumper | any | Concept |
 | `0x000A` | `IO-STEP1` | Stepper with encoder, 1× | 5V, 24V | `PWR-BT` | Concept |
 
+`0x0F01` is not an IO board: it is the I/O soldered onto the V0 prototype (relays, sensor terminals,
+two strip outputs), which a V0 node reports as its module because it has no connector to read one from.
+`0x0Fxx` is kept for built-in I/O of this kind; see [12](12-v0-prototype.md), "Firmware".
+
 **Build order: `IO-LED8`, `IO-REL4`, `IO-DMX2`, then the rest.** The first board pays for the shared base:
 RP2354, crystal, SWD, USB service connector, J3 and J4, the reset and boot lines, and the link firmware.
 That base wants a periphery with as few unknowns as possible, and `IO-LED8` is a level shifter and

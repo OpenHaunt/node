@@ -64,6 +64,16 @@ V0.2 (2026-10-17) uses the spares and GPIO39, and swaps GPIO18 and GPIO38:
 
 J12 in V0.2: 3V3, 5V, 12V, GPIO2, GPIO18, SCL, SDA, GND (pins 1–8).
 
+## Firmware
+
+OpenHaunt/firmware builds `oh-node-v0.1` and `oh-node-v0.2` (`scripts/build.sh <board>`). A V0 node
+describes its on-board I/O as module type `0x0F01` "Node V0" (source `board`): relays on ports 0–3,
+the sensor terminals on 4–5, strip 1 on 6–7 and strip 2 on 8–9, identical on both revisions so the
+console makes one fixture type of them. The revision only changes the bindings: the sensor polarity
+(a contact closed to GND reads *true* on both, so V0.1 inverts and V0.2 does not) and the second strip
+pin. Ethernet (W5500, 20 MHz, the S3's own Ethernet MAC) comes first and Wi-Fi is the fallback. Details
+and the reasons are in the firmware README, "The V0 prototype". None of it has run on a board yet.
+
 ## Power budget
 
 **At 5 V** (unchanged loads): ESP32-S3 and W5500 through the LDO 1.8 W typical, 2.5 W peak. Four relays held
