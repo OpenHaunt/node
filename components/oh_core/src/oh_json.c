@@ -70,7 +70,26 @@ cJSON *oh_json_port_desc(const oh_port_desc_t *p)
         cJSON_AddBoolToObject(effects, "steps", (p->effects & OH_EFFECT_STEPS) != 0);
         cJSON_AddBoolToObject(effects, "transitions", (p->effects & OH_EFFECT_TRANSITIONS) != 0);
     }
+    /* Absent is head 0, the node itself, which is what every port was before heads. */
+    if (p->head) {
+        cJSON_AddNumberToObject(o, "head", p->head);
+    }
     return o;
+}
+
+cJSON *oh_json_heads(const oh_module_t *m)
+{
+    cJSON *heads = cJSON_CreateArray();
+    for (int i = 0; i < m->n_heads; i++) {
+        cJSON *h = cJSON_CreateObject();
+        cJSON_AddNumberToObject(h, "head", m->heads[i].head);
+        cJSON_AddStringToObject(h, "name", m->heads[i].name);
+        if (m->heads[i].kind[0]) {
+            cJSON_AddStringToObject(h, "kind", m->heads[i].kind);
+        }
+        cJSON_AddItemToArray(heads, h);
+    }
+    return heads;
 }
 
 static cJSON *dmx_json(const oh_dmx_desc_t *d)
@@ -106,6 +125,9 @@ cJSON *oh_json_info(const oh_module_t *m, const oh_node_identity_t *id)
     cJSON *ports = cJSON_AddArrayToObject(o, "ports");
     for (int i = 0; i < m->n_ports; i++) {
         cJSON_AddItemToArray(ports, oh_json_port_desc(&m->ports[i]));
+    }
+    if (m->n_heads) {
+        cJSON_AddItemToObject(o, "heads", oh_json_heads(m));
     }
     /* Present only on a node that forwards a universe: its absence is what
      * tells a controller there is none to allocate. */

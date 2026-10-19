@@ -29,6 +29,8 @@ bool oh_e131_parse(const uint8_t *packet, size_t len, oh_e131_frame_t *out)
     if (count == 0 || count > 513 || (size_t)125 + count > len) {
         return false;
     }
+    memcpy(out->cid, packet + 22, 16);
+    out->options = packet[112];
     out->priority = packet[108];
     out->sequence = packet[111];
     out->universe = be16(packet + 113);

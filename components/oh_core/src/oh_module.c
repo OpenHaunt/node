@@ -36,6 +36,29 @@ bool oh_module_add_port(oh_module_t *m, const oh_port_desc_t *p)
     return true;
 }
 
+bool oh_module_add_head(oh_module_t *m, uint8_t head, const char *name, const char *kind)
+{
+    if (head == 0 || head > OH_HEAD_MAX || m->n_heads >= OH_MAX_HEADS || oh_module_find_head(m, head)) {
+        return false;
+    }
+    oh_head_desc_t *h = &m->heads[m->n_heads++];
+    memset(h, 0, sizeof(*h));
+    h->head = head;
+    strncpy(h->name, name ? name : "", OH_NAME_MAX - 1);
+    strncpy(h->kind, kind ? kind : "", OH_HEAD_KIND_MAX - 1);
+    return true;
+}
+
+const oh_head_desc_t *oh_module_find_head(const oh_module_t *m, uint8_t head)
+{
+    for (int i = 0; i < m->n_heads; i++) {
+        if (m->heads[i].head == head) {
+            return &m->heads[i];
+        }
+    }
+    return NULL;
+}
+
 bool oh_module_add_binding(oh_module_t *m, const char *driver, const uint8_t *ports, uint8_t n_ports,
                            const char *params_json)
 {

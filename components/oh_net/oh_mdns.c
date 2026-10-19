@@ -27,7 +27,8 @@ esp_err_t oh_mdns_start(const char *sn)
     return ESP_OK;
 }
 
-esp_err_t oh_mdns_update(const oh_module_t *module, const char *name, const char *fw, const char *sn)
+esp_err_t oh_mdns_update(const oh_module_t *module, const char *name, const char *fw, const char *sn,
+                         const char *desc)
 {
     if (!s_started) {
         return ESP_ERR_INVALID_STATE;
@@ -44,6 +45,7 @@ esp_err_t oh_mdns_update(const oh_module_t *module, const char *name, const char
         {"modrev", (char *)module->module.rev},
         {"caps", (char *)module->module.caps},
         {"name", (char *)name},
+        {"desc", (char *)(desc ? desc : "")},
         {"mains", "1"},
     };
     size_t n = sizeof(txt) / sizeof(txt[0]);
@@ -52,5 +54,6 @@ esp_err_t oh_mdns_update(const oh_module_t *module, const char *name, const char
     if (!oh_module_switches_mains(module)) {
         n--;
     }
+
     return mdns_service_txt_set("_openhaunt", "_tcp", txt, n);
 }

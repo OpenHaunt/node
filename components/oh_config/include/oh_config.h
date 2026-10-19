@@ -10,6 +10,7 @@
 #include "cJSON.h"
 #include "esp_err.h"
 #include "oh_module.h"
+#include "oh_pixel.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,6 +66,16 @@ uint16_t oh_config_ws_count(void);
 esp_err_t oh_config_set_ws_count(uint16_t count);
 
 /* Everything, gone. */
+/*
+ * A strip output's mode and settings (doc 14). `get` leaves `out->count` at zero
+ * when nothing is stored, which the V0 builder reads as "the defaults". Stored as
+ * the strip's own JSON and parsed back through the same validation, so a value
+ * that could not have been set over HTTP cannot come back out of flash either.
+ */
+#define OH_CFG_PIXEL_OUTPUTS 2
+esp_err_t oh_config_pixels_get(int output, oh_pix_cfg_t *out);
+esp_err_t oh_config_pixels_set(int output, const oh_pix_cfg_t *cfg);
+
 esp_err_t oh_config_erase_all(void);
 
 #ifdef __cplusplus

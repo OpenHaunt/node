@@ -20,6 +20,8 @@ typedef struct {
 } oh_node_identity_t;
 
 cJSON *oh_json_port_desc(const oh_port_desc_t *p);
+/* The `heads` list of `info` (doc 14). */
+cJSON *oh_json_heads(const oh_module_t *m);
 cJSON *oh_json_info(const oh_module_t *m, const oh_node_identity_t *id);
 
 /* {"outputs":{"<n>":payload}} for every port. `states` is indexed like m->ports. */

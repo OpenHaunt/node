@@ -21,7 +21,12 @@ extern "C" {
  * include the JSON header without a cycle. */
 #define OH_ERR_MAX 96
 
-#define OH_MAX_PORTS 16
+/* 32 since the V0 strips grew their effect parameters (doc 14): four relays, two
+ * sensors and nine ports per strip is 24. */
+#define OH_MAX_PORTS 32
+/* Heads other than 0 a node may describe (doc 14). */
+#define OH_MAX_HEADS 4
+#define OH_HEAD_MAX 15
 #define OH_NAME_MAX 32
 #define OH_UNIT_MAX 24
 #define OH_CLASS_MAX 16
@@ -63,6 +68,12 @@ typedef struct {
      * through the vmod round trip and stored in EEPROM, and a byte is a byte.
      */
     uint8_t effects;
+    /*
+     * Which head of the node the port belongs to (doc 14). Zero — the default, and
+     * absent on the wire — is the node itself, which is every port that was ever
+     * described before heads existed. A class is unique per head, not per node.
+     */
+    uint8_t head;
 } oh_port_desc_t;
 
 /* Shapes this port can trace, and the two other things it may be able to do. */
@@ -122,6 +133,7 @@ void oh_port_set_class(oh_port_desc_t *p, const char *cls);
 void oh_port_set_range(oh_port_desc_t *p, float minimum, float maximum);
 void oh_port_set_default(oh_port_desc_t *p, float value);
 void oh_port_set_effects(oh_port_desc_t *p, uint8_t effects);
+void oh_port_set_head(oh_port_desc_t *p, uint8_t head);
 
 /* The bit for one shape index, or 0 for an index this build does not know. */
 uint8_t oh_effect_shape_bit(int shape_index);

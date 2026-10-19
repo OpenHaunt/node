@@ -181,7 +181,7 @@ static void both_v0_revisions_describe_the_same_ports(void)
     TEST_ASSERT_EQUAL_HEX16(OH_MODULE_TYPE_NODE_V0, one.module.type);
     TEST_ASSERT_EQUAL(OH_MOD_SRC_BOARD, one.source);
     TEST_ASSERT_EQUAL_STRING("0.2", two.module.rev);
-    TEST_ASSERT_EQUAL(10, one.n_ports);
+    TEST_ASSERT_EQUAL(24, one.n_ports);
     TEST_ASSERT_EQUAL(one.n_ports, two.n_ports);
     /* The console derives one fixture type from the ports, so what the two
      * revisions say about them has to be identical. */
@@ -191,12 +191,25 @@ static void both_v0_revisions_describe_the_same_ports(void)
         TEST_ASSERT_EQUAL_STRING(one.ports[i].class_, two.ports[i].class_);
         TEST_ASSERT_EQUAL(one.ports[i].type, two.ports[i].type);
         TEST_ASSERT_EQUAL(one.ports[i].access, two.ports[i].access);
+        TEST_ASSERT_EQUAL(one.ports[i].head, two.ports[i].head);
     }
     TEST_ASSERT_EQUAL_STRING("switch", one.ports[0].class_);
     TEST_ASSERT_EQUAL_STRING("contact", one.ports[4].class_);
+    TEST_ASSERT_EQUAL(0, one.ports[5].head);
+    /* Each strip is a head of its own, and both carry the classes: they are unique
+     * per head, which is the whole reason heads exist. */
+    TEST_ASSERT_EQUAL(2, one.n_heads);
+    TEST_ASSERT_EQUAL_STRING("pixel-strip", one.heads[1].kind);
     TEST_ASSERT_EQUAL(OH_DT_COLOR, one.ports[6].type);
     TEST_ASSERT_EQUAL_STRING("color", one.ports[6].class_);
-    TEST_ASSERT_EQUAL_STRING("", one.ports[8].class_);
+    TEST_ASSERT_EQUAL(1, one.ports[6].head);
+    TEST_ASSERT_EQUAL_STRING("color", one.ports[15].class_);
+    TEST_ASSERT_EQUAL_STRING("intensity", one.ports[16].class_);
+    TEST_ASSERT_EQUAL(2, one.ports[15].head);
+    TEST_ASSERT_EQUAL(OH_DT_STRING, one.ports[9].type);
+    TEST_ASSERT_EQUAL_STRING("pixel-effect", one.ports[9].class_);
+    TEST_ASSERT_EQUAL_STRING("", one.ports[8].class_); /* Colour 2: a named parameter */
+    TEST_ASSERT_EQUAL(23, one.ports[23].port);
 }
 
 static void the_v0_revisions_differ_only_in_their_bindings(void)
@@ -213,7 +226,8 @@ static void the_v0_revisions_differ_only_in_their_bindings(void)
     TEST_ASSERT_NULL(strstr(two.bindings[4].params_json, "invert"));
     TEST_ASSERT_NOT_NULL(strstr(one.bindings[7].params_json, "\"gpio\":18"));
     TEST_ASSERT_NOT_NULL(strstr(two.bindings[7].params_json, "\"gpio\":38"));
-    TEST_ASSERT_NOT_NULL(strstr(two.bindings[7].params_json, "\"ports\":[8,9]"));
+    TEST_ASSERT_NOT_NULL(strstr(two.bindings[7].params_json, "\"ports\":[15,16,17,18,19,20,21,22,23]"));
+    TEST_ASSERT_NOT_NULL(strstr(two.bindings[7].params_json, "\"mode\":\"effect\""));
     /* And what the board says is a module the vmod parser accepts back. */
     cJSON *o = oh_vmod_to_json(&two);
     oh_module_t again;
@@ -222,6 +236,47 @@ static void the_v0_revisions_differ_only_in_their_bindings(void)
     cJSON_Delete(o);
     TEST_ASSERT_EQUAL(two.n_ports, again.n_ports);
     TEST_ASSERT_EQUAL(two.n_bindings, again.n_bindings);
+    TEST_ASSERT_EQUAL(two.n_heads, again.n_heads);
+    TEST_ASSERT_EQUAL(2, again.ports[15].head);
+}
+
+static void a_strip_in_sacn_mode_owns_no_ports_but_stays_a_head(void)
+{
+    oh_vmod_board_io_t io = v0_io("0.2", false, 38);
+    oh_pix_cfg_default(&io.strip_cfg[1]);
+    io.strip_cfg[1].mode = OH_PIX_MODE_SACN;
+    io.strip_cfg[1].universe = 5;
+    io.strip_cfg[1].count = 300;
+    oh_module_t m;
+    TEST_ASSERT_TRUE(oh_vmod_board_v0(&io, &m));
+    TEST_ASSERT_EQUAL(15, m.n_ports);
+    TEST_ASSERT_EQUAL(2, m.n_heads);
+    TEST_ASSERT_NULL(oh_module_find_port(&m, 15));
+    TEST_ASSERT_EQUAL(8, m.n_bindings);
+    const char *p = m.bindings[7].params_json;
+    TEST_ASSERT_NOT_NULL(strstr(p, "\"mode\":\"sacn\""));
+    TEST_ASSERT_NOT_NULL(strstr(p, "\"universe\":5"));
+    TEST_ASSERT_EQUAL(0, m.bindings[7].n_ports);
+    /* 300 pixels against strip 1's 60: the long one gets the DMA channel. */
+    TEST_ASSERT_NOT_NULL(strstr(p, "\"dma\":true"));
+    TEST_ASSERT_NOT_NULL(strstr(m.bindings[6].params_json, "\"dma\":false"));
+    /* And it survives the vmod round trip, empty port list and all. */
+    cJSON *o = oh_vmod_to_json(&m);
+    oh_module_t again;
+    char err[OH_ERR_MAX];
+    TEST_ASSERT_TRUE_MESSAGE(oh_vmod_parse_object(o, &again, err), err);
+    cJSON_Delete(o);
+    TEST_ASSERT_EQUAL(m.n_bindings, again.n_bindings);
+}
+
+static void a_port_naming_an_unlisted_head_is_refused(void)
+{
+    const char *json = "{\"module\":{\"type\":\"0x0003\",\"name\":\"x\"},"
+                       "\"ports\":[{\"port\":0,\"name\":\"C\",\"access\":\"readwrite\",\"dataType\":\"color\",\"head\":2}]}";
+    oh_module_t m;
+    char err[OH_ERR_MAX];
+    TEST_ASSERT_FALSE(oh_vmod_parse(json, &m, err));
+    TEST_ASSERT_NOT_NULL(strstr(err, "head 2"));
 }
 
 static void a_missing_terminal_is_left_unbound(void)
@@ -229,7 +284,7 @@ static void a_missing_terminal_is_left_unbound(void)
     oh_vmod_board_io_t io = v0_io("0.1", true, -1);
     oh_module_t m;
     TEST_ASSERT_TRUE(oh_vmod_board_v0(&io, &m));
-    TEST_ASSERT_EQUAL(10, m.n_ports);
+    TEST_ASSERT_EQUAL(24, m.n_ports);
     TEST_ASSERT_EQUAL(7, m.n_bindings);
 }
 
@@ -245,5 +300,7 @@ int main(void)
     RUN_TEST(both_v0_revisions_describe_the_same_ports);
     RUN_TEST(the_v0_revisions_differ_only_in_their_bindings);
     RUN_TEST(a_missing_terminal_is_left_unbound);
+    RUN_TEST(a_strip_in_sacn_mode_owns_no_ports_but_stays_a_head);
+    RUN_TEST(a_port_naming_an_unlisted_head_is_refused);
     return UNITY_END();
 }

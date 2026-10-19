@@ -1,6 +1,7 @@
 #include "oh_vmod.h"
 
 #include "oh_curve.h"
+#include "oh_pixfx.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,6 +70,14 @@ static bool parse_port(const cJSON *o, oh_port_desc_t *p, char *err)
     if (cJSON_IsNumber(n = cJSON_GetObjectItemCaseSensitive(o, "default"))) {
         p->default_value = (float)n->valuedouble;
         p->has_default = 1;
+    }
+    if (cJSON_IsNumber(n = cJSON_GetObjectItemCaseSensitive(o, "head"))) {
+        if (n->valuedouble < 0 || n->valuedouble > OH_HEAD_MAX) {
+            snprintf(err, OH_ERR_MAX, "port %u has head %d; heads are 0..%d", p->port, (int)n->valuedouble,
+                     OH_HEAD_MAX);
+            return false;
+        }
+        p->head = (uint8_t)n->valuedouble;
     }
     /* The same block `oh_json_port_desc` writes out, read back in, so a module
      * description round-trips through the vmod file and the EEPROM unchanged.
@@ -210,6 +219,30 @@ bool oh_vmod_parse_object(const cJSON *root, oh_module_t *out, char *err)
         }
     }
 
+    const cJSON *heads = cJSON_GetObjectItemCaseSensitive(root, "heads");
+    if (heads && !cJSON_IsArray(heads)) {
+        snprintf(err, OH_ERR_MAX, "\"heads\" is a list");
+        return false;
+    }
+    cJSON_ArrayForEach(item, heads) {
+        const cJSON *h = cJSON_GetObjectItemCaseSensitive(item, "head");
+        char name[OH_NAME_MAX] = "", kind[OH_HEAD_KIND_MAX] = "";
+        oh_json_copy_string(item, "name", name, sizeof(name));
+        oh_json_copy_string(item, "kind", kind, sizeof(kind));
+        if (!cJSON_IsNumber(h) || !oh_module_add_head(out, (uint8_t)h->valuedouble, name, kind)) {
+            snprintf(err, OH_ERR_MAX, "a head needs a unique \"head\" number 1..%d (at most %d heads)", OH_HEAD_MAX,
+                     OH_MAX_HEADS);
+            return false;
+        }
+    }
+    for (int i = 0; i < out->n_ports; i++) {
+        if (out->ports[i].head && !oh_module_find_head(out, out->ports[i].head)) {
+            snprintf(err, OH_ERR_MAX, "port %u names head %u, which \"heads\" does not list", out->ports[i].port,
+                     out->ports[i].head);
+            return false;
+        }
+    }
+
     const cJSON *dmx = cJSON_GetObjectItemCaseSensitive(root, "dmx");
     if (cJSON_IsObject(dmx)) {
         out->has_dmx = true;
@@ -274,6 +307,9 @@ cJSON *oh_vmod_to_json(const oh_module_t *m)
     cJSON *ports = cJSON_AddArrayToObject(o, "ports");
     for (int i = 0; i < m->n_ports; i++) {
         cJSON_AddItemToArray(ports, oh_json_port_desc(&m->ports[i]));
+    }
+    if (m->n_heads) {
+        cJSON_AddItemToObject(o, "heads", oh_json_heads(m));
     }
     if (m->has_dmx) {
         cJSON *dmx = cJSON_AddObjectToObject(o, "dmx");
@@ -476,6 +512,16 @@ bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *ou
 
 /* ── Built-in I/O ─────────────────────────────────────────────────────── */
 
+oh_pix_cfg_t oh_vmod_board_strip_cfg(const oh_vmod_board_io_t *io, int n)
+{
+    oh_pix_cfg_t c = io->strip_cfg[n];
+    if (c.count == 0) {
+        oh_pix_cfg_default(&c);
+        c.count = (uint16_t)(io->strip_count > 0 ? io->strip_count : c.count);
+    }
+    return c;
+}
+
 bool oh_vmod_board_v0(const oh_vmod_board_io_t *io, oh_module_t *out)
 {
     begin(out, OH_MODULE_TYPE_NODE_V0, "Node V0", "", OH_MODULE_FLAG_MAINS);
@@ -516,38 +562,101 @@ bool oh_vmod_board_v0(const oh_vmod_board_io_t *io, oh_module_t *out)
         }
     }
 
-    /* Ports 6-9: the strips, a colour and a brightness each. Only the first
-     * carries the classes: the console reads `color` and `intensity` as one
-     * parameter per fixture, so a second strip with the same classes would
-     * land on the same key. The second is named instead until the console
-     * keys those by port. */
+    /* The strips (doc 14): each is a head of its own, so its classes cannot collide
+     * with the other's. In `effect` mode a strip owns nine ports, 6-14 and 15-23;
+     * in `sacn` mode it owns none and the universes carry it. The port numbers do
+     * not move with the mode, so a strip switched back finds its ports where they
+     * were. */
+    oh_pix_cfg_t cfg[2] = {oh_vmod_board_strip_cfg(io, 0), oh_vmod_board_strip_cfg(io, 1)};
+    const int dma = oh_pix_dma_choice(io->strips[0] >= 0 ? cfg[0].count : 0, io->strips[1] >= 0 ? cfg[1].count : 0);
     const uint8_t everything = OH_EFFECT_ALL_SHAPES | OH_EFFECT_STEPS | OH_EFFECT_TRANSITIONS;
     for (uint8_t n = 0; n < 2; n++) {
-        uint8_t ports[2] = {(uint8_t)(6 + 2 * n), (uint8_t)(7 + 2 * n)};
+        const uint8_t head = (uint8_t)(n + 1);
         char name[OH_NAME_MAX];
-        snprintf(name, sizeof(name), "Strip %u colour", n + 1);
-        oh_port_desc_t c = oh_port_new(ports[0], name, OH_ACCESS_READWRITE, OH_DT_COLOR);
-        snprintf(name, sizeof(name), "Strip %u brightness", n + 1);
-        oh_port_desc_t b = oh_port_new(ports[1], name, OH_ACCESS_READWRITE, OH_DT_NUMBER);
-        oh_port_set_unit(&b, "percent");
-        oh_port_set_range(&b, 0, 1);
-        oh_port_set_default(&b, 0);
-        if (n == 0) {
-            oh_port_set_class(&c, "color");
-            oh_port_set_class(&b, "intensity");
-        }
-        oh_port_set_effects(&c, everything);
-        oh_port_set_effects(&b, everything);
-        if (!oh_module_add_port(out, &c) || !oh_module_add_port(out, &b)) {
+        snprintf(name, sizeof(name), "Strip %u", n + 1);
+        if (!oh_module_add_head(out, head, name, "pixel-strip")) {
             return false;
         }
-        if (io->strips[n] >= 0) {
-            char params[OH_BINDING_PARAMS_MAX];
-            snprintf(params, sizeof(params), "{\"driver\":\"ws2812\",\"ports\":[%u,%u],\"gpio\":%d,\"count\":%d}",
-                     ports[0], ports[1], io->strips[n], io->strip_count > 0 ? io->strip_count : 1);
-            if (!oh_module_add_binding(out, "ws2812", ports, 2, params)) {
-                return false;
+        uint8_t ports[OH_V0_STRIP_PORTS];
+        if (cfg[n].mode == OH_PIX_MODE_EFFECT) {
+            const uint8_t base = (uint8_t)OH_V0_STRIP_PORT_BASE(n);
+            oh_port_desc_t p[OH_V0_STRIP_PORTS];
+            p[0] = oh_port_new(base, "Colour", OH_ACCESS_READWRITE, OH_DT_COLOR);
+            oh_port_set_class(&p[0], "color");
+            oh_port_set_effects(&p[0], everything);
+            p[1] = oh_port_new(base + 1, "Brightness", OH_ACCESS_READWRITE, OH_DT_NUMBER);
+            oh_port_set_class(&p[1], "intensity");
+            oh_port_set_unit(&p[1], "percent");
+            oh_port_set_range(&p[1], 0, 1);
+            oh_port_set_default(&p[1], 0);
+            oh_port_set_effects(&p[1], everything);
+            p[2] = oh_port_new(base + 2, "Colour 2", OH_ACCESS_READWRITE, OH_DT_COLOR);
+            oh_port_set_effects(&p[2], everything);
+            p[3] = oh_port_new(base + 3, "Effect", OH_ACCESS_READWRITE, OH_DT_STRING);
+            oh_port_set_class(&p[3], "pixel-effect");
+            p[4] = oh_port_new(base + 4, "Speed", OH_ACCESS_READWRITE, OH_DT_NUMBER);
+            oh_port_set_class(&p[4], "speed");
+            oh_port_set_unit(&p[4], "hertz");
+            oh_port_set_range(&p[4], 0, OH_PIXFX_SPEED_MAX);
+            oh_port_set_default(&p[4], 1);
+            oh_port_set_effects(&p[4], everything);
+            p[5] = oh_port_new(base + 5, "Size", OH_ACCESS_READWRITE, OH_DT_NUMBER);
+            oh_port_set_class(&p[5], "size");
+            oh_port_set_unit(&p[5], "percent");
+            oh_port_set_range(&p[5], 0, 1);
+            oh_port_set_default(&p[5], 0.25f);
+            oh_port_set_effects(&p[5], everything);
+            p[6] = oh_port_new(base + 6, "Reverse", OH_ACCESS_READWRITE, OH_DT_BOOLEAN);
+            oh_port_set_class(&p[6], "reverse");
+            oh_port_set_default(&p[6], 0);
+            oh_port_set_effects(&p[6], OH_EFFECT_SQUARE | OH_EFFECT_STEPS);
+            p[7] = oh_port_new(base + 7, "Mirror", OH_ACCESS_READWRITE, OH_DT_BOOLEAN);
+            oh_port_set_class(&p[7], "mirror");
+            oh_port_set_default(&p[7], 0);
+            oh_port_set_effects(&p[7], OH_EFFECT_SQUARE | OH_EFFECT_STEPS);
+            p[8] = oh_port_new(base + 8, "Segments", OH_ACCESS_READWRITE, OH_DT_NUMBER);
+            oh_port_set_class(&p[8], "segments");
+            oh_port_set_unit(&p[8], "unitless");
+            oh_port_set_range(&p[8], 1, OH_PIXFX_SEGMENTS_MAX);
+            oh_port_set_default(&p[8], 1);
+            oh_port_set_effects(&p[8], OH_EFFECT_STEPS | OH_EFFECT_TRANSITIONS);
+            for (int k = 0; k < OH_V0_STRIP_PORTS; k++) {
+                oh_port_set_head(&p[k], head);
+                ports[k] = p[k].port;
+                if (!oh_module_add_port(out, &p[k])) {
+                    return false;
+                }
             }
+        }
+        if (io->strips[n] < 0) {
+            continue;
+        }
+        char params[OH_BINDING_PARAMS_MAX];
+        int len;
+        if (cfg[n].mode == OH_PIX_MODE_EFFECT) {
+            char list[48] = "";
+            for (int k = 0; k < OH_V0_STRIP_PORTS; k++) {
+                char item[6];
+                snprintf(item, sizeof(item), "%s%u", k ? "," : "", ports[k]);
+                strncat(list, item, sizeof(list) - strlen(list) - 1);
+            }
+            len = snprintf(params, sizeof(params),
+                           "{\"driver\":\"ws2812\",\"ports\":[%s],\"gpio\":%d,\"count\":%u,\"order\":\"%s\","
+                           "\"dma\":%s,\"mode\":\"effect\"}",
+                           list, io->strips[n], cfg[n].count, cfg[n].order, dma == n ? "true" : "false");
+        } else {
+            len = snprintf(params, sizeof(params),
+                           "{\"driver\":\"ws2812\",\"ports\":[],\"gpio\":%d,\"count\":%u,\"order\":\"%s\",\"dma\":%s,"
+                           "\"mode\":\"sacn\",\"universe\":%u,\"address\":%u,\"hold_ms\":%lu}",
+                           io->strips[n], cfg[n].count, cfg[n].order, dma == n ? "true" : "false", cfg[n].universe,
+                           cfg[n].address, (unsigned long)cfg[n].hold_ms);
+        }
+        if (len < 0 || len >= (int)sizeof(params)) {
+            return false;
+        }
+        const bool effect = cfg[n].mode == OH_PIX_MODE_EFFECT;
+        if (!oh_module_add_binding(out, "ws2812", effect ? ports : NULL, effect ? OH_V0_STRIP_PORTS : 0, params)) {
+            return false;
         }
     }
     return true;

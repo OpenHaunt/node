@@ -18,6 +18,7 @@
 
 #include "oh_json.h"
 #include "oh_module.h"
+#include "oh_pixel.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,9 +63,20 @@ typedef struct {
      * reads true for a closed contact, and both revisions describe the same. */
     bool input_contact_low;
     int strips[2];
-    int strip_count;        /* pixels driven per strip */
+    int strip_count;        /* pixels driven per strip when its settings name none */
+    /* Each strip's mode and settings (doc 14), as stored on the node. A `count`
+     * of zero is "nothing stored": the defaults, at `strip_count` pixels. */
+    oh_pix_cfg_t strip_cfg[2];
     const char *rev;        /* "0.1", "0.2" */
 } oh_vmod_board_io_t;
+
+/* Where strip `n`'s nine effect ports start on the V0 (doc 14): 6 and 15. */
+#define OH_V0_STRIP_PORT_BASE(n) (6 + 9 * (n))
+#define OH_V0_STRIP_PORTS 9
+
+/* Strip `n`'s settings as the builder reads them: `strip_cfg[n]`, or the
+ * defaults at `strip_count` pixels when nothing is stored. */
+oh_pix_cfg_t oh_vmod_board_strip_cfg(const oh_vmod_board_io_t *io, int n);
 
 bool oh_vmod_board_v0(const oh_vmod_board_io_t *io, oh_module_t *out);
 

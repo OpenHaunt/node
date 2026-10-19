@@ -526,6 +526,77 @@ esp_err_t oh_config_set_ws_count(uint16_t count)
     return err;
 }
 
+static void pixel_key(int output, char *key)
+{
+    snprintf(key, 8, "pix%d", output);
+}
+
+esp_err_t oh_config_pixels_get(int output, oh_pix_cfg_t *out)
+{
+    memset(out, 0, sizeof(*out));
+    if (output < 0 || output >= OH_CFG_PIXEL_OUTPUTS) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    char key[8];
+    pixel_key(output, key);
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(NS_MOD, NVS_READONLY, &h);
+    if (err != ESP_OK) {
+        return err;
+    }
+    char text[256];
+    size_t len = sizeof(text);
+    err = nvs_get_str(h, key, text, &len);
+    nvs_close(h);
+    if (err != ESP_OK) {
+        return err;
+    }
+    cJSON *body = cJSON_Parse(text);
+    oh_pix_cfg_t c;
+    oh_pix_cfg_default(&c);
+    char why[OH_ERR_MAX];
+    const bool ok = body && oh_pix_cfg_apply_json(&c, body, why);
+    cJSON_Delete(body);
+    if (!ok) {
+        ESP_LOGW(TAG, "stored settings for strip %d are unusable; defaults", output);
+        return ESP_ERR_INVALID_STATE;
+    }
+    *out = c;
+    return ESP_OK;
+}
+
+esp_err_t oh_config_pixels_set(int output, const oh_pix_cfg_t *cfg)
+{
+    if (output < 0 || output >= OH_CFG_PIXEL_OUTPUTS) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    cJSON *o = oh_pix_cfg_to_json(cfg, (uint8_t)output, 0);
+    /* Only the settings themselves: what is derived (universes, max_fps) is worked
+     * out again from them, and stays right if the arithmetic changes. */
+    cJSON_DeleteItemFromObject(o, "output");
+    cJSON_DeleteItemFromObject(o, "head");
+    cJSON_DeleteItemFromObject(o, "universes");
+    cJSON_DeleteItemFromObject(o, "max_fps");
+    char *text = cJSON_PrintUnformatted(o);
+    cJSON_Delete(o);
+    if (!text) {
+        return ESP_ERR_NO_MEM;
+    }
+    char key[8];
+    pixel_key(output, key);
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(NS_MOD, NVS_READWRITE, &h);
+    if (err == ESP_OK) {
+        err = nvs_set_str(h, key, text);
+        if (err == ESP_OK) {
+            err = nvs_commit(h);
+        }
+        nvs_close(h);
+    }
+    free(text);
+    return err;
+}
+
 esp_err_t oh_config_erase_all(void)
 {
     esp_err_t err = nvs_flash_erase();

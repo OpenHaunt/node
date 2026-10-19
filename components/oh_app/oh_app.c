@@ -10,11 +10,13 @@
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "oh_board.h"
+#include "oh_descriptor.h"
 #include "oh_config.h"
 #include "oh_drivers.h"
 #include "oh_module_eeprom.h"
 #include "oh_ota.h"
 #include "oh_sacn.h"
+#include "oh_drivers.h"
 #include "oh_net.h"
 #include "oh_node.h"
 
@@ -69,8 +71,82 @@ oh_vmod_board_io_t oh_app_board_io(void)
     io.input_contact_low = b->sensor_contact_low;
     memcpy(io.strips, b->strips, sizeof(io.strips));
     io.strip_count = b->strip_pixels;
+    for (int n = 0; n < 2; n++) {
+        /* Nothing stored leaves the count at zero: the builder's defaults. */
+        oh_config_pixels_get(n, &io.strip_cfg[n]);
+    }
     io.rev = oh_board_rev();
     return io;
+}
+
+/* ── Strips (doc 14) ──────────────────────────────────────────────────── */
+
+/* Whether the strips are the board's to describe: a stored virtual module wins. */
+static bool board_owns_strips(void)
+{
+    if (!oh_board_has_builtin_io()) {
+        return false;
+    }
+    oh_node_lock();
+    const bool board = oh_node_module()->source == OH_MOD_SRC_BOARD;
+    oh_node_unlock();
+    return board;
+}
+
+cJSON *oh_app_pixels_json(bool with_status)
+{
+    if (!board_owns_strips()) {
+        return NULL;
+    }
+    const oh_vmod_board_io_t io = oh_app_board_io();
+    oh_pix_cfg_t cfgs[2] = {oh_vmod_board_strip_cfg(&io, 0), oh_vmod_board_strip_cfg(&io, 1)};
+    const uint8_t heads[2] = {1, 2};
+    cJSON *o = oh_pix_info_json(cfgs, heads, 2);
+    if (with_status) {
+        cJSON *strip;
+        int n = 0;
+        cJSON_ArrayForEach(strip, cJSON_GetObjectItem(o, "strips")) {
+            oh_ws2812_status_t st = {0};
+            cJSON *status = cJSON_AddObjectToObject(strip, "status");
+            const bool bound = io.strips[n] >= 0 && oh_ws2812_status(io.strips[n], &st);
+            cJSON_AddBoolToObject(status, "bound", bound);
+            cJSON_AddNumberToObject(status, "frames", st.frames);
+            cJSON_AddNumberToObject(status, "sources", st.sources);
+            cJSON_AddBoolToObject(status, "holding", st.holding);
+            cJSON_AddNumberToObject(status, "fps", (int)(st.fps * 10.0f + 0.5f) / 10.0);
+            n++;
+        }
+    }
+    return o;
+}
+
+esp_err_t oh_app_set_pixels(int output, const cJSON *body, char *err, cJSON **strip_out)
+{
+    *strip_out = NULL;
+    if (output < 0 || output >= 2 || !oh_board_has_builtin_io()) {
+        snprintf(err, OH_ERR_MAX, "no strip output %d", output);
+        return ESP_ERR_NOT_FOUND;
+    }
+    if (!board_owns_strips()) {
+        snprintf(err, OH_ERR_MAX, "a stored virtual module describes this node; its strips are its own");
+        return ESP_ERR_INVALID_STATE;
+    }
+    const oh_vmod_board_io_t io = oh_app_board_io();
+    oh_pix_cfg_t cfg = oh_vmod_board_strip_cfg(&io, output);
+    if (!oh_pix_cfg_apply_json(&cfg, body, err)) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    esp_err_t rc = oh_config_pixels_set(output, &cfg);
+    if (rc != ESP_OK) {
+        snprintf(err, OH_ERR_MAX, "could not store: %s", esp_err_to_name(rc));
+        return rc;
+    }
+    ESP_LOGI(TAG, "strip %d: %s, %u pixels, %s", output, oh_pix_mode_str(cfg.mode), cfg.count, cfg.order);
+    /* The description follows from the settings, so the node describes and binds
+     * itself again, the way applying a virtual module does. */
+    rc = oh_app_select_module();
+    *strip_out = oh_pix_cfg_to_json(&cfg, (uint8_t)output, (uint8_t)(output + 1));
+    return rc;
 }
 
 /* ── Module selection ─────────────────────────────────────────────────── */
@@ -253,8 +329,27 @@ void oh_app_announce(void)
 {
     char name[OH_NAME_MAX];
     oh_app_node_name(name, sizeof(name));
+    /* `desc` (doc 14): a checksum over what the node says it is — module, ports,
+     * heads, strips — so a console knows to fetch /api/v1/info again when a strip
+     * changes mode, without polling. The identity is left out: it is in the TXT
+     * record already and is not the description. */
+    char desc[8] = "";
+    oh_node_identity_t id = {.sn = "", .fw = "", .name = ""};
     oh_node_lock();
-    esp_err_t err = oh_mdns_update(oh_node_module(), name, oh_app_fw(), s_sn);
+    cJSON *info = oh_json_info(oh_node_module(), &id);
+    oh_node_unlock();
+    cJSON *pixels = oh_app_pixels_json(false);
+    if (pixels) {
+        cJSON_AddItemToObject(info, "pixels", pixels);
+    }
+    char *text = cJSON_PrintUnformatted(info);
+    cJSON_Delete(info);
+    if (text) {
+        snprintf(desc, sizeof(desc), "%04x", oh_crc16((const uint8_t *)text, strlen(text)));
+        free(text);
+    }
+    oh_node_lock();
+    esp_err_t err = oh_mdns_update(oh_node_module(), name, oh_app_fw(), s_sn, desc);
     oh_node_unlock();
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
         ESP_LOGW(TAG, "mdns txt: %s", esp_err_to_name(err));

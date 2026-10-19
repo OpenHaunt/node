@@ -38,6 +38,7 @@ static void a_frame_yields_its_universe_and_slots(void)
     TEST_ASSERT_TRUE(oh_e131_parse(p, n, &f));
     TEST_ASSERT_EQUAL(5, f.universe);
     TEST_ASSERT_EQUAL(512, f.n_slots);
+    TEST_ASSERT_EQUAL(0, f.options);
     TEST_ASSERT_EQUAL(7, f.sequence);
     TEST_ASSERT_EQUAL(100, f.priority);
     TEST_ASSERT_EQUAL(1, f.slots[0]);
@@ -73,9 +74,25 @@ static void multicast_groups_follow_the_universe(void)
     TEST_ASSERT_EQUAL_HEX32(0xEFFF0100, oh_e131_multicast_group(256));
 }
 
+static void a_frame_names_its_sender_and_options(void)
+{
+    uint8_t p[638];
+    size_t n = make_packet(p, 1, 3);
+    for (int i = 0; i < 16; i++) {
+        p[22 + i] = (uint8_t)(0xA0 + i);
+    }
+    p[112] = 0x40; /* Stream_Terminated */
+    oh_e131_frame_t f;
+    TEST_ASSERT_TRUE(oh_e131_parse(p, n, &f));
+    TEST_ASSERT_EQUAL_HEX8(0xA0, f.cid[0]);
+    TEST_ASSERT_EQUAL_HEX8(0xAF, f.cid[15]);
+    TEST_ASSERT_EQUAL_HEX8(OH_E131_OPT_TERMINATED, f.options);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
+    RUN_TEST(a_frame_names_its_sender_and_options);
     RUN_TEST(a_frame_yields_its_universe_and_slots);
     RUN_TEST(a_short_universe_is_fine);
     RUN_TEST(a_datagram_that_is_not_e131_is_ignored);

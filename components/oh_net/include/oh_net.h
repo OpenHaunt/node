@@ -41,7 +41,10 @@ cJSON *oh_net_wifi_scan(void);
 
 /* mDNS: `_openhaunt._tcp` on port 80, instance and hostname openhaunt-<sn>. */
 esp_err_t oh_mdns_start(const char *sn);
-esp_err_t oh_mdns_update(const oh_module_t *module, const char *name, const char *fw, const char *sn);
+/* `desc` is the description's checksum (doc 14): a console fetches /api/v1/info
+ * again when it changes. */
+esp_err_t oh_mdns_update(const oh_module_t *module, const char *name, const char *fw, const char *sn,
+                         const char *desc);
 
 #ifdef __cplusplus
 }

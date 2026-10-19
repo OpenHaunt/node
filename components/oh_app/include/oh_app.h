@@ -35,6 +35,15 @@ oh_vmod_pins_t oh_app_preset_pins(void);
 /* The board's built-in I/O, for boards that have it (oh_board_has_builtin_io). */
 oh_vmod_board_io_t oh_app_board_io(void);
 
+/* The `pixels` object of `info` (doc 14), with each strip's `status` when asked
+ * for, or NULL when the node's strips are not the board's to describe. */
+cJSON *oh_app_pixels_json(bool with_status);
+
+/* `PUT /api/v1/pixels/<output>`: merge, validate, store, and describe the node
+ * again. ESP_ERR_NOT_FOUND for no such output, ESP_ERR_INVALID_STATE while a
+ * virtual module wins, ESP_ERR_INVALID_ARG with `err` for a bad setting. */
+esp_err_t oh_app_set_pixels(int output, const cJSON *body, char *err, cJSON **strip_out);
+
 /* Re-publish the TXT record from the current module and name. */
 void oh_app_announce(void);
 

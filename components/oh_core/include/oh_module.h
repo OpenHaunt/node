@@ -58,6 +58,15 @@ typedef struct {
     char params_json[OH_BINDING_PARAMS_MAX];
 } oh_binding_t;
 
+/* A head other than the node itself (doc 14): a fixture of its own to the console,
+ * owning the ports that name it. */
+#define OH_HEAD_KIND_MAX 16
+typedef struct {
+    uint8_t head;           /* 1..OH_HEAD_MAX */
+    char name[OH_NAME_MAX]; /* "Strip 1" */
+    char kind[OH_HEAD_KIND_MAX]; /* "pixel-strip"; "" = omitted */
+} oh_head_desc_t;
+
 typedef enum {
     OH_MOD_SRC_NONE = 0, /* headless: no module found, nothing configured */
     OH_MOD_SRC_EEPROM,
@@ -74,6 +83,8 @@ typedef struct {
     oh_dmx_desc_t dmx;
     oh_binding_t bindings[OH_MAX_BINDINGS];
     uint8_t n_bindings;
+    oh_head_desc_t heads[OH_MAX_HEADS];
+    uint8_t n_heads;
     oh_module_source_t source;
 } oh_module_t;
 
@@ -85,6 +96,10 @@ int oh_module_port_index(const oh_module_t *m, uint8_t port);
 
 /* Append a port; returns false when full or when the number is taken. */
 bool oh_module_add_port(oh_module_t *m, const oh_port_desc_t *p);
+
+/* Append a head; false when full, out of range, or already described. */
+bool oh_module_add_head(oh_module_t *m, uint8_t head, const char *name, const char *kind);
+const oh_head_desc_t *oh_module_find_head(const oh_module_t *m, uint8_t head);
 
 /* Append a binding; returns false when full. */
 bool oh_module_add_binding(oh_module_t *m, const char *driver, const uint8_t *ports, uint8_t n_ports,

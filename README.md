@@ -48,17 +48,18 @@ status LED, display, the GPIOs presets may bind.
 The V0 boards (OpenHaunt/node `hardware/OH_Node_V0_Prototype`, pin plan in docs/12) carry
 their I/O on the board and have no module connector, so there is no EEPROM to read. A V0
 node describes itself from the board instead: module type **`0x0F01` "Node V0"**, source
-`board`, rev `0.1` or `0.2`, with ten ports.
+`board`, rev `0.1` or `0.2`, with up to 24 ports and two **heads** (OpenHaunt/node doc 14):
 
-| Port | What | Driver | Pin (V0.1 / V0.2) |
-|---:|---|---|---|
-| 0–3 | Relay 1–4, class `switch` | `gpio_out` | 4, 5, 6, 7 |
-| 4–5 | Sensor 1–2, class `contact` | `gpio_in` | 15, 16 |
-| 6, 7 | Strip 1 colour and brightness, classes `color`, `intensity` | `ws2812` | 17 |
-| 8, 9 | Strip 2 colour and brightness, no class | `ws2812` | 18 / **38** |
+| Port | What | Head | Driver | Pin (V0.1 / V0.2) |
+|---:|---|---:|---|---|
+| 0–3 | Relay 1–4, class `switch` | 0 | `gpio_out` | 4, 5, 6, 7 |
+| 4–5 | Sensor 1–2, class `contact` | 0 | `gpio_in` | 15, 16 |
+| 6–14 | Strip 1 in `effect` mode: Colour, Brightness, Colour 2, Effect, Speed, Size, Reverse, Mirror, Segments | 1 | `ws2812` | 17 |
+| 15–23 | Strip 2, the same nine | 2 | `ws2812` | 18 / **38** |
 
-The ports and their names are the same on both revisions, so the console derives one fixture
-type for all ten nodes. Only the bindings differ. A stored virtual module still wins over this
+A strip in `sacn` mode keeps its head and owns no ports; its universes carry it. The ports and
+their names are the same on both revisions, so the console derives one fixture type per head
+for all ten nodes. Only the bindings differ. A stored virtual module still wins over this
 (`oh vmod set ...`), and `oh vmod clear` goes back to it.
 
 Decisions, and why:
@@ -69,11 +70,11 @@ Decisions, and why:
   means the same on either. An open terminal reads false on both. A sensor that *drives* its
   output (an HC-SR501 style 3.3 V "high on motion") reads the other way round on both
   revisions. Flip `invert` on its binding with a virtual module for that one.
-- **The second strip carries no class.** The console reads `color` and `intensity` as one
-  parameter per fixture, so two strips with the same classes would share a key. Strip 2 is
-  named ("Strip 2 colour") until the console keys those classes by port.
-- **60 pixels per strip, no DMA.** The S3 has one DMA-capable RMT channel and two strips
-  cannot both have it; the driver turns DMA on above 64 pixels. `OH_STRIP_PIXELS` changes it.
+- **Each strip is a head**, so both carry the `color` and `intensity` classes without landing
+  on one parameter key: a class is unique per head. That needs a head-aware console.
+- **60 pixels per strip by default, and DMA to the longer one.** The S3 has one DMA-capable
+  RMT channel; the board gives it to the longer strip above 64 pixels and the other two memory
+  blocks. `OH_STRIP_PIXELS` is the default count; `PUT /api/v1/pixels/<n>` sets each strip's.
 - **Ethernet first, Wi-Fi as the fallback.** The W5500 starts at boot. Wi-Fi starts if the
   cable has produced no address within `OH_WIFI_STA_TIMEOUT_S` (30 s), if the W5500 does not
   answer on SPI (after 1 s), or 30 s after the link goes down later. Once Wi-Fi is up it stays
@@ -89,6 +90,48 @@ Decisions, and why:
   muted, as before, until it starts. V0.2's line out is enabled for good from then on; the
   speaker amplifier is powered only while something is playing.
 - **The console is the USB-C socket** (the S3's USB Serial/JTAG). UART0 is on test points.
+
+## Pixel strips
+
+Each of a V0's two strip outputs is in one of two modes, set with `PUT /api/v1/pixels/<0|1>`
+and kept in NVS (OpenHaunt/node [14 — Pixel strips, and heads](https://github.com/OpenHaunt/node/blob/main/docs/14-pixels.md)):
+
+- **`effect`**: the node draws every pixel from nine ports. The effects are `solid`, `gradient`,
+  `chase`, `comet`, `wave`, `breathe`, `fire`, `candle`, `sparkle` and `lightning`, each worked
+  out from the console's clock, so two strips agree without talking to each other.
+- **`sacn`**: the strip maps universes onto its pixels: up to 1024 pixels, spilling 170 RGB (128
+  RGBW) a universe, any colour order. It merges up to four sources per universe (highest
+  priority wins, HTP between equals, 2.5 s source timeout), and when every source is gone it
+  holds the last frame for `hold_ms` (10 s) and then fades out over a second.
+
+| | |
+|---|---|
+| Pure logic | `oh_pixel` (settings, mapping, rate, DMA, loss), `oh_pixfx` (effects), `oh_sacn_merge`, host-tested |
+| Driver | `ws2812`: a task per strip, RMT through `led_strip`, a frame only when it differs from the last |
+| Receiver | `oh_sacn`: one socket on 5568 for the gateway and every strip, five multicast joins at most |
+| Rate | `count × 30 µs + 300 µs` a frame, capped at 40 fps: 40 at 60 pixels, 32 at 1024 |
+| Telling the console | mDNS TXT `desc`, a checksum over the description, changes when a strip changes mode |
+
+Decisions, and why:
+
+- **The mode is chosen at patch time and stored**, not switched per cue. A strip that switched
+  between the console drawing it and the node drawing it would have two owners mid-scene.
+- **Effect parameters are ordinary ports**, so the console's fades, and the node's own shapes
+  and transitions, work on Speed or Colour exactly as they do on a dimmer. Effect is a string
+  port, because a number would be a list index the console has to keep in step.
+- **Deterministic randomness.** `fire`, `candle`, `sparkle` and `lightning` are a hash of the
+  console time and the pixel, not a generator with state, so a restart or a second node draws
+  the same frame. The phase effects integrate Speed (so a speed fade never jumps) and are pulled
+  2% a frame towards `time × speed` (so two strips lock together).
+- **Hold, then dark.** A hot spare already sends at a lower priority and takes over inside the
+  2.5 s timeout, so the hold is for a switch rebooting. After it a strip nobody drives goes
+  dark rather than freezing on a lit look all night. `hold_ms` 0 holds for ever.
+- **No gamma on the node.** What arrives is what the strip gets, in both modes.
+- **`OH_MAX_PORTS` went from 16 to 32**, for the 24 ports. The effect and transition tables
+  are static and sized by it: about 25 kB more BSS. DIRAM on V0.2 is at 59%.
+
+`scripts/oh-pixels.py` sets a strip's mode and sends test patterns (rainbow, chase, solid) by
+unicast or multicast, at a priority, optionally ending with Stream_Terminated.
 
 ## Audio
 
@@ -266,9 +309,10 @@ node's audio (see *Audio*), and
 
 The V0 boards build cleanly for both revisions and the host tests pass, but **no V0 board
 has run this firmware yet**: the W5500 bring-up, the Wi-Fi fallback on that board, the sensor
-polarity on real terminals, the strips on GPIO17/18/38, the indicator LEDs, and all of audio (I2S
-on both revisions, the clip store, the stream, the timing against the DAC) are written from the
-schematic and the datasheets and unverified.
+polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW, the
+sACN receiver with several multicast joins, the frame rates), the indicator LEDs, and all of audio
+(I2S on both revisions, the clip store, the stream, the timing against the DAC) are written from
+the schematic and the datasheets and unverified.
 
 Verified on the ESP32-1732S019 against the-pult: setup AP and captive portal,
 discovery and the TXT record, every `/api/v1` endpoint, adoption, MQTT in both

@@ -99,6 +99,10 @@ static esp_err_t get_info(httpd_req_t *req)
         oh_audio_caps(&caps);
         oh_json_audio_caps(info, &caps);
     }
+    cJSON *pixels = oh_app_pixels_json(false);
+    if (pixels) {
+        cJSON_AddItemToObject(info, "pixels", pixels);
+    }
     return send_json(req, info, NULL);
 }
 
@@ -486,6 +490,50 @@ static esp_err_t post_module(httpd_req_t *req)
     return send_json(req, oh_json_ok(), NULL);
 }
 
+/* ── Strips (doc 14) ──────────────────────────────────────────────────── */
+
+#define PIXELS_PREFIX "/api/v1/pixels/"
+
+static esp_err_t get_pixels(httpd_req_t *req)
+{
+    cJSON *pixels = oh_app_pixels_json(true);
+    if (!pixels) {
+        return send_error(req, "404 Not Found", "this node has no strips of its own");
+    }
+    return send_json(req, pixels, NULL);
+}
+
+static esp_err_t put_pixels(httpd_req_t *req)
+{
+    const char *tail = req->uri + strlen(PIXELS_PREFIX);
+    char *end;
+    const long output = strtol(tail, &end, 10);
+    if (end == tail || (*end && *end != '?')) {
+        return send_error(req, "404 Not Found", "no such strip output");
+    }
+    cJSON *body = read_json(req, 1024);
+    if (!body) {
+        return ESP_FAIL;
+    }
+    char err[OH_ERR_MAX] = "";
+    cJSON *strip = NULL;
+    const esp_err_t rc = oh_app_set_pixels((int)output, body, err, &strip);
+    cJSON_Delete(body);
+    if (rc == ESP_ERR_NOT_FOUND) {
+        return send_error(req, "404 Not Found", err);
+    }
+    if (rc == ESP_ERR_INVALID_STATE) {
+        return send_error(req, "409 Conflict", err);
+    }
+    if (rc == ESP_ERR_INVALID_ARG) {
+        return send_error(req, "400 Bad Request", err);
+    }
+    if (!strip) {
+        return send_error(req, "500 Internal Server Error", err[0] ? err : esp_err_to_name(rc));
+    }
+    return send_json(req, strip, NULL);
+}
+
 static esp_err_t post_reboot(httpd_req_t *req)
 {
     esp_err_t err = send_json(req, oh_json_ok(), NULL);
@@ -559,6 +607,8 @@ esp_err_t oh_http_start(void)
         {"/api/v1/audio/clips", HTTP_GET, get_clips, NULL},
         {"/api/v1/audio/clips/*", HTTP_PUT, put_clip, NULL},
         {"/api/v1/audio/clips/*", HTTP_DELETE, delete_clip, NULL},
+        {"/api/v1/pixels", HTTP_GET, get_pixels, NULL},
+        {"/api/v1/pixels/*", HTTP_PUT, put_pixels, NULL},
         /* Captive-portal detection URLs. */
         {"/generate_204", HTTP_GET, redirect_root, NULL},
         {"/hotspot-detect.html", HTTP_GET, redirect_root, NULL},

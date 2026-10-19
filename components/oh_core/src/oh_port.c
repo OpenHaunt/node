@@ -162,6 +162,11 @@ void oh_port_set_effects(oh_port_desc_t *p, uint8_t effects)
     p->effects = effects;
 }
 
+void oh_port_set_head(oh_port_desc_t *p, uint8_t head)
+{
+    p->head = head > OH_HEAD_MAX ? OH_HEAD_MAX : head;
+}
+
 uint8_t oh_effect_shape_bit(int shape_index)
 {
     /* Indexed by `oh_shape_t`, but without including `oh_curve.h`: this file is
