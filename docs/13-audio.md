@@ -40,6 +40,9 @@ object is absent, the node has no audio.
     playing the (L+R)/2 mix).
 - `clips.bytes_total` and `bytes_free` are the clip store's budget, also reported by `GET
   /api/v1/audio/clips`.
+- `stream.port`, optional, is the UDP port the node wants its stream on. Absent means 5004,
+  which is what the firmware listens on. A node that shares an address with others, such as
+  several simulators on one machine, names its own, and the console sends `start` with that port.
 
 Why not a port: a port is a terminal with a value (doc 08, E1.73 UDR). Sound has no value to
 set or read, and a new `dataType` would make every console that predates it reject the whole
