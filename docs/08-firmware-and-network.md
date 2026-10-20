@@ -186,6 +186,14 @@ nine ports) or `sacn` mode (it maps universes onto its pixels), set with `PUT /a
 The `heads` list, the `pixels` object, the endpoint and the mDNS `desc` key are specified in
 [14 — Pixel strips, and heads](14-pixels.md).
 
+### Brokers, and a console that fails over
+
+A node can be told an ordered list of brokers, leader first, in `mqtt.brokers` and on the retained
+`openhaunt/brokers`. When the broker it is on goes, it walks the list on its own, so a console
+whose leading machine dies keeps its nodes without having to find them again. The list, the walk,
+and the rule that only the leading station's broker accepts a node are specified in
+[15 — Brokers, and a console that fails over](15-brokers.md).
+
 ### 3. Art-Net / sACN — DMX
 
 For nodes carrying the DMX module. Both are supported; **sACN (E1.31) is preferred** — see the bandwidth
