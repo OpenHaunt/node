@@ -16,7 +16,7 @@ static inline uint16_t oh_rgb(uint8_t r, uint8_t g, uint8_t b)
     return (uint16_t)((c << 8) | (c >> 8)); /* big-endian on the wire */
 }
 
-void oh_fb_fill(oh_fb_t *fb, int x, int y, int w, int h, uint16_t colour);
+void oh_fb_fill(oh_fb_t *fb, int x, int y, int w, int h, uint16_t color);
 /* Draw `text` at (x, y) with the 8x16 font scaled by `scale`; returns the
  * x after the last glyph. Clips at the framebuffer edge. */
 int oh_fb_text(oh_fb_t *fb, int x, int y, int scale, uint16_t fg, uint16_t bg, const char *text);

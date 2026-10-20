@@ -124,7 +124,7 @@ void oh_pixfx_advance(oh_pixfx_clock_t *c, float speed, int64_t now_ms)
 
 static uint32_t mix(uint64_t x)
 {
-    /* splitmix64's finaliser */
+    /* splitmix64's finalizer */
     x += 0x9E3779B97F4A7C15ull;
     x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ull;
     x = (x ^ (x >> 27)) * 0x94D049BB133111EBull;
@@ -172,15 +172,15 @@ static void blend(oh_color_t lo, oh_color_t hi, float level, float k, uint8_t *o
     out[2] = (uint8_t)clampf(b * k + 0.5f, 0.0f, 255.0f);
 }
 
-/* Fire's palette: black, then Colour at half heat, then Colour 2 at full. */
-static void heat_colour(const oh_pixfx_params_t *p, float heat, float k, uint8_t *out)
+/* Fire's palette: black, then Color at half heat, then Color 2 at full. */
+static void heat_color(const oh_pixfx_params_t *p, float heat, float k, uint8_t *out)
 {
     const oh_color_t black = {0, 0, 0};
     heat = clampf(heat, 0.0f, 1.0f);
     if (heat < 0.5f) {
-        blend(black, p->colour, heat * 2.0f, k, out);
+        blend(black, p->color, heat * 2.0f, k, out);
     } else {
-        blend(p->colour, p->colour2, (heat - 0.5f) * 2.0f, k, out);
+        blend(p->color, p->color2, (heat - 0.5f) * 2.0f, k, out);
     }
 }
 
@@ -237,7 +237,7 @@ void oh_pixfx_render(const oh_pixfx_params_t *in, float phase, int64_t now_ms, u
             level = 1.0f;
             break;
         case OH_PIXFX_GRADIENT:
-            /* Colour 2 at the start, Colour at the end, scrolling. */
+            /* Color 2 at the start, Color at the end, scrolling. */
             level = 1.0f - wrapf(x - phase);
             break;
         case OH_PIXFX_CHASE:
@@ -263,7 +263,7 @@ void oh_pixfx_render(const oh_pixfx_params_t *in, float phase, int64_t now_ms, u
             float heat = noise2(x * cells, j, tf, 7) * 0.75f +
                          noise2(x * cells * 2.0f, floor_div(u2, MICRO), frac_of(u2), 13) * 0.35f;
             heat *= 1.0f - 0.6f * x;
-            heat_colour(&p, heat, k, out);
+            heat_color(&p, heat, k, out);
             continue;
         }
         case OH_PIXFX_CANDLE: {
@@ -271,7 +271,7 @@ void oh_pixfx_render(const oh_pixfx_params_t *in, float phase, int64_t now_ms, u
             const float n = noise2((float)seg * 3.7f, floor_div(u3, MICRO), frac_of(u3), 29) * 0.7f +
                             noise2((float)seg * 3.7f, floor_div(u7, MICRO), frac_of(u7), 31) * 0.3f;
             const oh_color_t black = {0, 0, 0};
-            blend(black, p.colour, 0.55f + 0.45f * n, k, out);
+            blend(black, p.color, 0.55f + 0.45f * n, k, out);
             continue;
         }
         case OH_PIXFX_SPARKLE: {
@@ -290,6 +290,6 @@ void oh_pixfx_render(const oh_pixfx_params_t *in, float phase, int64_t now_ms, u
         default:
             break;
         }
-        blend(p.colour2, p.colour, level, k, out);
+        blend(p.color2, p.color, level, k, out);
     }
 }

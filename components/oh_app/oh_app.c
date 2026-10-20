@@ -253,7 +253,7 @@ esp_err_t oh_app_set_vmod_json(const char *json, char *err)
         free(m);
         return ESP_ERR_INVALID_ARG;
     }
-    /* Store the normalised form, so what is read back is what runs. */
+    /* Store the normalized form, so what is read back is what runs. */
     cJSON *o = oh_vmod_to_json(m);
     char *text = cJSON_PrintUnformatted(o);
     cJSON_Delete(o);

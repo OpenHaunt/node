@@ -40,7 +40,7 @@ typedef struct {
     int uart_tx, uart_rx, uart_de; /* the module UART, for the DMX gateway */
 } oh_vmod_pins_t;
 
-/* The catalogue modules as somewhere to start from, mirroring the sim's
+/* The catalog modules as somewhere to start from, mirroring the sim's
  * presets: input, led, relay, oled, contact, env, dmx. */
 bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *out);
 const char *const *oh_vmod_preset_keys(size_t *n);

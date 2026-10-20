@@ -11,7 +11,7 @@
 `send` with no --to sends multicast (239.255.hi.lo), the way a console does by default;
 --to sends unicast to the node, which reaches any number of universes (multicast joins are
 limited to four on a node). Channels go out R, G, B (, W with --rgbw) whatever the strip's
-own colour order is: the node reorders.
+own color order is: the node reorders.
 
 `--terminate` ends with three Stream_Terminated packets, so the node drops this source at
 once rather than after 2.5 s; without it, stopping the script is a source going silent, and

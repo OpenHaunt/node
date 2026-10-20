@@ -2,7 +2,7 @@
  * ws2812: an addressable strip on an RMT pin, in one of two modes (OpenHaunt/node
  * doc 14).
  *
- * `effect`: the node draws every pixel from nine ports — colour, brightness, colour
+ * `effect`: the node draws every pixel from nine ports — color, brightness, color
  * 2, effect, speed, size, reverse, mirror, segments — in that local order:
  *
  *   { "driver": "ws2812", "ports": [6,...,14], "gpio": 17, "count": 60, "order": "GRB",
@@ -14,7 +14,7 @@
  *   { "driver": "ws2812", "ports": [], "gpio": 17, "count": 300, "order": "GRB",
  *     "mode": "sacn", "universe": 5, "address": 1, "hold_ms": 10000 }
  *
- * A binding with two ports or fewer is the catalogue's LED module — a colour and an
+ * A binding with two ports or fewer is the catalog's LED module — a color and an
  * intensity, told apart by type — and is drawn as `solid`, which is what that
  * driver always did.
  *
@@ -41,7 +41,7 @@
 
 static const char *TAG = "ws2812";
 
-enum { P_COLOUR = 0, P_BRIGHTNESS, P_COLOUR2, P_EFFECT, P_SPEED, P_SIZE, P_REVERSE, P_MIRROR, P_SEGMENTS, P_COUNT };
+enum { P_COLOR = 0, P_BRIGHTNESS, P_COLOR2, P_EFFECT, P_SPEED, P_SIZE, P_REVERSE, P_MIRROR, P_SEGMENTS, P_COUNT };
 
 /* How long a strip in `sacn` mode waits for its other universes once one has
  * arrived, before refreshing with what it has. */
@@ -61,7 +61,7 @@ typedef struct {
 
     /* effect mode, and the legacy two-port binding */
     bool legacy;
-    int colour_local, intensity_local;
+    int color_local, intensity_local;
     oh_value_t values[P_COUNT];
     oh_pixfx_params_t params;
     bool unknown_effect;
@@ -144,15 +144,15 @@ static void read_params_locked(inst_t *i)
     oh_pixfx_params_t *p = &i->params;
     if (i->legacy) {
         oh_pixfx_defaults(p);
-        if (i->colour_local >= 0) {
-            p->colour = i->values[P_COLOUR].color;
+        if (i->color_local >= 0) {
+            p->color = i->values[P_COLOR].color;
         }
         p->brightness = i->intensity_local >= 0 ? i->values[P_BRIGHTNESS].value : 1.0f;
         return;
     }
-    p->colour = i->values[P_COLOUR].color;
+    p->color = i->values[P_COLOR].color;
     p->brightness = i->values[P_BRIGHTNESS].value;
-    p->colour2 = i->values[P_COLOUR2].color;
+    p->color2 = i->values[P_COLOR2].color;
     i->unknown_effect = !oh_pixfx_parse(i->values[P_EFFECT].text, &p->kind) && i->values[P_EFFECT].text[0];
     p->speed = i->values[P_SPEED].value;
     p->size = i->values[P_SIZE].value;
@@ -369,7 +369,7 @@ static esp_err_t init(const oh_driver_bind_t *bind, void **out)
     }
 
     /* The ports, in effect mode. */
-    i->colour_local = i->intensity_local = -1;
+    i->color_local = i->intensity_local = -1;
     i->legacy = i->mode == OH_PIX_MODE_EFFECT && bind->n_ports <= 2;
     oh_pixfx_params_t d;
     oh_pixfx_defaults(&d);
@@ -383,7 +383,7 @@ static esp_err_t init(const oh_driver_bind_t *bind, void **out)
         }
         if (i->legacy) {
             if (pd->type == OH_DT_COLOR) {
-                i->colour_local = n;
+                i->color_local = n;
             } else if (pd->type == OH_DT_NUMBER) {
                 i->intensity_local = n;
                 i->values[P_BRIGHTNESS] =
@@ -489,8 +489,8 @@ static esp_err_t write(void *arg, uint8_t local, const oh_value_t *in)
         return ESP_ERR_INVALID_ARG;
     }
     if (i->legacy) {
-        if ((int)local == i->colour_local && in->type == OH_DT_COLOR) {
-            slot = P_COLOUR;
+        if ((int)local == i->color_local && in->type == OH_DT_COLOR) {
+            slot = P_COLOR;
         } else if ((int)local == i->intensity_local && in->type == OH_DT_NUMBER) {
             slot = P_BRIGHTNESS;
         }
@@ -522,7 +522,7 @@ static esp_err_t read(void *arg, uint8_t local, oh_value_t *out)
         return ESP_ERR_NOT_FOUND;
     }
     if (i->legacy) {
-        slot = (int)local == i->colour_local ? P_COLOUR : (int)local == i->intensity_local ? P_BRIGHTNESS : -1;
+        slot = (int)local == i->color_local ? P_COLOR : (int)local == i->intensity_local ? P_BRIGHTNESS : -1;
     } else if (local < P_COUNT) {
         slot = local;
     }

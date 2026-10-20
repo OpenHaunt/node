@@ -30,13 +30,13 @@ typedef struct {
     uint8_t r, g, b;
 } rgb_t;
 
-static void led_set(bool on, rgb_t colour)
+static void led_set(bool on, rgb_t color)
 {
-    (void)colour;
+    (void)color;
 #ifdef CONFIG_OH_STATUS_LED_WS2812
     if (s_strip) {
         if (on) {
-            led_strip_set_pixel(s_strip, 0, colour.r, colour.g, colour.b);
+            led_strip_set_pixel(s_strip, 0, color.r, color.g, color.b);
         } else {
             led_strip_set_pixel(s_strip, 0, 0, 0, 0);
         }
@@ -110,28 +110,28 @@ static void on_tick(void *arg)
         }
         return;
     }
-    rgb_t colour;
+    rgb_t color;
     bool on;
     switch (s.state) {
     case ST_BOOT:
-        colour = (rgb_t){20, 20, 20};
+        color = (rgb_t){20, 20, 20};
         on = true;
         break;
     case ST_SETUP_AP:
-        colour = (rgb_t){0, 0, 60};
+        color = (rgb_t){0, 0, 60};
         on = (t % 10) < 5; /* 2 Hz blue */
         break;
     case ST_NET_DOWN:
-        colour = (rgb_t){60, 25, 0};
+        color = (rgb_t){60, 25, 0};
         on = (t % 20) < 2; /* amber blip every second */
         break;
     case ST_NET_UP:
-        colour = (rgb_t){0, 40, 0};
+        color = (rgb_t){0, 40, 0};
         on = (t % 40) < 2; /* green blip every 2 s: on the network, nobody driving it */
         break;
     case ST_MQTT_UP:
     default:
-        colour = (rgb_t){0, 12, 0};
+        color = (rgb_t){0, 12, 0};
         on = true; /* steady dim green: adopted and talking */
         break;
     }
@@ -143,10 +143,10 @@ static void on_tick(void *arg)
         gpio_set_level(err_led, s.fault && flash);
     } else if (s.fault && phase < 8) {
         /* A double red flash rides on top every 2 s. */
-        colour = (rgb_t){60, 0, 0};
+        color = (rgb_t){60, 0, 0};
         on = flash;
     }
-    led_set(on, colour);
+    led_set(on, color);
 }
 
 static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)

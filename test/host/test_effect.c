@@ -98,7 +98,7 @@ static void a_relay_under_a_square_wave_spends_half_the_cycle_closed(void)
     TEST_ASSERT_FALSE(v.state);
 }
 
-static void a_colour_blends_channel_by_channel(void)
+static void a_color_blends_channel_by_channel(void)
 {
     oh_effect_t e = parsed(OH_DT_COLOR, "{\"curve\":{\"shape\":\"sine\"},\"rate\":1.0,\"phase\":0,"
                                         "\"low\":{\"r\":0,\"g\":0,\"b\":0},"
@@ -123,7 +123,7 @@ static void a_colour_blends_channel_by_channel(void)
     "]},\"rate\":1.0,\"phase\":0,\"t0\":0}"
 
 /* The reason a step carries a value rather than a level: a chase can be three
- * colours, not three brightnesses of one. */
+ * colors, not three brightnesses of one. */
 static void a_hard_chase_shows_each_step_from_where_it_starts(void)
 {
     oh_effect_t e = parsed(OH_DT_COLOR, RGB_CHASE("step"));
@@ -197,7 +197,7 @@ static void a_clear_parses_as_nothing_running(void)
     TEST_ASSERT_FALSE_MESSAGE(oh_effect_sample(&e, 500, &v), "and it renders nothing");
 }
 
-static void a_descriptor_this_node_cannot_honour_is_refused(void)
+static void a_descriptor_this_node_cannot_honor_is_refused(void)
 {
     char err[OH_ERR_MAX] = "";
     TEST_ASSERT_TRUE(rejected(OH_DT_NUMBER, "{\"rate\":1.0}", err));
@@ -251,13 +251,13 @@ int main(void)
     RUN_TEST(two_phases_half_a_cycle_apart_are_mirror_images);
     RUN_TEST(low_and_high_scale_the_shape_without_changing_it);
     RUN_TEST(a_relay_under_a_square_wave_spends_half_the_cycle_closed);
-    RUN_TEST(a_colour_blends_channel_by_channel);
+    RUN_TEST(a_color_blends_channel_by_channel);
     RUN_TEST(a_hard_chase_shows_each_step_from_where_it_starts);
     RUN_TEST(a_linear_chase_crossfades_between_its_steps);
     RUN_TEST(the_last_step_wraps_round_to_the_first);
     RUN_TEST(a_descriptor_off_the_wire_becomes_something_renderable);
     RUN_TEST(a_clear_parses_as_nothing_running);
-    RUN_TEST(a_descriptor_this_node_cannot_honour_is_refused);
+    RUN_TEST(a_descriptor_this_node_cannot_honor_is_refused);
     RUN_TEST(a_step_list_longer_than_the_node_can_hold_is_refused);
     RUN_TEST(a_shape_with_no_endpoints_uses_the_ports_own_range);
     return UNITY_END();

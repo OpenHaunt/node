@@ -40,7 +40,7 @@ typedef enum {
 const char *oh_pix_mode_str(oh_pix_mode_t m);
 bool oh_pix_mode_parse(const char *s, oh_pix_mode_t *out);
 
-/* ── Colour order ─────────────────────────────────────────────────────── */
+/* ── Color order ─────────────────────────────────────────────────────── */
 
 /* Where R, G, B (and W) go on the wire: `pos[0]` is red's byte, and so on. */
 typedef struct {

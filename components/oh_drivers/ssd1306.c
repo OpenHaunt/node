@@ -23,7 +23,7 @@ typedef struct {
     esp_lcd_panel_io_handle_t io;
     esp_lcd_panel_handle_t panel;
     int height;
-    uint8_t *buf; /* W * height / 8, page-organised as the controller wants it */
+    uint8_t *buf; /* W * height / 8, page-organized as the controller wants it */
     char text[OH_TEXT_MAX];
 } inst_t;
 

@@ -54,7 +54,7 @@ node describes itself from the board instead: module type **`0x0F01` "Node V0"**
 |---:|---|---:|---|---|
 | 0–3 | Relay 1–4, class `switch` | 0 | `gpio_out` | 4, 5, 6, 7 |
 | 4–5 | Sensor 1–2, class `contact` | 0 | `gpio_in` | 15, 16 |
-| 6–14 | Strip 1 in `effect` mode: Colour, Brightness, Colour 2, Effect, Speed, Size, Reverse, Mirror, Segments | 1 | `ws2812` | 17 |
+| 6–14 | Strip 1 in `effect` mode: Color, Brightness, Color 2, Effect, Speed, Size, Reverse, Mirror, Segments | 1 | `ws2812` | 17 |
 | 15–23 | Strip 2, the same nine | 2 | `ws2812` | 18 / **38** |
 
 A strip in `sacn` mode keeps its head and owns no ports; its universes carry it. The ports and
@@ -100,7 +100,7 @@ and kept in NVS (OpenHaunt/node [14 — Pixel strips, and heads](https://github.
   `chase`, `comet`, `wave`, `breathe`, `fire`, `candle`, `sparkle` and `lightning`, each worked
   out from the console's clock, so two strips agree without talking to each other.
 - **`sacn`**: the strip maps universes onto its pixels: up to 1024 pixels, spilling 170 RGB (128
-  RGBW) a universe, any colour order. It merges up to four sources per universe (highest
+  RGBW) a universe, any color order. It merges up to four sources per universe (highest
   priority wins, HTP between equals, 2.5 s source timeout), and when every source is gone it
   holds the last frame for `hold_ms` (10 s) and then fades out over a second.
 
@@ -117,7 +117,7 @@ Decisions, and why:
 - **The mode is chosen at patch time and stored**, not switched per cue. A strip that switched
   between the console drawing it and the node drawing it would have two owners mid-scene.
 - **Effect parameters are ordinary ports**, so the console's fades, and the node's own shapes
-  and transitions, work on Speed or Colour exactly as they do on a dimmer. Effect is a string
+  and transitions, work on Speed or Color exactly as they do on a dimmer. Effect is a string
   port, because a number would be a list index the console has to keep in step.
 - **Deterministic randomness.** `fire`, `candle`, `sparkle` and `lightning` are a hash of the
   console time and the pixel, not a generator with state, so a restart or a second node draws
@@ -153,7 +153,7 @@ Decisions, and why:
 
 - **WAV with IMA ADPCM, not MP3.** Same density as 128 kbit/s MP3 (about ten minutes of 32 kHz mono
   in the store), a table lookup per sample to decode, about a hundred lines with host tests, no
-  licence to carry, and blocks that make a seek exact. ESP-IDF ships no MP3 decoder.
+  license to carry, and blocks that make a seek exact. ESP-IDF ships no MP3 decoder.
 - **Every sample is placed by its show time.** The I2S `on_sent` interrupt timestamps each DMA
   buffer leaving for the DAC, so the task knows when the next frame it writes will be heard. The
   mixer is told that time and nothing else, which is what makes it a pure function the host tests
@@ -170,7 +170,7 @@ Decisions, and why:
   predates it reject the node. The `audio` object sits beside the ports, and if it is absent the
   node has no audio, as with effects.
 - **`littlefs` became `clips`.** The 16 MB table's data partition was declared and never mounted.
-  It is FAT with wear levelling now, because ESP-IDF carries both in-tree and long file names
+  It is FAT with wear leveling now, because ESP-IDF carries both in-tree and long file names
   (`<sha256>.wav`) need nothing more than `FATFS_LFN_HEAP`. **Changing the partition table needs a
   USB flash**: OTA cannot do it.
 
@@ -251,7 +251,7 @@ The module is chosen at boot, in this order:
    yet runs.
 3. Nothing: headless, on the network, findable, reporting `module-absent`.
 
-Catalogue presets (`input`, `contact`, `env`, `relay`, `led`, `oled`, `dmx`) are
+Catalog presets (`input`, `contact`, `env`, `relay`, `led`, `oled`, `dmx`) are
 one click in the web UI or `oh vmod preset <key>` on the console. A virtual
 module with a real button and a real switch on a devkit:
 
@@ -304,7 +304,7 @@ components/
   oh_status    status LED patterns and identify
   oh_display   ST7789 status screen (boards with one)
   oh_console   the `oh` REPL
-  oh_module_eeprom  24AA02UID descriptor, MOD_nRESET, the catalogue table
+  oh_module_eeprom  24AA02UID descriptor, MOD_nRESET, the catalog table
   oh_app       ties it together
 main/app_main.c   the boot sequence
 ```

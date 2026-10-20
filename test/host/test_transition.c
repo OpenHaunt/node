@@ -109,9 +109,9 @@ static void a_zero_length_fade_is_simply_arrival(void)
     TEST_ASSERT_TRUE(done);
 }
 
-/* A colour walks channel by channel, so a fade from red to blue passes through
+/* A color walks channel by channel, so a fade from red to blue passes through
  * purple rather than through black. */
-static void a_colour_fade_walks_every_channel(void)
+static void a_color_fade_walks_every_channel(void)
 {
     oh_transition_t t;
     oh_value_t from = {.type = OH_DT_COLOR}, to = {.type = OH_DT_COLOR};
@@ -143,7 +143,7 @@ int main(void)
     RUN_TEST(a_set_with_timing_but_no_anchor_starts_now);
     RUN_TEST(an_easing_shapes_the_move);
     RUN_TEST(a_zero_length_fade_is_simply_arrival);
-    RUN_TEST(a_colour_fade_walks_every_channel);
+    RUN_TEST(a_color_fade_walks_every_channel);
     RUN_TEST(nothing_running_samples_as_nothing);
     return UNITY_END();
 }

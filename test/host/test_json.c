@@ -35,11 +35,11 @@ static void info_has_the_documented_shape(void)
 
     cJSON *ports = cJSON_GetObjectItem(info, "ports");
     TEST_ASSERT_EQUAL(2, cJSON_GetArraySize(ports));
-    cJSON *colour = cJSON_GetArrayItem(ports, 0);
-    TEST_ASSERT_EQUAL_STRING("readwrite", cJSON_GetObjectItem(colour, "access")->valuestring);
-    TEST_ASSERT_EQUAL_STRING("color", cJSON_GetObjectItem(colour, "dataType")->valuestring);
-    TEST_ASSERT_NULL(cJSON_GetObjectItem(colour, "unit"));
-    TEST_ASSERT_NULL(cJSON_GetObjectItem(colour, "minimum"));
+    cJSON *color = cJSON_GetArrayItem(ports, 0);
+    TEST_ASSERT_EQUAL_STRING("readwrite", cJSON_GetObjectItem(color, "access")->valuestring);
+    TEST_ASSERT_EQUAL_STRING("color", cJSON_GetObjectItem(color, "dataType")->valuestring);
+    TEST_ASSERT_NULL(cJSON_GetObjectItem(color, "unit"));
+    TEST_ASSERT_NULL(cJSON_GetObjectItem(color, "minimum"));
     cJSON *bright = cJSON_GetArrayItem(ports, 1);
     TEST_ASSERT_EQUAL_STRING("percent", cJSON_GetObjectItem(bright, "unit")->valuestring);
     TEST_ASSERT_EQUAL(0, cJSON_GetObjectItem(bright, "minimum")->valueint);
@@ -74,9 +74,9 @@ static void state_lists_every_port_by_number(void)
     states[1].value.value = 0.5f;
     cJSON *state = oh_json_state(&m, states);
     cJSON *outputs = cJSON_GetObjectItem(state, "outputs");
-    cJSON *colour = cJSON_GetObjectItem(outputs, "0");
-    TEST_ASSERT_NOT_NULL(colour);
-    TEST_ASSERT_EQUAL(0, cJSON_GetObjectItem(colour, "r")->valueint);
+    cJSON *color = cJSON_GetObjectItem(outputs, "0");
+    TEST_ASSERT_NOT_NULL(color);
+    TEST_ASSERT_EQUAL(0, cJSON_GetObjectItem(color, "r")->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(0.5, cJSON_GetObjectItem(cJSON_GetObjectItem(outputs, "1"), "value")->valuedouble);
     cJSON_Delete(state);
 }
@@ -227,7 +227,7 @@ static void a_state_body_is_applied_whole_or_not_at_all(void)
 }
 
 /* Effects are validated in the same first pass as outputs, so a body carrying a
- * descriptor this node cannot honour rejects the plain values beside it too. Half
+ * descriptor this node cannot honor rejects the plain values beside it too. Half
  * of a cue is worse than none of it. */
 static void an_effects_map_is_validated_with_the_outputs_beside_it(void)
 {

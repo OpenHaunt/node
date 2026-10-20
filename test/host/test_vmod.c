@@ -208,7 +208,7 @@ static void both_v0_revisions_describe_the_same_ports(void)
     TEST_ASSERT_EQUAL(2, one.ports[15].head);
     TEST_ASSERT_EQUAL(OH_DT_STRING, one.ports[9].type);
     TEST_ASSERT_EQUAL_STRING("pixel-effect", one.ports[9].class_);
-    TEST_ASSERT_EQUAL_STRING("", one.ports[8].class_); /* Colour 2: a named parameter */
+    TEST_ASSERT_EQUAL_STRING("", one.ports[8].class_); /* Color 2: a named parameter */
     TEST_ASSERT_EQUAL(23, one.ports[23].port);
 }
 

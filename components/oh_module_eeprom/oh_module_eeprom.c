@@ -76,7 +76,7 @@ esp_err_t oh_eeprom_write_descriptor(const oh_eeprom_descriptor_t *d)
     return err;
 }
 
-/* ── The catalogue, as this firmware can drive it ─────────────────────── */
+/* ── The catalog, as this firmware can drive it ─────────────────────── */
 
 static const char *preset_for(uint16_t type)
 {

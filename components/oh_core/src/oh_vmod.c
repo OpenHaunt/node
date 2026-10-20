@@ -441,7 +441,7 @@ bool oh_vmod_preset(const char *key, const oh_vmod_pins_t *pins, oh_module_t *ou
          * and a timed move. A strip is where an operator most wants a chase, and
          * it is the one driver here fast enough to be worth handing one to. */
         const uint8_t everything = OH_EFFECT_ALL_SHAPES | OH_EFFECT_STEPS | OH_EFFECT_TRANSITIONS;
-        oh_port_desc_t c = oh_port_new(0, "Strip colour", OH_ACCESS_READWRITE, OH_DT_COLOR);
+        oh_port_desc_t c = oh_port_new(0, "Strip color", OH_ACCESS_READWRITE, OH_DT_COLOR);
         oh_port_set_class(&c, "color");
         oh_port_set_effects(&c, everything);
         oh_module_add_port(out, &c);
@@ -581,7 +581,7 @@ bool oh_vmod_board_v0(const oh_vmod_board_io_t *io, oh_module_t *out)
         if (cfg[n].mode == OH_PIX_MODE_EFFECT) {
             const uint8_t base = (uint8_t)OH_V0_STRIP_PORT_BASE(n);
             oh_port_desc_t p[OH_V0_STRIP_PORTS];
-            p[0] = oh_port_new(base, "Colour", OH_ACCESS_READWRITE, OH_DT_COLOR);
+            p[0] = oh_port_new(base, "Color", OH_ACCESS_READWRITE, OH_DT_COLOR);
             oh_port_set_class(&p[0], "color");
             oh_port_set_effects(&p[0], everything);
             p[1] = oh_port_new(base + 1, "Brightness", OH_ACCESS_READWRITE, OH_DT_NUMBER);
@@ -590,7 +590,7 @@ bool oh_vmod_board_v0(const oh_vmod_board_io_t *io, oh_module_t *out)
             oh_port_set_range(&p[1], 0, 1);
             oh_port_set_default(&p[1], 0);
             oh_port_set_effects(&p[1], everything);
-            p[2] = oh_port_new(base + 2, "Colour 2", OH_ACCESS_READWRITE, OH_DT_COLOR);
+            p[2] = oh_port_new(base + 2, "Color 2", OH_ACCESS_READWRITE, OH_DT_COLOR);
             oh_port_set_effects(&p[2], everything);
             p[3] = oh_port_new(base + 3, "Effect", OH_ACCESS_READWRITE, OH_DT_STRING);
             oh_port_set_class(&p[3], "pixel-effect");

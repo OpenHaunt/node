@@ -23,7 +23,7 @@ typedef struct {
 } oh_e131_frame_t;
 
 /* Framing-layer option bits. */
-#define OH_E131_OPT_PREVIEW 0x80    /* Preview_Data: for a visualiser, not for a light */
+#define OH_E131_OPT_PREVIEW 0x80    /* Preview_Data: for a visualizer, not for a light */
 #define OH_E131_OPT_TERMINATED 0x40 /* Stream_Terminated: this source is going away */
 
 bool oh_e131_parse(const uint8_t *packet, size_t len, oh_e131_frame_t *out);

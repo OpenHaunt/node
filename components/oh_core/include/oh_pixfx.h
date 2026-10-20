@@ -46,8 +46,8 @@ bool oh_pixfx_parse(const char *s, oh_pixfx_kind_t *out);
 
 typedef struct {
     oh_pixfx_kind_t kind;
-    oh_color_t colour;  /* level 1 */
-    oh_color_t colour2; /* level 0 */
+    oh_color_t color;  /* level 1 */
+    oh_color_t color2; /* level 0 */
     float brightness;   /* 0..1 */
     float speed;        /* cycles a second, 0..10 */
     float size;         /* 0..1 of a segment */

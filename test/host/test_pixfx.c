@@ -15,8 +15,8 @@ static oh_pixfx_params_t params(oh_pixfx_kind_t kind)
     oh_pixfx_params_t p;
     oh_pixfx_defaults(&p);
     p.kind = kind;
-    p.colour = (oh_color_t){255, 0, 0};
-    p.colour2 = (oh_color_t){0, 0, 255};
+    p.color = (oh_color_t){255, 0, 0};
+    p.color2 = (oh_color_t){0, 0, 255};
     p.brightness = 1.0f;
     return p;
 }
@@ -24,7 +24,7 @@ static oh_pixfx_params_t params(oh_pixfx_kind_t kind)
 static void solid_is_the_old_strip(void)
 {
     oh_pixfx_params_t p = params(OH_PIXFX_SOLID);
-    p.colour = (oh_color_t){200, 100, 50};
+    p.color = (oh_color_t){200, 100, 50};
     p.brightness = 0.5f;
     uint8_t rgb[3 * N];
     oh_pixfx_render(&p, 0.3f, T, N, rgb);
@@ -59,7 +59,7 @@ static void segments_repeat_and_mirror_and_reverse_fold(void)
     uint8_t rgb[3 * N];
     oh_pixfx_render(&p, 0.0f, T, N, rgb);
     TEST_ASSERT_EQUAL(rgb[0], rgb[3 * 30]);       /* two segments, the same pattern */
-    TEST_ASSERT_TRUE(rgb[0] > rgb[3 * 29]);        /* Colour at the start, Colour 2 at the end */
+    TEST_ASSERT_TRUE(rgb[0] > rgb[3 * 29]);        /* Color at the start, Color 2 at the end */
     p.segments = 1;
     p.mirror = true;
     oh_pixfx_render(&p, 0.0f, T, N, rgb);
@@ -93,8 +93,8 @@ static void the_random_effects_are_the_same_on_every_node(void)
 static void lightning_strikes_sometimes_and_is_dark_otherwise(void)
 {
     oh_pixfx_params_t p = params(OH_PIXFX_LIGHTNING);
-    p.colour = (oh_color_t){255, 255, 255};
-    p.colour2 = (oh_color_t){0, 0, 0};
+    p.color = (oh_color_t){255, 255, 255};
+    p.color2 = (oh_color_t){0, 0, 0};
     p.speed = 0.5f;
     p.size = 0.5f;
     int lit = 0, frames = 0;

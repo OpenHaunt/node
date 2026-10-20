@@ -24,7 +24,7 @@ bool oh_pix_mode_parse(const char *s, oh_pix_mode_t *out)
     return false;
 }
 
-/* ── Colour order ─────────────────────────────────────────────────────── */
+/* ── Color order ─────────────────────────────────────────────────────── */
 
 static const char *const ORDERS[] = {"RGB", "RBG", "GRB", "GBR", "BRG", "BGR", "RGBW", "GRBW"};
 

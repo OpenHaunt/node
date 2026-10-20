@@ -342,7 +342,7 @@ menu "OpenHaunt board"
             depends on OH_DISPLAY
             default 35
         config OH_DISPLAY_INVERT
-            bool "Invert colours"
+            bool "Invert colors"
             depends on OH_DISPLAY
             default y
         config OH_DISPLAY_BGR

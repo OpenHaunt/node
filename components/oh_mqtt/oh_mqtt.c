@@ -418,7 +418,7 @@ static void client_start(void)
         .credentials.client_id = client_id,
         .session.keepalive = 10,
         .session.last_will = {.topic = s.status_topic, .msg = "offline", .qos = 1, .retain = true},
-        /* A sixteen-step colour chase is a couple of kilobytes of JSON. The
+        /* A sixteen-step color chase is a couple of kilobytes of JSON. The
          * default RX buffer is 1 KiB, and the fragment check below drops anything
          * that arrives in pieces — silently, which is the worst way to lose a cue. */
         .buffer.size = 4096,

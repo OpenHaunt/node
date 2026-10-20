@@ -30,7 +30,7 @@ cJSON *oh_json_state(const oh_module_t *m, const oh_port_state_t *states);
 cJSON *oh_json_value(const oh_value_t *v);
 
 /* Parse a payload for a port of type `t`. Rejects the wrong key, out-of-range
- * colour bytes and over-long text. */
+ * color bytes and over-long text. */
 bool oh_json_value_parse(oh_datatype_t t, const cJSON *payload, oh_value_t *out);
 
 /* What an input publishes: {state,edge,ts} or {value,unit,ts}. */

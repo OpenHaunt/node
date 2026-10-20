@@ -7,7 +7,7 @@
  *
  * Sized to sit in a static array of `OH_MAX_PORTS`, so no allocation happens on the
  * rendering path. Steps cap at `OH_EFFECT_STEPS_MAX` and carry compact values —
- * number, boolean or colour, never text — which keeps the whole table a few kB.
+ * number, boolean or color, never text — which keeps the whole table a few kB.
  *
  * No ESP-IDF dependency beyond its vendored cJSON: compiled into the host tests.
  */

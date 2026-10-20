@@ -1,5 +1,5 @@
 /*
- * The clip store: a wear-levelled FAT partition, one file per clip, named by the
+ * The clip store: a wear-leveled FAT partition, one file per clip, named by the
  * sha256 of its bytes. OpenHaunt/node doc 13, "The store".
  */
 #include "oh_audio.h"

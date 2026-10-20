@@ -71,8 +71,8 @@ input[type=range]{padding:0}input[type=color]{padding:0;height:32px}
 
 <section id="module">
 <div class="card"><h2>What this node is</h2>
-<p style="margin:0 0 8px">Source: <span class="pill" id="modSrc"></span>. A node describes itself; a controller learns its ports from here and carries no catalogue.</p>
-<label>Load a catalogue preset</label><div class="row"><select id="preset"></select><button class="b" style="margin:0" onclick="loadPreset()">Load into editor</button></div>
+<p style="margin:0 0 8px">Source: <span class="pill" id="modSrc"></span>. A node describes itself; a controller learns its ports from here and carries no catalog.</p>
+<label>Load a catalog preset</label><div class="row"><select id="preset"></select><button class="b" style="margin:0" onclick="loadPreset()">Load into editor</button></div>
 <label>Module description with bindings (driver ↔ pin)</label><textarea id="modJson" spellcheck="false"></textarea>
 <div style="color:var(--mut);font-size:13px;margin-top:6px">Drivers on this build: <span id="drivers"></span></div>
 <button class="b p" onclick="applyModule()">Apply &amp; store</button><button class="b" onclick="clearModule()">Use EEPROM / none</button>

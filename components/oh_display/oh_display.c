@@ -180,7 +180,7 @@ static void flush(void)
 
 /* ── Content ──────────────────────────────────────────────────────────── */
 
-/* A `percent` port declared over 0..1 carries a fraction (the catalogue's
+/* A `percent` port declared over 0..1 carries a fraction (the catalog's
  * intensity does); one declared over 0..100 carries percent already. */
 static bool is_fraction_percent(const oh_port_desc_t *p)
 {
@@ -235,25 +235,25 @@ static void render(void)
     oh_net_ip(ip, sizeof(ip));
     oh_net_ssid(ssid, sizeof(ssid));
     oh_net_ap_ssid(ap, sizeof(ap));
-    uint16_t net_colour = fg;
+    uint16_t net_color = fg;
     switch (oh_net_state()) {
     case OH_NET_UP:
         snprintf(line, sizeof(line), "%s %s  %.*s", oh_net_transport(), ip, cols - 17 - (int)strlen(ip), ssid);
         break;
     case OH_NET_SETUP_AP:
         snprintf(line, sizeof(line), "SETUP AP %s", ap);
-        net_colour = warn;
+        net_color = warn;
         break;
     case OH_NET_CONNECTING:
         snprintf(line, sizeof(line), "connecting to %.*s", cols - 14, ssid[0] ? ssid : "wifi");
-        net_colour = warn;
+        net_color = warn;
         break;
     default:
         snprintf(line, sizeof(line), "no network");
-        net_colour = bad;
+        net_color = bad;
         break;
     }
-    oh_fb_text(&s.fb, 0, y, 1, net_colour, bg, line);
+    oh_fb_text(&s.fb, 0, y, 1, net_color, bg, line);
     y += ROW_H;
 
     oh_config_t cfg;
@@ -288,7 +288,7 @@ static void render(void)
         int vx = s.fb.w - (int)strlen(v) * OH_FONT_W;
         oh_fb_text(&s.fb, vx, y, 1, vc, bg, v);
         if (p->type == OH_DT_COLOR) {
-            /* The colour itself, as a swatch beside its hex. */
+            /* The color itself, as a swatch beside its hex. */
             const oh_color_t *c = &st[i].value.color;
             oh_fb_fill(&s.fb, vx - 30, y + 1, 24, ROW_H - 2, oh_rgb(90, 90, 90));
             oh_fb_fill(&s.fb, vx - 29, y + 2, 22, ROW_H - 4, oh_rgb(c->r, c->g, c->b));

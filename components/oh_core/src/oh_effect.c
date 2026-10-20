@@ -223,11 +223,11 @@ static bool sample_steps(const oh_effect_t *e, float x, oh_value_t *out)
     if (span <= 0.0f) {
         span += 1.0f;
     }
-    float travelled = x - step->at;
-    if (travelled < 0.0f) {
-        travelled += 1.0f;
+    float traveled = x - step->at;
+    if (traveled < 0.0f) {
+        traveled += 1.0f;
     }
-    oh_value_blend(&step->value, &next->value, oh_ease(step->easing, travelled / span), out);
+    oh_value_blend(&step->value, &next->value, oh_ease(step->easing, traveled / span), out);
     return true;
 }
 
