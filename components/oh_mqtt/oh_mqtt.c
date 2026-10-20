@@ -11,6 +11,7 @@
 #include "mqtt_client.h"
 #include "oh_app.h"
 #include "oh_audio.h"
+#include "oh_brokers.h"
 #include "oh_clock.h"
 #include "oh_config.h"
 #include "oh_json.h"
@@ -36,9 +37,24 @@ typedef struct {
     char *payload;
 } queued_t;
 
+/* Where the leader publishes its broker list, retained (doc 15). */
+#define OH_BROKERS_TOPIC "openhaunt/brokers"
+
 static struct {
     esp_mqtt_client_handle_t client;
-    char broker[64];
+    /* The entry of `list` being tried or connected to. */
+    char broker[OH_BROKER_ADDR_MAX];
+    /* Every broker this node may use, leader first, and where in it the walk is. */
+    oh_brokers_t list;
+    /* Counts clients, so a retry scheduled for one that has since been replaced is
+     * dropped rather than pointing the new one somewhere it was not asked to go. */
+    uint32_t generation;
+    uint32_t retry_generation;
+    esp_timer_handle_t retry;
+    /* Held while a client is started, stopped or pointed elsewhere. Not `lock`, which
+     * the client's own task takes to flush the backlog: stopping a client waits for
+     * that task, and the two would wait for each other. */
+    SemaphoreHandle_t client_lock;
     char status_topic[48];
     char prefix[32]; /* openhaunt/<sn> */
     bool connected;
@@ -114,7 +130,7 @@ static void publish_input(const oh_port_changed_t *c)
         snprintf(suffix, sizeof(suffix), "input/%u", c->port);
         publish(suffix, payload, 1, false);
         free(payload);
-    } else if (s.broker[0]) {
+    } else if (s.list.n) {
         backlog_push(c->port, payload);
     } else {
         free(payload);
@@ -236,6 +252,23 @@ static void on_message(const char *topic, size_t topic_len, const char *data, si
         on_clock(data, data_len, retained);
         return;
     }
+    /* The broker list, likewise one for every node: kept, so a reboot with the leader
+     * dead still knows where the others are, and acted on by `reconfigure` on the
+     * event loop, which is where a client may be stopped from. */
+    const size_t brokers_len = strlen(OH_BROKERS_TOPIC);
+    if (topic_len == brokers_len && strncmp(topic, OH_BROKERS_TOPIC, brokers_len) == 0) {
+        cJSON *json = cJSON_ParseWithLength(data, data_len);
+        oh_brokers_t list;
+        bool present = false;
+        char err[OH_ERR_MAX];
+        if (oh_brokers_parse(json, &list, &present, err) && present && list.n) {
+            oh_config_set_mqtt_brokers(&list);
+        } else {
+            ESP_LOGW(TAG, "%s: %.60s", OH_BROKERS_TOPIC, err[0] ? err : "no list in it");
+        }
+        cJSON_Delete(json);
+        return;
+    }
 
     size_t plen = strlen(s.prefix);
     /* openhaunt/<sn>/audio/<verb>: doc 13. */
@@ -281,13 +314,17 @@ static void on_message(const char *topic, size_t topic_len, const char *data, si
 
 static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
-    (void)arg;
     (void)base;
+    /* `arg` is the generation of the client this event is from. */
+    if ((uint32_t)(uintptr_t)arg != s.generation) {
+        return;
+    }
     esp_mqtt_event_handle_t e = data;
     switch (id) {
     case MQTT_EVENT_CONNECTED: {
         ESP_LOGI(TAG, "connected to %s", s.broker);
         s.connected = true;
+        oh_brokers_connected(&s.list);
         esp_mqtt_client_publish(s.client, s.status_topic, "online", 0, 1, true);
         char topic[80];
         /* Both verbs, not just `set`: a port can be handed a shape as well as a
@@ -303,18 +340,28 @@ static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
          * other about when a cycle started. Retained, so this subscribe brings the
          * answer with it rather than waiting up to a second for the next tick. */
         esp_mqtt_client_subscribe(s.client, OH_CLOCK_TOPIC, 1);
+        /* Retained too: a node that walked here hears the new order at once. */
+        esp_mqtt_client_subscribe(s.client, OH_BROKERS_TOPIC, 1);
         backlog_flush();
         publish_health(NULL);
         oh_node_post(OH_EVENT_MQTT_CONNECTED, NULL, 0);
         break;
     }
-    case MQTT_EVENT_DISCONNECTED:
+    case MQTT_EVENT_DISCONNECTED: {
         if (s.connected) {
-            ESP_LOGW(TAG, "disconnected");
+            ESP_LOGW(TAG, "disconnected from %s", s.broker);
             oh_node_post(OH_EVENT_MQTT_DISCONNECTED, NULL, 0);
         }
         s.connected = false;
+        /* Refused or dropped, it is the same: the next entry, after a moment, and a
+         * backoff once the whole list has failed. Only the leader's door is open, so
+         * the walk ends wherever the show is being run from now. */
+        const uint32_t wait_ms = oh_brokers_failed(&s.list);
+        s.retry_generation = (uint32_t)(uintptr_t)arg;
+        esp_timer_stop(s.retry);
+        esp_timer_start_once(s.retry, (uint64_t)wait_ms * 1000ULL);
         break;
+    }
     case MQTT_EVENT_DATA:
         if (e->current_data_offset == 0 && e->total_data_len == e->data_len) {
             on_message(e->topic, e->topic_len, e->data, e->data_len, e->retain);
@@ -334,9 +381,12 @@ static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
 
 static void client_stop(void)
 {
+    esp_timer_stop(s.retry);
     if (!s.client) {
         return;
     }
+    /* Whatever this client says from here on is about a client that is going. */
+    s.generation++;
     if (s.connected) {
         /* Leaving on purpose: say so, rather than letting the will say it later. */
         esp_mqtt_client_publish(s.client, s.status_topic, "offline", 0, 1, true);
@@ -348,13 +398,19 @@ static void client_stop(void)
     s.client = NULL;
 }
 
+static void uri_of(const char *addr, char *uri, size_t cap)
+{
+    snprintf(uri, cap, "mqtt://%s", addr);
+}
+
 static void client_start(void)
 {
-    if (!s.broker[0] || !s.net_up || s.client) {
+    if (!s.list.n || !s.net_up || s.client) {
         return;
     }
+    strncpy(s.broker, oh_brokers_current(&s.list), sizeof(s.broker) - 1);
     char uri[80];
-    snprintf(uri, sizeof(uri), "mqtt://%s", s.broker);
+    uri_of(s.broker, uri, sizeof(uri));
     char client_id[32];
     snprintf(client_id, sizeof(client_id), "openhaunt-%s", oh_app_sn());
     esp_mqtt_client_config_t cfg = {
@@ -366,8 +422,11 @@ static void client_start(void)
          * default RX buffer is 1 KiB, and the fragment check below drops anything
          * that arrives in pieces — silently, which is the worst way to lose a cue. */
         .buffer.size = 4096,
-        .network.reconnect_timeout_ms = 2000,
-        .network.disable_auto_reconnect = false,
+        /* Reconnecting is this file's job, not the client's: the next attempt goes to
+         * the next entry of the list (`retry`), not to the same broker again. */
+        .network.disable_auto_reconnect = true,
+        /* A dead station's address answers nothing at all; a refusal is immediate. */
+        .network.timeout_ms = 3000,
         .task.priority = 5,
     };
     s.client = esp_mqtt_client_init(&cfg);
@@ -375,21 +434,49 @@ static void client_start(void)
         ESP_LOGE(TAG, "client init failed");
         return;
     }
-    esp_mqtt_client_register_event(s.client, ESP_EVENT_ANY_ID, mqtt_event, NULL);
+    s.generation++;
+    esp_mqtt_client_register_event(s.client, ESP_EVENT_ANY_ID, mqtt_event, (void *)(uintptr_t)s.generation);
     esp_mqtt_client_start(s.client);
-    ESP_LOGI(TAG, "connecting to %s as %s", s.broker, client_id);
+    ESP_LOGI(TAG, "connecting to %s as %s (%u of %u)", s.broker, client_id, (unsigned)s.list.current + 1,
+             (unsigned)s.list.n);
 }
 
+/* esp_timer task: the next entry, on the client that asked for it. */
+static void retry(void *arg)
+{
+    (void)arg;
+    xSemaphoreTake(s.client_lock, portMAX_DELAY);
+    if (s.client && s.retry_generation == s.generation && !s.connected) {
+        strncpy(s.broker, oh_brokers_current(&s.list), sizeof(s.broker) - 1);
+        char uri[80];
+        uri_of(s.broker, uri, sizeof(uri));
+        esp_mqtt_client_set_uri(s.client, uri);
+        ESP_LOGI(TAG, "trying %s (%u of %u)", s.broker, (unsigned)s.list.current + 1, (unsigned)s.list.n);
+        esp_mqtt_client_reconnect(s.client);
+    }
+    xSemaphoreGive(s.client_lock);
+}
+
+/* The event loop: a new list, from HTTP, the console's retained topic or `mqtt set`. */
 static void reconfigure(void)
 {
     oh_config_t cfg;
     oh_config_get(&cfg);
-    if (strcmp(cfg.mqtt_broker, s.broker) == 0 && (s.client || !s.net_up)) {
-        return; /* same broker, already running: the idempotent case */
+    xSemaphoreTake(s.client_lock, portMAX_DELAY);
+    const bool move = oh_brokers_set(&s.list, &cfg.mqtt_brokers, s.connected ? s.broker : NULL);
+    if (cfg.mqtt_brokers.n == 0) {
+        /* Told to forget: no broker at all, the way a node comes out of the box. */
+        client_stop();
+        memset(&s.list, 0, sizeof(s.list));
+        s.broker[0] = '\0';
+    } else if (move || !s.client) {
+        if (move && s.client) {
+            ESP_LOGI(TAG, "moving to %s", oh_brokers_current(&s.list));
+        }
+        client_stop();
+        client_start();
     }
-    client_stop();
-    strncpy(s.broker, cfg.mqtt_broker, sizeof(s.broker) - 1);
-    client_start();
+    xSemaphoreGive(s.client_lock);
 }
 
 static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
@@ -428,11 +515,12 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
 esp_err_t oh_mqtt_start(void)
 {
     s.lock = xSemaphoreCreateMutex();
+    s.client_lock = xSemaphoreCreateMutex();
     snprintf(s.prefix, sizeof(s.prefix), "openhaunt/%s", oh_app_sn());
     snprintf(s.status_topic, sizeof(s.status_topic), "%s/status", s.prefix);
     oh_config_t cfg;
     oh_config_get(&cfg);
-    strncpy(s.broker, cfg.mqtt_broker, sizeof(s.broker) - 1);
+    oh_brokers_set(&s.list, &cfg.mqtt_brokers, NULL);
 #if SOC_TEMP_SENSOR_SUPPORTED
     temperature_sensor_config_t tcfg = TEMPERATURE_SENSOR_CONFIG_DEFAULT(-10, 80);
     if (temperature_sensor_install(&tcfg, &s_tsens) == ESP_OK) {
@@ -440,6 +528,8 @@ esp_err_t oh_mqtt_start(void)
     }
 #endif
     ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, ESP_EVENT_ANY_ID, on_event, NULL));
+    esp_timer_create_args_t r = {.callback = retry, .name = "mqtt-retry"};
+    ESP_ERROR_CHECK(esp_timer_create(&r, &s.retry));
     esp_timer_create_args_t args = {.callback = publish_health, .name = "health"};
     ESP_ERROR_CHECK(esp_timer_create(&args, &s.health));
     ESP_ERROR_CHECK(esp_timer_start_periodic(s.health, HEALTH_PERIOD_US));

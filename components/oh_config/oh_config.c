@@ -86,6 +86,15 @@ esp_err_t oh_config_init(void)
     } else {
         nvs_read_str(h, "name", s_cfg.name, sizeof(s_cfg.name));
         nvs_read_str(h, "mqtt_broker", s_cfg.mqtt_broker, sizeof(s_cfg.mqtt_broker));
+        /* The list, where one was ever given; a node from before lists has only the
+         * one broker, which is a list of one. */
+        char joined[OH_BROKERS_JOINED_MAX] = "";
+        nvs_read_str(h, "mqtt_brokers", joined, sizeof(joined));
+        if (joined[0]) {
+            oh_brokers_split(joined, &s_cfg.mqtt_brokers);
+        } else {
+            oh_brokers_one(s_cfg.mqtt_broker, &s_cfg.mqtt_brokers);
+        }
         nvs_read_str(h, "dmx_proto", s_cfg.dmx_protocol, sizeof(s_cfg.dmx_protocol));
         nvs_get_u16(h, "dmx_univ", &s_cfg.dmx_universe);
         nvs_read_str(h, "wifi_ssid", s_cfg.wifi_ssid, sizeof(s_cfg.wifi_ssid));
@@ -148,16 +157,34 @@ esp_err_t oh_config_set_name(const char *name)
 
 esp_err_t oh_config_set_mqtt_broker(const char *broker)
 {
+    oh_brokers_t one;
+    oh_brokers_one(broker, &one);
+    return oh_config_set_mqtt_brokers(&one);
+}
+
+esp_err_t oh_config_set_mqtt_brokers(const oh_brokers_t *list)
+{
+    const char *first = list->n ? list->entry[0] : "";
     lock();
-    bool same = strcmp(s_cfg.mqtt_broker, broker) == 0;
+    bool same = oh_brokers_equal(&s_cfg.mqtt_brokers, list);
     if (!same) {
-        strncpy(s_cfg.mqtt_broker, broker, sizeof(s_cfg.mqtt_broker) - 1);
+        s_cfg.mqtt_brokers = *list;
+        s_cfg.mqtt_brokers.current = 0;
+        s_cfg.mqtt_brokers.backoff_ms = 0;
+        strncpy(s_cfg.mqtt_broker, first, sizeof(s_cfg.mqtt_broker) - 1);
+        s_cfg.mqtt_broker[sizeof(s_cfg.mqtt_broker) - 1] = '\0';
     }
     unlock();
     if (same) {
         return ESP_OK;
     }
-    esp_err_t err = nvs_write_str("mqtt_broker", broker);
+    /* Both keys: an older firmware flashed back over this one still finds its broker. */
+    char joined[OH_BROKERS_JOINED_MAX];
+    oh_brokers_join(list, joined, sizeof(joined));
+    esp_err_t err = nvs_write_str("mqtt_broker", first);
+    if (err == ESP_OK) {
+        err = nvs_write_str("mqtt_brokers", joined);
+    }
     announce(OH_CFG_MQTT);
     return err;
 }
@@ -251,7 +278,8 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
     }
 
     /* Pass 1: validate everything. */
-    char name[OH_NAME_MAX] = "", broker[64] = "", proto[OH_PROTOCOL_MAX] = "", ssid[33] = "", psk[65] = "";
+    char name[OH_NAME_MAX] = "", proto[OH_PROTOCOL_MAX] = "", ssid[33] = "", psk[65] = "";
+    oh_brokers_t brokers;
     char ip[16] = "", mask[16] = "", gw[16] = "", dns[16] = "";
     bool has_name = false, has_broker = false, has_dmx = false, has_wifi = false, has_net = false, static_ip = false;
     uint16_t universe = 0;
@@ -271,14 +299,10 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
             snprintf(err, OH_ERR_MAX, "mqtt is an object");
             return ESP_ERR_INVALID_ARG;
         }
-        const cJSON *b = cJSON_GetObjectItemCaseSensitive(item, "broker");
-        if (b) {
-            if (!cJSON_IsString(b) || strlen(b->valuestring) >= sizeof(broker)) {
-                snprintf(err, OH_ERR_MAX, "mqtt.broker is \"host:port\"");
-                return ESP_ERR_INVALID_ARG;
-            }
-            strcpy(broker, b->valuestring);
-            has_broker = true;
+        /* `brokers` from a console that fails over (doc 15), `broker` alone from one
+         * that does not; either way a list. */
+        if (!oh_brokers_parse(item, &brokers, &has_broker, err)) {
+            return ESP_ERR_INVALID_ARG;
         }
     }
     item = cJSON_GetObjectItemCaseSensitive(body, "dmx");
@@ -370,8 +394,8 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
         *changed |= strcmp(before.name, name) ? OH_CFG_NAME : 0;
     }
     if (has_broker) {
-        oh_config_set_mqtt_broker(broker);
-        *changed |= strcmp(before.mqtt_broker, broker) ? OH_CFG_MQTT : 0;
+        oh_config_set_mqtt_brokers(&brokers);
+        *changed |= oh_brokers_equal(&before.mqtt_brokers, &brokers) ? 0 : OH_CFG_MQTT;
     }
     if (has_dmx) {
         oh_config_set_dmx(proto, universe);
@@ -402,6 +426,7 @@ cJSON *oh_config_to_json(void)
     cJSON_AddStringToObject(o, "name", c.name);
     cJSON *mqtt = cJSON_AddObjectToObject(o, "mqtt");
     cJSON_AddStringToObject(mqtt, "broker", c.mqtt_broker);
+    cJSON_AddItemToObject(mqtt, "brokers", oh_brokers_to_json(&c.mqtt_brokers));
     if (c.dmx_universe) {
         cJSON *dmx = cJSON_AddObjectToObject(o, "dmx");
         cJSON_AddStringToObject(dmx, "protocol", c.dmx_protocol);

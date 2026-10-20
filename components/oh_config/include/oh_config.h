@@ -9,6 +9,7 @@
 
 #include "cJSON.h"
 #include "esp_err.h"
+#include "oh_brokers.h"
 #include "oh_module.h"
 #include "oh_pixel.h"
 
@@ -24,7 +25,8 @@ extern "C" {
 
 typedef struct {
     char name[OH_NAME_MAX];   /* "" = default "<module name> <sn>" */
-    char mqtt_broker[64];     /* "host:port", "" = none */
+    char mqtt_broker[64];     /* "host:port", "" = none: the list's first entry */
+    oh_brokers_t mqtt_brokers; /* every broker it may use, leader first (doc 15) */
     char dmx_protocol[OH_PROTOCOL_MAX];
     uint16_t dmx_universe;    /* 0 = none */
     char wifi_ssid[33];
@@ -47,7 +49,10 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
 cJSON *oh_config_to_json(void);
 
 esp_err_t oh_config_set_name(const char *name);
+/* One broker: the list of one a console from before lists sends, or `mqtt set`. */
 esp_err_t oh_config_set_mqtt_broker(const char *broker);
+/* The whole list, as `mqtt.brokers` or `openhaunt/brokers` carries it. */
+esp_err_t oh_config_set_mqtt_brokers(const oh_brokers_t *list);
 esp_err_t oh_config_set_dmx(const char *protocol, uint16_t universe);
 esp_err_t oh_config_set_wifi(const char *ssid, const char *psk);
 bool oh_config_has_wifi(void);

@@ -186,6 +186,25 @@ Traps worth knowing:
 `scripts/oh-audio.py` uploads, plays, stops and streams from a laptop with no dependencies, and
 can stand in for the console's clock on a bench.
 
+## Brokers, and a console that fails over
+
+A node is told an **ordered list of brokers**, leader first: every station of the console's
+session (OpenHaunt/node [15 — Brokers](https://github.com/OpenHaunt/node/blob/main/docs/15-brokers.md)).
+It comes as `mqtt.brokers` in `POST /api/v1/config`, and as the retained
+`openhaunt/brokers` the leader publishes, which a node subscribes to on every connection.
+It is kept in NVS (`mqtt_brokers`, comma-joined, beside the old `mqtt_broker`), so a node
+that reboots while its leader is dead still knows where the others are.
+
+Losing the broker it is on, a node tries the next entry 200 ms later, and once a whole
+pass has failed it waits 1 s, doubling to 8 s. A new list whose first entry is not the
+broker it is on moves it there at once. Only the leading station's broker accepts a node,
+so the walk ends where the show is being run from, and that leader's list then puts itself
+first. Input events from the gap are kept, 32 of them in order, and flushed on connecting.
+
+`oh_brokers` in `oh_core` is the walk and the parsing, with host tests; `oh_mqtt` drives
+esp-mqtt with auto-reconnect off and points the client at the next entry itself. A console
+from before lists sends `mqtt.broker` alone, which is a list of one.
+
 ## Building
 
 ESP-IDF v5.5 (installed with [eim](https://github.com/espressif/idf-im-ui) at
@@ -310,9 +329,10 @@ node's audio (see *Audio*), and
 The V0 boards build cleanly for both revisions and the host tests pass, but **no V0 board
 has run this firmware yet**: the W5500 bring-up, the Wi-Fi fallback on that board, the sensor
 polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW, the
-sACN receiver with several multicast joins, the frame rates), the indicator LEDs, and all of audio
-(I2S on both revisions, the clip store, the stream, the timing against the DAC) are written from
-the schematic and the datasheets and unverified.
+sACN receiver with several multicast joins, the frame rates), the indicator LEDs, all of audio
+(I2S on both revisions, the clip store, the stream, the timing against the DAC), and the broker
+list (esp-mqtt with auto-reconnect off, `set_uri` and `reconnect` from a timer) are written from
+the schematic, the datasheets and the ESP-IDF documentation, and unverified.
 
 Verified on the ESP32-1732S019 against the-pult: setup AP and captive portal,
 discovery and the TXT record, every `/api/v1` endpoint, adoption, MQTT in both
