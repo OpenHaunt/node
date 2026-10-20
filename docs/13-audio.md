@@ -59,8 +59,8 @@ Why WAV with IMA ADPCM, and not MP3:
   where ADPCM's noise floor would show.
 - **CPU.** An ADPCM decoder is a table lookup and a shift per sample. MP3 costs a few percent of a
   core per voice, times four voices plus a stream, on a core that also runs the network.
-- **Licence and size.** ESP-IDF ships no MP3 decoder. The usable ones are either a component from
-  Espressif's registry under its own licence, or a vendored library of thousands of lines. The
+- **License and size.** ESP-IDF ships no MP3 decoder. The usable ones are either a component from
+  Espressif's registry under its own license, or a vendored library of thousands of lines. The
   ADPCM decoder here is about a hundred lines and has host tests.
 - **Seeking is exact.** ADPCM is coded in independent blocks, so the node can start a clip part
   way through (see *late starts*) without decoding from the beginning.
@@ -74,7 +74,7 @@ ffmpeg -i bang.flac   -ac 1 -ar 48000 -c:a pcm_s16le    bang.wav          # PCM1
 
 ### The store
 
-The clips live on a FAT partition (`clips`, wear-levelled) in the 16 MB flash, after both
+The clips live on a FAT partition (`clips`, wear-leveled) in the 16 MB flash, after both
 3 MB OTA slots. On the V0 boards that is 0x9D0000 bytes, about 9.8 MiB. Each clip is a file named
 by the **sha256 of its bytes**, so a clip is uploaded once and named the same way by every node
 and the console.

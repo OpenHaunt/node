@@ -67,10 +67,10 @@ tab_len = 16;        // from the outer wall
 tab_w = 20;
 tab_t = 4;
 tab_slot_d = 4.5;    // clearance for 4 mm wood screws or M4
-tab_slot_len = 6;    // slot along the tab, centre to centre
-tab_slot_x0 = 4.5;   // inner slot centre from the wall: room for a Ø8 screw head
+tab_slot_len = 6;    // slot along the tab, center to center
+tab_slot_x0 = 4.5;   // inner slot center from the wall: room for a Ø8 screw head
 gusset_w = 2.5;
-tab_y = [-18, -72];  // tab centres along both short sides
+tab_y = [-18, -72];  // tab centers along both short sides
 
 /* [Push button SW1] */
 sw = [85.26, -31.2];
@@ -122,7 +122,7 @@ module cutouts(zb = z_split - 5) {
     yt1 = wall + 1;
     // RJ45 J3 face x 29.84..47.15, z 1.25..14.96
     box(29.84 - clr, 47.15 + clr, yt, yt1, zb, 14.96 + clr);
-    // USB-C J11 centre x 53.44, z 3.25; opening sized for the plug overmold
+    // USB-C J11 center x 53.44, z 3.25; opening sized for the plug overmold
     usb_w = 10; usb_h = 6.5;
     hull() {
         translate([53.44, yt, 3.25]) rotate([-90, 0, 0])
@@ -263,7 +263,7 @@ pin_bottom = sw_top + pin_gap;
 pin_len = z_top + pin_protrude - pin_bottom;
 
 module pin() {
-    // modelled in place; for printing it is turned top end down in print_pin()
+    // modeled in place; for printing it is turned top end down in print_pin()
     translate([sw[0], sw[1], pin_bottom]) {
         cylinder(d = 2.5, h = 1.01);
         translate([0, 0, 1]) cylinder(d = pin_d, h = pin_len - 1);

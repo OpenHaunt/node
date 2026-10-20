@@ -4,7 +4,7 @@ A node's WS2812 output runs in one of two **modes**, chosen when the strip is pa
 for the whole night:
 
 - **`effect`**: the node draws every pixel itself, from a handful of parameters the console
-  sets like any other port (colour, second colour, brightness, effect, speed, size, reverse,
+  sets like any other port (color, second color, brightness, effect, speed, size, reverse,
   mirror, segments). A chase is one message, and then nothing.
 - **`sacn`**: the console draws every pixel, and the node maps one or more sACN universes onto
   the strip.
@@ -19,9 +19,9 @@ describes the result.
 
 ## Heads
 
-A node with two strips has two colours and two brightnesses. The console turns a port's
-`class` into a parameter kind (`color` → the fixture's colour, `intensity` → its dimmer), and
-a fixture has one colour, so two strips on one fixture collide on the same key. The V0 board
+A node with two strips has two colors and two brightnesses. The console turns a port's
+`class` into a parameter kind (`color` → the fixture's color, `intensity` → its dimmer), and
+a fixture has one color, so two strips on one fixture collide on the same key. The V0 board
 worked round this by giving only strip 1 the classes. That isn't an answer.
 
 The answer is that a port can say which **head** it belongs to:
@@ -29,7 +29,7 @@ The answer is that a port can say which **head** it belongs to:
 ```json
 "ports": [
   { "port": 0, "name": "Relay 1", "access": "readwrite", "dataType": "boolean", "class": "switch" },
-  { "port": 6, "name": "Colour", "access": "readwrite", "dataType": "color", "class": "color", "head": 1 },
+  { "port": 6, "name": "Color", "access": "readwrite", "dataType": "color", "class": "color", "head": 1 },
   { "port": 7, "name": "Brightness", "access": "readwrite", "dataType": "number", "class": "intensity",
     "unit": "percent", "minimum": 0, "maximum": 1, "default": 0, "head": 1 }
 ],
@@ -84,7 +84,7 @@ changes its ports, and this is how the console finds out without polling.
   `/api/v1/pixels/<n>`.
 - `head` is the head the strip is.
 - `count` is how many pixels the node drives, 1..`max_count`.
-- `order` is the colour order of the pixels on the wire: any permutation of `RGB`, or `RGBW`/`GRBW`
+- `order` is the color order of the pixels on the wire: any permutation of `RGB`, or `RGBW`/`GRBW`
   for a four-channel strip. Every four-channel order this node can drive is listed.
 - `universe` and `address`: in `sacn` mode, where pixel 0's first channel sits (`universe` 1..63999,
   `address` 1..512). They are kept, but unused, in `effect` mode.
@@ -127,9 +127,9 @@ A strip in `effect` mode is head *n* with nine ports. On V0, strip 1 (output 0, 
 
 | Offset | Name | dataType | Range, unit | Default | class | Node-side effects |
 |---|---|---|---|---|---|---|
-| +0 | Colour | color | — | 0,0,0 | `color` | shapes, steps, transitions |
+| +0 | Color | color | — | 0,0,0 | `color` | shapes, steps, transitions |
 | +1 | Brightness | number | 0..1, `percent` | 0 | `intensity` | shapes, steps, transitions |
-| +2 | Colour 2 | color | — | 0,0,0 | — | shapes, steps, transitions |
+| +2 | Color 2 | color | — | 0,0,0 | — | shapes, steps, transitions |
 | +3 | Effect | string | one of `pixels.effects` | `solid` | `pixel-effect` | — |
 | +4 | Speed | number | 0..10, `hertz` | 1 | `speed` | shapes, steps, transitions |
 | +5 | Size | number | 0..1, `percent` | 0.25 | `size` | shapes, steps, transitions |
@@ -137,37 +137,37 @@ A strip in `effect` mode is head *n* with nine ports. On V0, strip 1 (output 0, 
 | +7 | Mirror | boolean | — | 0 | `mirror` | square, steps |
 | +8 | Segments | number | 1..16, `unitless` | 1 | `segments` | steps, transitions |
 
-- Every pixel's colour is computed, multiplied by Brightness, and sent. There is no gamma
+- Every pixel's color is computed, multiplied by Brightness, and sent. There is no gamma
   curve on the node: what the console sends is what the strip gets, as before.
 - An Effect string the node doesn't know draws as `solid`, and the node raises the
   `pixel-effect` error until a known one arrives.
 - Segments is rounded to an integer.
 - The `effects` capability on the parameter ports is the ordinary doc 08 extension, so a console can
-  fade the Speed or breathe the Colour on the node as well, and the strip's own effect runs on top
+  fade the Speed or breathe the Color on the node as well, and the strip's own effect runs on top
   of that.
 
 ### The effects
 
 Positions run along a **segment**. The strip is divided into `Segments` equal segments, and every
 segment draws the same pattern. *x* is a pixel's position in its segment, 0 at the start and 1 at
-the end, measured at the pixel's centre. **Mirror** folds the segment about its middle (the pattern
-runs from both ends towards the centre), and **Reverse** then runs it the other way.
+the end, measured at the pixel's center. **Mirror** folds the segment about its middle (the pattern
+runs from both ends towards the center), and **Reverse** then runs it the other way.
 
-*Phase* goes round once per cycle at `Speed` cycles a second. *Level* blends Colour 2 (at 0)
-into Colour (at 1).
+*Phase* goes round once per cycle at `Speed` cycles a second. *Level* blends Color 2 (at 0)
+into Color (at 1).
 
 | Effect | What it draws |
 |---|---|
-| `solid` | Colour everywhere. Speed and Size do nothing. This is the old strip, and the default. |
-| `gradient` | Colour at the start of the segment to Colour 2 at its end, scrolling at Speed. At Speed 0 it stands still. |
-| `chase` | A block of Colour, Size long (as a fraction of the segment), on Colour 2, travelling one segment per cycle. |
-| `comet` | A head of Colour with a tail Size long, fading quadratically into Colour 2. |
-| `wave` | A sine of level along the segment, `1/Size` waves across it, travelling one wavelength per cycle. |
-| `breathe` | The whole segment rises and falls from Colour 2 to Colour, once per cycle. |
-| `fire` | Flame: value noise along the strip and in time, hotter at the start of the segment. Black → Colour (half heat) → Colour 2 (full heat). Speed is how fast it flickers, Size how big the tongues are. Set Colour red and Colour 2 yellow. |
-| `candle` | Each segment is one candle, flickering on its own: Colour at a level that wanders between about 0.55 and 1. Speed is how restless it is. |
-| `sparkle` | Pixels of Colour flash up and fade, on Colour 2. Size is the density (the fraction of pixels lit per flash period). Speed is flashes per second. |
-| `lightning` | The whole strip is Colour 2 with an occasional strike of Colour: two or three flashes 40–80 ms long. Each `1/Speed` seconds a strike happens with probability Size. |
+| `solid` | Color everywhere. Speed and Size do nothing. This is the old strip, and the default. |
+| `gradient` | Color at the start of the segment to Color 2 at its end, scrolling at Speed. At Speed 0 it stands still. |
+| `chase` | A block of Color, Size long (as a fraction of the segment), on Color 2, traveling one segment per cycle. |
+| `comet` | A head of Color with a tail Size long, fading quadratically into Color 2. |
+| `wave` | A sine of level along the segment, `1/Size` waves across it, traveling one wavelength per cycle. |
+| `breathe` | The whole segment rises and falls from Color 2 to Color, once per cycle. |
+| `fire` | Flame: value noise along the strip and in time, hotter at the start of the segment. Black → Color (half heat) → Color 2 (full heat). Speed is how fast it flickers, Size how big the tongues are. Set Color red and Color 2 yellow. |
+| `candle` | Each segment is one candle, flickering on its own: Color at a level that wanders between about 0.55 and 1. Speed is how restless it is. |
+| `sparkle` | Pixels of Color flash up and fade, on Color 2. Size is the density (the fraction of pixels lit per flash period). Speed is flashes per second. |
+| `lightning` | The whole strip is Color 2 with an occasional strike of Color: two or three flashes 40–80 ms long. Each `1/Speed` seconds a strike happens with probability Size. |
 
 **Two nodes agree.** Everything is computed from the console's clock (`openhaunt/clock`):
 

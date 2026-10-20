@@ -73,10 +73,10 @@ tab_len = 16;        // from the outer wall
 tab_w = 20;
 tab_t = 4;
 tab_slot_d = 4.5;    // clearance for 4 mm wood screws or M4
-tab_slot_len = 6;    // slot along the tab, centre to centre
-tab_slot_x0 = 4.5;   // inner slot centre from the wall: room for a Ø8 screw head
+tab_slot_len = 6;    // slot along the tab, center to center
+tab_slot_x0 = 4.5;   // inner slot center from the wall: room for a Ø8 screw head
 gusset_w = 2.5;
-tab_y = [-18, -72];  // tab centres along both short sides
+tab_y = [-18, -72];  // tab centers along both short sides
 
 /* [Push buttons SW1 (BOOT), SW2 (RST)] */
 sws = [[85.26, -31.21], [96.68, -31.26]];
@@ -107,7 +107,7 @@ status_box = 3.6;    // outer size, 0.8 walls
 
 /* [J12 expansion header] */
 j12_slot = true;     // lid slot for the cable of a plug-on 1×8 socket
-j12 = [117.43, -17.51];   // header centre
+j12 = [117.43, -17.51];   // header center
 j12_slot_size = [3.4, 21.2];
 
 /* [Vents] */
@@ -141,7 +141,7 @@ module box(x0, x1, y0, y1, z0, z1) {
 module cutouts(zb = z_split - 5) {
     yt = -gap - 0.1;                 // top wall, y from inner face outward
     yt1 = wall + 1;
-    // USB-C J11 centre x 12.41, z 3.25; opening sized for the plug overmold
+    // USB-C J11 center x 12.41, z 3.25; opening sized for the plug overmold
     usb_w = 10; usb_h = 6.5;
     hull() {
         translate([12.41, yt, 3.25]) rotate([-90, 0, 0])
@@ -298,7 +298,7 @@ pin_bottom = sw_top + pin_gap;
 pin_len = z_top + pin_protrude - pin_bottom;
 
 module pin(s = sws[0]) {
-    // modelled in place; for printing it is turned top end down in print_pin()
+    // modeled in place; for printing it is turned top end down in print_pin()
     translate([s[0], s[1], pin_bottom]) {
         cylinder(d = 2.5, h = 1.01);
         translate([0, 0, 1]) cylinder(d = pin_d, h = pin_len - 1);

@@ -15,6 +15,6 @@ if [ ! -x "$here/.venv/bin/python" ]; then
 fi
 # Step 1: KiCad's own python fills the zones and exports copper polygons (reads the board, never writes it)
 "$kpy" "$here/export_copper.py" "$board" "$tmp/copper.json" 2>&1 | grep -v -e 'Debug:' -e 'assert' || true
-# Step 2: rasterise, flood the GND copper from the vias, render
+# Step 2: rasterize, flood the GND copper from the vias, render
 "$here/.venv/bin/python" "$here/gnd_map.py" "$tmp/copper.json" "$out"
 echo "Maps: $out/gnd_FCu.png $out/gnd_BCu.png  Pad list: $out/gnd_pads.json"

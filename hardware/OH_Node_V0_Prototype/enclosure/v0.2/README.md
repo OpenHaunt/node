@@ -37,7 +37,7 @@ Per enclosure. Part-DB status as of 2026-10-18. Inserts and screws both from 3DJ
 | 4 | Low cheese head screw ISO 14580 M2.5 × 25 A2-70, Torx T8 (CNC Kitchen, 25 pcs, [3DJake](https://www.3djake.de/cnc-kitchen/m25-zylinderschrauben-niedriger-kopf-iso-14580-edelstahl-a2-70), variant M2,5x25; ISO 14583 pan head fits too) | from the hood top through post and board into the insert; head Ø4.5 × 1.85 in a Ø5.4 seat 2.0 deep, so it sits 0.15 below the lid surface. Length 23.7–25.9 works: the 25 runs through the whole insert and ends 1.2 above the bore bottom | not yet, to order; ID 354 is the same screw at 12 mm (Bossard) |
 | 4 | Wall screw: 4 mm wood screw with wall plug, or M4; pan or flat head Ø8–9 | through the 4.5 × 10.5 slots of the 4 mm thick tabs (16 × 20, gussets on both edges); not countersunk. Optional washer DIN 125 4.3 | washer: ID 286, only 2 in stock |
 | 2 | Push pin | printed, in `OH_Node_V0.2_enclosure.3mf` | — |
-| ~85 g | PETG, light or translucent | solid volume of all parts about 67 cm³; the LED skins need a light colour. In stock: Prusament PETG Signal White (ID 304), Clear (ID 294) | in stock |
+| ~85 g | PETG, light or translucent | solid volume of all parts about 67 cm³; the LED skins need a light color. In stock: Prusament PETG Signal White (ID 304), Clear (ID 294) | in stock |
 | 1 (opt.) | Socket for J12: 2 × WR-WTB 4P female housing 61900411621 + 8 crimp contacts 61900113722DEC | there is no 8P housing in stock; two 4P side by side; the cable leaves through the lid slot | IDs 96 (9 in stock), 99 (150 in stock) |
 
 Tools: soldering iron with an insert tip (inserts at 10–20 °C above the print temperature), Torx T8.
@@ -51,7 +51,7 @@ engraved labels are then on the first layer), pins top end down. 0.2 mm layers, 
 The 3MF gives the pins a 4 mm brim (they stand 18.65 mm tall on a Ø4 end); their collar has a 45° cone
 on the bed side instead of a flat overhang. Sliced in PrusaSlicer 2.9.6 with 0.4 nozzle, 2 perimeters,
 15 % infill, PETG: no stability warnings, about 73 g and 8 h 3 min.
-The LED windows are a 0.4 mm skin and only let light through in a light-coloured or translucent
+The LED windows are a 0.4 mm skin and only let light through in a light-colored or translucent
 filament. Set `led_skin = 0` for open holes.
 
 `check_print.py` fails a part that is not one closed solid: a second body (something floating, or

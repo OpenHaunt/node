@@ -269,7 +269,7 @@ question above, because a thermal path is usually also an electrical one. See
 ```
 
 No daisy-chaining, no bus. Every node is a switch port. That costs ports and buys independence: a failed
-node cannot take down its neighbours, and troubleshooting is per-device.
+node cannot take down its neighbors, and troubleshooting is per-device.
 
 Mixing power classes on one switch needs thought that the af-only design did not. A switch that budgets
 90 W for a bt node has that much less for everything else, and PoE budget exhaustion usually shows up as a

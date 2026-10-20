@@ -61,7 +61,7 @@ selected on its DC bias rating without also having to be the right mechanical pa
 | Property | Figure |
 |---|---|
 | Compliance | **"Compliant with IEEE 802.3bt for 4PPoE"**, stated on the datasheet |
-| **DC bias** | **1000 mA per centre tap** — covers Type 4's 960 mA |
+| **DC bias** | **1000 mA per center tap** — covers Type 4's 960 mA |
 | Open-circuit inductance | **350 µH** min |
 | Insulation test voltage | 1500 V RMS, 1 min |
 | Data rate | 10/100/1000BASE-T, 4 channels, 1:1 |
@@ -69,11 +69,11 @@ selected on its DC bias rating without also having to be the right mechanical pa
 | Package | 24-pin SMD, 17.55 × 14.7 × 8.8 mm |
 | Price / stock | $6.98, 18,748 at DigiKey |
 
-**The bias rating applies to pins 13–24 only**, the X-side centre taps. That side faces the etherCON.
+**The bias rating applies to pins 13–24 only**, the X-side center taps. That side faces the etherCON.
 Fitting it the other way round puts PoE current through a winding not rated to carry it.
 
 **Take the 350 µH seriously and do not substitute the 7490220123** to get its higher 1500 mA rating. That
-part is 180 µH, a gigabit-optimised value that is thin for **10BASE-T**, which the W5500 can negotiate
+part is 180 µH, a gigabit-optimized value that is thin for **10BASE-T**, which the W5500 can negotiate
 down to. More DC headroom is worthless if the link degrades when a switch drops to 10 Mbit. See D28.
 
 ### Four channels, two of them unused
@@ -82,14 +82,14 @@ Pairs 1/2 and 3/6 carry data and use channels 1 and 2. **Pairs 4/5 and 7/8 bypas
 entirely**: tie 4+5 together and 7+8 together and run them straight to J1. Channels 3 and 4 are left
 unconnected.
 
-**Do not route the spare pairs through channels 3 and 4.** It looks tidy and it is wrong. Centre-tap
+**Do not route the spare pairs through channels 3 and 4.** It looks tidy and it is wrong. Center-tap
 injection works because the two conductors of a pair sit at the same DC potential and the current enters at
 the tap, so the two winding halves carry equal and opposite MMF and cancel. The tied spare pairs are not
 like that: wiring pin 4 to `MX3+` and pin 5 to `MX3−` puts the Mode B current straight through the winding
 from one end to the other. That is a shorted turn carrying up to 960 mA. It saturates immediately and the
 part overheats.
 
-At 1000BASE-T all four pairs carry data and all four do use centre-tap injection, which is why the part has
+At 1000BASE-T all four pairs carry data and all four do use center-tap injection, which is why the part has
 four channels. On a 10/100 PHY two of them have no job.
 
 The part is gigabit-capable, which buys nothing today because the ESP32's EMAC is 10/100 and will stay
@@ -122,9 +122,9 @@ rated for it.
 ```
 etherCON NE8FAH-LR-DAE
   │
-  ├─ pair 1/2 ─▶ transformer ─┬─ centre tap ──▶ TCT  ┐
+  ├─ pair 1/2 ─▶ transformer ─┬─ center tap ──▶ TCT  ┐
   │                           └─ data ──▶ PHY        │
-  ├─ pair 3/6 ─▶ transformer ─┬─ centre tap ──▶ RCT  ├──▶ J1 ──▶ POWER BOARD
+  ├─ pair 3/6 ─▶ transformer ─┬─ center tap ──▶ RCT  ├──▶ J1 ──▶ POWER BOARD
   │                           └─ data ──▶ PHY        │
   ├─ pair 4/5 ─────────────────────────────▶ SP45    │
   └─ pair 7/8 ─────────────────────────────▶ SP78    ┘
@@ -135,7 +135,7 @@ stating plainly: a pairset is two pairs, and the two conductors of the DC feed a
 themselves, so each tap carries the whole pairset current rather than a quarter of the total. Within pair
 1/2 that 960 mA then splits into 480 mA per wire.
 
-**Both the etherCON and the transformer clear Type 4**, at 1.5 A per contact and 1000 mA per centre tap
+**Both the etherCON and the transformer clear Type 4**, at 1.5 A per contact and 1000 mA per center tap
 respectively, so nothing on the mainboard sets a power ceiling. What class a node runs at is decided by
 the power board fitted underneath it. See D28.
 
@@ -187,7 +187,7 @@ Detail X at 5:1.
 | Supply | 3.7 to 5.5 V, so **+5 V** |
 | Data | single wire, WS2812 protocol, 800 kHz via the ESP32's RMT |
 
-Both ring halves get full colour, which turns a bare presence indicator into a status display: green
+Both ring halves get full color, which turns a bare presence indicator into a status display: green
 running, red fault, blue for `/api/v1/identify`, amber during OTA. And it costs one GPIO rather than two.
 
 **The data line needs a level shifter**, and the reason is worth stating because it catches people out. A
@@ -306,11 +306,11 @@ console header J21. Plan for that rather than discovering it at bring-up.
 
 ### Magnetics on the PHY side
 
-The W5500 wants its centre taps biased, so `TCT1` and `TCT2` are **not** left open:
+The W5500 wants its center taps biased, so `TCT1` and `TCT2` are **not** left open:
 
 ```
-TCT1 ──[49.9 Ω]──▶ +3V3      TX centre tap, voltage mode
-TCT2 ──[100 nF]──▶ GND       RX centre tap, current mode
+TCT1 ──[49.9 Ω]──▶ +3V3      TX center tap, voltage mode
+TCT2 ──[100 nF]──▶ GND       RX center tap, current mode
 ```
 
 This fixes channel 1 as transmit and channel 2 as receive, so etherCON pins 1/2 become the transmit pair
@@ -330,7 +330,7 @@ puzzle.
 | Function | Signal | Notes |
 |---|---|---|
 | W5500 SPI | `ETH_SCK`, `ETH_MOSI`, `ETH_MISO`, `ETH_CS` | Any SPI-capable pins |
-| W5500 control | `ETH_INT`, `ETH_nRST` | Interrupt is required for sane driver behaviour |
+| W5500 control | `ETH_INT`, `ETH_nRST` | Interrupt is required for sane driver behavior |
 | IO board link | **`USB_DP`, `USB_DM` on GPIO19/20** | **Fixed by silicon.** Via J2 to the power board |
 | IO board control | `IO_nRESET`, `IO_BOOTSEL`, `IO_ATTN` | |
 | Power board | `I2C_SDA`, `I2C_SCL`, `PWR_ALERT`, `PWR_EN` | |
@@ -340,7 +340,7 @@ puzzle.
 **GPIO19 and GPIO20 are not a choice.** The USB peripheral is hard-wired to them, so J2 pins 9 and 11
 route to those two and nothing else can use them.
 
-**Check the S3's own strapping pins before finalising**: GPIO0, GPIO3, GPIO45 and GPIO46. GPIO45 selects
+**Check the S3's own strapping pins before finalizing**: GPIO0, GPIO3, GPIO45 and GPIO46. GPIO45 selects
 the flash voltage and GPIO46 must be low at boot. They are a different set from the classic ESP32's, so the
 rules from earlier revisions of this document do not carry over.
 
@@ -390,7 +390,7 @@ Three, and they are deliberately different from each other so that no two can be
 **The mainboard has three board-to-board connectors.** Under D35 the IO board lies across the back of
 mainboard and power board, so `J4` carries USB and the IO control lines straight to it and `J2` carries
 only supply, metering and the two control lines. `J3` lives on the power board. An earlier version of this
-section described D31's row, where everything travelled over `J2`; that is superseded.
+section described D31's row, where everything traveled over `J2`; that is superseded.
 
 **`J20` no longer exists.** The SWD passthrough was needed when the IO board sat in the middle of a stack;
 with it at an edge, the SWD header belongs on the IO board itself, next to the RP2354.
@@ -454,6 +454,6 @@ both, and route the USB pair away from it.
 network cable acts directly on J1 and J2 unless the screws take it first. Place the mainboard's mounting
 holes so that they, and not the connectors, resist a tug on the etherCON.
 
-**Check connector contact height before layout.** Coplanarity depends on the contact centreline sitting at
+**Check connector contact height before layout.** Coplanarity depends on the contact centerline sitting at
 the same height above both PCBs. Sullins quote 3.15 mm for the `LGB` series; the Würth right-angle headers
 need comparing against that from the drawing. If they differ, take both halves from one series.

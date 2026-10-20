@@ -24,7 +24,7 @@ Per enclosure. Part-DB status as of 2026-10-18. Inserts and screws both from 3DJ
 | 4 | Low cheese head screw ISO 14580 M2.5 × 25 A2-70, Torx T8 (CNC Kitchen, 25 pcs, [3DJake](https://www.3djake.de/cnc-kitchen/m25-zylinderschrauben-niedriger-kopf-iso-14580-edelstahl-a2-70), variant M2,5x25; ISO 14583 pan head fits too) | from the hood top through post and board into the insert; head Ø4.5 × 1.85 in a Ø5.4 seat 2.0 deep, so it sits 0.15 below the lid surface. Length 23.7–25.9 works: the 25 runs through the whole insert and ends 1.2 above the bore bottom | not yet, to order; ID 354 is the same screw at 12 mm (Bossard) |
 | 4 | Wall screw: 4 mm wood screw with wall plug, or M4; pan or flat head Ø8–9 | through the 4.5 × 10.5 slots of the 4 mm thick tabs (16 × 20, gussets on both edges); not countersunk. Optional washer DIN 125 4.3 | washer: ID 286, only 2 in stock |
 | 1 | Push pin | printed, in `OH_Node_V0.1_enclosure.3mf` | — |
-| ~85 g | PETG, light or translucent | solid volume of all parts about 67 cm³; the LED skins need a light colour. In stock: Prusament PETG Signal White (ID 304), Clear (ID 294) | in stock |
+| ~85 g | PETG, light or translucent | solid volume of all parts about 67 cm³; the LED skins need a light color. In stock: Prusament PETG Signal White (ID 304), Clear (ID 294) | in stock |
 
 Tools: soldering iron with an insert tip (inserts at 10–20 °C above the print temperature), Torx T8.
 
@@ -42,7 +42,7 @@ The first version of the base had a 2.4 mm³ sliver floating next to the right-h
 the terminal cut-out had removed the wall there, and the gusset sat inside the tab's screw slot. Since
 2026-10-18 the base keeps its wall below the parting plane under all cut-outs, and the gussets sit on
 the tab flanks. `check_print.py` fails a part with more than one body.
-The LED windows over D1/D2 are a 0.4 mm skin and only let light through in a light-coloured or
+The LED windows over D1/D2 are a 0.4 mm skin and only let light through in a light-colored or
 translucent filament. Set `led_skin = 0` for open holes.
 
 The lid is 2.5 mm thick (2.0 until 2026-10-18) so the screw heads can sit flush; the hood is 0.5 mm taller, nothing inside moved.

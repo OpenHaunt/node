@@ -135,7 +135,7 @@ connector. DMX512-A does not test this.
 ### Free capabilities
 
 The transceiver is half-duplex with direction control, so keeping RX routed costs nothing and leaves RDM and
-DMX input open as pure firmware questions. Do not optimise these away in hardware.
+DMX input open as pure firmware questions. Do not optimize these away in hardware.
 
 ### Open
 
@@ -211,7 +211,7 @@ what long runs actually use. At 67 W a 24 V rail is 2.8 A where 5 V would be 13.
 a header and a bus bar.
 
 **So this board wants both**: 5 V for short dense runs, 24 V for long ones, with the strip type selected by
-jumper and declared in `rails_required`. That makes it the one board in the catalogue that sets
+jumper and declared in `rails_required`. That makes it the one board in the catalog that sets
 `capability_flags` bit 7, and the reason `PWR-BT4` is a 24 V build.
 
 The constraint moves from "one fast line and 10 W" to "how many amps do you want", which is a much better
@@ -239,7 +239,7 @@ Verify before selecting:
   only within one phase.
 - **Creepage and clearance** per IEC 60664-1 for 400 V in overvoltage category III. Pull the values from
   the tables, do not estimate them.
-- **Utilisation category.** AC-1 for resistive loads, AC-3 for motors. With switch-mode supplies as the
+- **Utilization category.** AC-1 for resistive loads, AC-3 for motors. With switch-mode supplies as the
   load, which is most haunt equipment, inrush is the real sizing criterion rather than steady-state current.
 - **De-energised state.** Should the load drop out when the node loses PoE? Safer, but "the lights went out
   because a switch rebooted" is usually the worse outcome on site. A product decision.
@@ -267,7 +267,7 @@ dropout is usually right; one that holds it through a five-minute network outage
 ## 0x0007 — Environmental sensor — `IO-ENV`
 
 Temperature, humidity and air quality over I2C. Less about effects, more about operations. Fog fluid
-behaviour depends on humidity, and an escape room's HVAC failing mid-season is worth knowing about before
+behavior depends on humidity, and an escape room's HVAC failing mid-season is worth knowing about before
 the guests mention it.
 
 ## 0x0008 — Analog / digital input, 4× — `IO-AIO4`
@@ -292,7 +292,7 @@ use them; haunt equipment mostly does not.
 
 ## 0x0009 — PWM output, 4× 16 bit — `IO-PWM4`
 
-Four dimmed outputs for non-addressable loads: single-colour or RGBW LED strip, lamps, small DC motors,
+Four dimmed outputs for non-addressable loads: single-color or RGBW LED strip, lamps, small DC motors,
 fans, solenoids with PWM hold.
 
 - **The RP2350 PWM is 16 bit natively**, twelve slices of two channels, so four channels cost nothing

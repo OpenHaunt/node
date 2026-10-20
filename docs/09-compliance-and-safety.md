@@ -135,7 +135,7 @@ Three parts were chosen partly or wholly for emissions reasons:
 Two new emissions sources arrived with the three-board design and neither has been assessed:
 
 - **The board-to-board rails.** J2 and J3 carry switched-mode rails on 2.54 mm headers between three
-  coplanar PCBs. Those are unshielded conductors of a few centimetres carrying converter ripple, which is a
+  coplanar PCBs. Those are unshielded conductors of a few centimeters carrying converter ripple, which is a
   more effective antenna than any trace on a board. The coplanar arrangement makes them shorter than a
   stack would have, but also puts them near the enclosure floor rather than buried between boards. Bulk and high-frequency decoupling at both ends of both
   connectors, and the ground pins on J3 flanking the link pair are there for return path as much as for

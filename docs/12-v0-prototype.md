@@ -11,7 +11,7 @@ mainboard schematic; the schematic was completed the same evening. This is the a
 | PoE | 2 × MB10S-50MIL bridges (since 2026-10-01; were 4 × V6K100DUHM3/H), SMAJ58A, AG9912-MTB, C2 100 µ/25 V polymer (FP-025ME101M-SAR) + C3, C4 22 µ/25 V | **12 V** (since 2026-10-05; was AG9905-MTB, 5 V), 12 W to 70 °C, 9 W at 85 °C, 1.0 A. Class 0, min load 100 mA. Output caps per the datasheet: ≥ 100 µF / 25 V at the module. The MB10S is Silvertel's own Fig. 14 choice; ~0.2 W more loss than the Schottky pairs |
 | 5 V | AP63205WU-7 (U7), L2 4.7 µH SWPA6045S4R7MT, C35 22 µ in, C36 + C37 22 µ out, C38 100 n bootstrap | 12 V → 5 V, 2 A, fixed output (FB to +5V), EN tied to VIN, spread spectrum. Values from table 3 of the AP63205 datasheet. Feeds every former +5V load |
 | 3.3 V | AMS1117-3.3, C34 22 µ in, C5 10 µ + C25 22 µ out | C34 (CL21A226MAQNNNE, 0805, ≈ 10–14 µF at 5 V) on the +5V trunk about 3 mm from U3 pin 3; the datasheet recommends 10 µF at the input |
-| Relays | 4 × Omron G2RL-1-E DC5, 2 × DMN2004DWK-7, 4 × 1N4148WS | 1 K gate series, 10 K pull-down on the GPIO side of the 1 K, so the gate sees the full 3.3 V. DMN2004DWK since 2026-10-04: VGS(th) ≤ 1.0 V, RDS(on) ≤ 0.7 Ω at 2.5 V; the DMN601DWK (VGS(th) up to 2.5 V, RDS(on) only specified at 5 V) was marginal for the 80 mA coil. Würth 691137710003 screw terminal per relay, pins 1–3: COM / NO / NC. **Max. 10 A per channel**: the 2.5 mm tracks run on all four layers; the two outer layers alone carry about 12 A at 20 K rise; relay and terminal could do 16 A. Relay circuits are at least 4 mm apart (DRC rule `mains_between_relays`, 4.8 mm measured), so neighbouring relays may switch different phases. G2RL since 2026-09-30: 5 kV coil–contact, 8 mm / 8 mm, for 230 V outdoors; the G5LE was basic insulation only |
+| Relays | 4 × Omron G2RL-1-E DC5, 2 × DMN2004DWK-7, 4 × 1N4148WS | 1 K gate series, 10 K pull-down on the GPIO side of the 1 K, so the gate sees the full 3.3 V. DMN2004DWK since 2026-10-04: VGS(th) ≤ 1.0 V, RDS(on) ≤ 0.7 Ω at 2.5 V; the DMN601DWK (VGS(th) up to 2.5 V, RDS(on) only specified at 5 V) was marginal for the 80 mA coil. Würth 691137710003 screw terminal per relay, pins 1–3: COM / NO / NC. **Max. 10 A per channel**: the 2.5 mm tracks run on all four layers; the two outer layers alone carry about 12 A at 20 K rise; relay and terminal could do 16 A. Relay circuits are at least 4 mm apart (DRC rule `mains_between_relays`, 4.8 mm measured), so neighboring relays may switch different phases. G2RL since 2026-09-30: 5 kV coil–contact, 8 mm / 8 mm, for 230 V outdoors; the G5LE was basic insulation only |
 | PIR | 2 × Würth 691137710003: **12 V**, GND, signal | 12 V through a PPTC per terminal (F1/F2, 0805L020/30XR, 200 mA hold). Signal: 10 K pull-up to +3V3 at the terminal (R35/R37), 10 K series to the GPIO (R34/R36). Works with a contact to GND (NO or NC, polarity in firmware) and with an active 3.3 V output; a 12 V level on the signal pin injects only ~0.8 mA. Changed 2026-10-05 from 5 V, 1 K series, 100 K pull-down, which a contact to GND could not drive. Inputs read contacts and sinking (open-collector/NPN) outputs. A sensor that drives +12 V onto the signal pin and floats when idle always reads high: the 10 K pull-up holds the floating state high too |
 | WS2812 | 2 × 74AHCT1G125 + 150 R, 10 K pull-down on each buffer input (R20, R49) | Würth 691137710002: data, GND. No 5 V on the terminal. The pull-downs hold the AHCT inputs low while GPIO17/18 float in reset, boot and download mode, so a strip shows no random pixels at power-up (added 2026-10-05) |
 | Audio | MAX98357A, CUI SJ1-3523N, C21 100 µ 1206 bulk at U6 | Jack carries the bridged speaker output: tip OUTP, ring open, sleeve OUTN. Not line-out, and the sleeve is not ground; see "Line out" below. No WAGO terminal in parallel (D37 listed one); a speaker needs a 3.5 mm plug |
@@ -186,7 +186,7 @@ COM 3/6, NO 4/5, each contact on two pins. Symbol pins: A1/A2 coil, 12 NC, 11 CO
 
 ## Before layout
 
-- Domain 1 is the magjack centre taps, the bridges, the TVS and the module input. Keep the 1500 V
+- Domain 1 is the magjack center taps, the bridges, the TVS and the module input. Keep the 1500 V
   clearance to everything else.
 - Keep-out under the module (Ag9905, now Ag9912) per Figure 17 of the datasheet.
 - Check the Ag9900 3D model offset once in the viewer; it came from the CSE file.
@@ -242,6 +242,6 @@ pegs) instead of the SJ1-3523N (12 mm wide), which was taken for V0 without a co
 `AudioJack3` symbol, PCB edge marked 1.9 mm behind the front face so the bushing can pass through a panel.
 3D model from SamacSys (Kycon offers none), placed by its own geometry: board plane at the 0.5 mm standoff,
 not SamacSys's z offset, which sinks it 0.5 mm into the board. The model's kinked pins sit 0.15 mm off the
-drawing's slot centres, inside the slots. Part-DB entry still to be created (DigiKey 2092-STX-3000-ND).
+drawing's slot centers, inside the slots. Part-DB entry still to be created (DigiKey 2092-STX-3000-ND).
 *Built in V0.2 as described ("V0.2 board changes"); Part-DB 617. The T and R pad names were swapped in the
 first version of the footprint and fixed on 2026-10-17.*

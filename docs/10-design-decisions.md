@@ -199,7 +199,7 @@ where a frame is due every 22.6 ms. **With the RP2354 doing all timing (D19), no
 time-critical.** A 50 ms stall now delays network handling, which is buffered anyway.
 
 The second argument, wear isolation, survives but does not carry the decision on its own: 16 MB with
-LittleFS wear levelling is far beyond what recording and logging will consume in this application.
+LittleFS wear leveling is far beyond what recording and logging will consume in this application.
 
 **Reinstate it** if the ESP32 ever regains a hard real-time job, or if recording volumes grow enough to
 threaten the boot medium. The footprint is worth keeping in the layout if space allows.
@@ -463,7 +463,7 @@ protocol to specify and version, and a resident bootloader that is now the highe
 project. Accepted.
 
 **Why the RP2354 and not the RP2350 plus a flash chip:** removes a part, a footprint, four signals and the
-QSPI layout constraints from every board in the catalogue. The 2 MB of stacked flash is a W25Q16JVWI die,
+QSPI layout constraints from every board in the catalog. The 2 MB of stacked flash is a W25Q16JVWI die,
 and the pinout is identical to the flashless part, so falling back is possible if 2 MB ever runs out.
 
 ---
@@ -475,7 +475,7 @@ rev A.
 
 **Why the change:** the IO boards are the growing half of the product, and their interface is the thing that
 must not break. A UART link now and USB in generation 2 would mean two incompatible IO board families in a
-catalogue that is meant to grow. The mainboard gets rebuilt for generation 2 anyway; the IO boards should
+catalog that is meant to grow. The mainboard gets rebuilt for generation 2 anyway; the IO boards should
 not have to be.
 
 **A detail that makes this cleaner than it sounds:** the RP2354 is USB 1.1 full-speed and nothing else. The
@@ -614,7 +614,7 @@ consequence of how the connector was mounted. And the Halo ring is an externally
 connector, which is exactly what `/api/v1/identify` needed and never had.
 
 **The ring contains no LEDs**, which turned out to be an advantage. You fit two 0603 LEDs on the mainboard,
-left and right, so both the colours and the two-channel behaviour are design choices rather than whatever
+left and right, so both the colors and the two-channel behavior are design choices rather than whatever
 Neutrik happened to fit. The constraint that comes with it is a **0.80 mm maximum height**, which excludes
 much of the 0603 market; Würth's `150060xS75000` series sits exactly on the limit. Q8 in
 [11](11-open-questions.md) has the detail.
@@ -648,7 +648,7 @@ the power board, the isolation split, the link and the IO board.
 
 **Why the second jack:** the WT32-ETH01 has its own RJ45 and does not bring the differential pairs out to
 its header. Its 28 pins are GPIO and power only. So the mainboard's magjack cannot feed it, and its own
-jack cannot yield PoE taps because it is a cheap non-PoE part with the centre taps terminated internally.
+jack cannot yield PoE taps because it is a cheap non-PoE part with the center taps terminated internally.
 Two sets of magnetics in series over 10 cm costs a few dB at 100BASE-TX and nothing else.
 
 **Rejected: going straight to phase 2.** Tempting, and it was my recommendation, but it front-loads all the
@@ -678,7 +678,7 @@ definition.
 | Property | Figure |
 |---|---|
 | Compliance | **"Compliant with IEEE 802.3bt for 4PPoE"**, stated on the datasheet |
-| **DC bias** | **1000 mA per centre tap**, pins 13–24 only |
+| **DC bias** | **1000 mA per center tap**, pins 13–24 only |
 | Open-circuit inductance | **350 µH** min |
 | Insulation test voltage | 1500 V RMS, 1 min |
 | Data rate | 10/100/1000BASE-T, 4 channels, 1:1 |
@@ -703,7 +703,7 @@ The family is a clean ladder and two of the four are traps for this design.
 
 **The 7490220123 is the trap.** It has the highest bias rating in the family and I recommended it before
 reading the datasheet, on stock and price. Its 350 µH siblings are the right parts: **180 µH is a
-gigabit-optimised value and thin for 10BASE-T**, which the RTL8201FI can negotiate down to and which needs
+gigabit-optimized value and thin for 10BASE-T**, which the RTL8201FI can negotiate down to and which needs
 the higher open-circuit inductance to meet its droop requirement. More DC headroom is worthless if the link
 degrades when a switch negotiates 10 Mbit.
 
@@ -728,7 +728,7 @@ Its advantages were real and are worth recording: $3.72 against $6.98, and 12.70
 
 ### Layout constraints this part brings
 
-**The bias rating applies to pins 13–24 only**, the X-side centre taps. That side must face the etherCON.
+**The bias rating applies to pins 13–24 only**, the X-side center taps. That side must face the etherCON.
 Fitting it the other way round puts PoE current through a winding not rated to carry it, and the datasheet
 is explicit about the restriction.
 
@@ -736,10 +736,10 @@ is explicit about the restriction.
 transformer**: tie 4+5 and 7+8 and run them straight to J1.
 
 An earlier draft of this entry said the spare pairs could optionally pass through channels 3 and 4 "for the
-common-mode filtering". That is wrong and would destroy the part. Centre-tap injection relies on the two
+common-mode filtering". That is wrong and would destroy the part. Center-tap injection relies on the two
 conductors of a pair sitting at the same DC potential so the winding halves cancel; the tied spare pairs do
 not, so wiring them across a winding puts up to 960 mA straight through it as a shorted turn. At
-1000BASE-T all four pairs carry data and all four use centre-tap injection, which is why the part has four
+1000BASE-T all four pairs carry data and all four use center-tap injection, which is why the part has four
 channels. On a 10/100 PHY two have no job.
 
 The part is also gigabit-capable, which buys nothing today because the ESP32's EMAC is 10/100 and will
@@ -937,7 +937,7 @@ USB full-speed from rev A.
 | Ethernet | `W5500` | 3.47 | 73,368 |
 
 **The requirement that forced it:** the IO board link has to be USB now, not later, so that IO boards work
-unchanged on generation 2 hardware (D20). The IO boards are the growing half of the catalogue and the half
+unchanged on generation 2 hardware (D20). The IO boards are the growing half of the catalog and the half
 that ends up in the field; the mainboard is rebuilt anyway.
 
 **Why this combination and not another:**
@@ -977,9 +977,9 @@ available if a maintenance channel is ever wanted.
 
 ### Two things that came out of building it
 
-**The Halo ring LEDs are addressable RGB, not single colour.** Two `IN-PI15TAT5R5G5B` (1.5 × 1.5 mm,
+**The Halo ring LEDs are addressable RGB, not single color.** Two `IN-PI15TAT5R5G5B` (1.5 × 1.5 mm,
 **0.65 mm high**, inside Neutrik's 0.80 mm limit) cascaded on one data line. That gives both ring halves
-full colour for status — green running, red fault, blue for `/api/v1/identify`, amber during OTA — and
+full color for status — green running, red fault, blue for `/api/v1/identify`, amber during OTA — and
 costs one GPIO instead of two.
 
 **They need 3.7 to 5.5 V, so the data line needs a level shifter.** A 3.3 V GPIO does not reliably reach
@@ -1164,7 +1164,7 @@ per-rail metering. The ESP32-S3 drives every output directly.
 
 | Function | Part | Source | Notes |
 |---|---|---|---|
-| Ethernet + magnetics | Würth **7499511420** magjack | Part-DB 159, LRV symbol and footprint exist | 1000 mA per centre tap, Bob Smith and 1 nF/2 kV built in, two LEDs |
+| Ethernet + magnetics | Würth **7499511420** magjack | Part-DB 159, LRV symbol and footprint exist | 1000 mA per center tap, Bob Smith and 1 nF/2 kV built in, two LEDs |
 | PoE | Silvertel **AG9905-MTB**, 5 V | new, €7.49, 3121 stock | 9 W to 70 °C, 6 W at 85 °C, 1.8 A. Class 0. Min load 200 mA |
 | Input bridges | 4 × **V6K100DUHM3/H** | Part-DB 157, as on `PWR-BT4` | datasheet suggests MB6S, the stocked dual diodes do the same |
 | Input TVS | **SMAJ58A** | Part-DB 164 | Figure 14 of the Ag9900 datasheet |
@@ -1217,7 +1217,7 @@ onto the ESP32-S3, which has 16 MB of flash it is not using. Q20 stays open for 
 eFuses and metering, the Domain 1 crossing on `J1`, and anything above 9 W. Those are what the three
 boards are for.
 
-**Isolation on one board.** Domain 1 is now the magjack centre taps `V1..V4`, the bridges, the TVS and
+**Isolation on one board.** Domain 1 is now the magjack center taps `V1..V4`, the bridges, the TVS and
 the Ag9905 input pins. The 1500 V barrier is the module's transformer and the magjack's. Keep the
 Domain 1 keep-out around that corner exactly as D17 required for `J1`.
 

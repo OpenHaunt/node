@@ -67,7 +67,7 @@ against. The default is to hold, and `CONFIG` is how a board or an installation 
 
 ### Firmware update for both processors
 
-One artefact, two images. The ESP32 image and the RP2354 image ship together and are version-locked,
+One artifact, two images. The ESP32 image and the RP2354 image ship together and are version-locked,
 because the link protocol is a compatibility surface between them and letting them drift independently
 would be a support problem nobody wants.
 
@@ -181,7 +181,7 @@ stated show time. The `audio` object in `/api/v1/info`, `/api/v1/audio/clips` an
 ### Pixel strips, and heads
 
 A port may name the **head** it belongs to, so one node can be several fixtures (two strips, each
-with its own colour and dimmer). A strip output runs in `effect` mode (the node draws it from
+with its own color and dimmer). A strip output runs in `effect` mode (the node draws it from
 nine ports) or `sacn` mode (it maps universes onto its pixels), set with `PUT /api/v1/pixels/<n>`.
 The `heads` list, the `pixels` object, the endpoint and the mDNS `desc` key are specified in
 [14 — Pixel strips, and heads](14-pixels.md).
@@ -243,7 +243,7 @@ preferred. Generation 2 returns to an internal MAC and the problem disappears. S
 
 - **sACN with a correct IGMP join.** Each universe has its own multicast group; a switch with IGMP snooping
   forwards only the universes the node subscribed to. Load stays at 0.2 Mbit/s regardless of rig size.
-  **With the W5500 this is no longer an optimisation but the only way a large rig works at all.**
+  **With the W5500 this is no longer an optimization but the only way a large rig works at all.**
 - **Art-Net unicast** via ArtPoll/ArtPollReply discovery, so consoles target nodes directly.
 
 ## Latency
@@ -321,7 +321,7 @@ RP2354, IO board        │
 ```
 
 **One firmware bundle for all nodes.** The two descriptors select the drivers at runtime, so distribution,
-OTA and version management stay a single artefact even with two processors and a growing catalogue of
+OTA and version management stay a single artifact even with two processors and a growing catalog of
 boards. That is a real operational simplification once a venue has dozens of nodes, and it is worth
 protecting: resist any temptation to ship board-specific ESP32 builds.
 
@@ -332,9 +332,9 @@ updated separately, which is what keeps the app partitions viable.
 
 **Never ship without a working rollback path.** A node in a maze ceiling is not conveniently reachable.
 
-### Fault behaviour
+### Fault behavior
 
-| Condition | Behaviour |
+| Condition | Behavior |
 |---|---|
 | No power board, or a bad descriptor | Run on the unconditional 5 V, join network, report fault, enable nothing |
 | No IO board detected | Join network, advertise `io=0x0000`, report fault |

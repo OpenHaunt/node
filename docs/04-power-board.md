@@ -170,7 +170,7 @@ available, and on a 24 V-input build the step-down ratio is larger.
 secondary current — 4.2 A instead of 8.4 A at the module, and 2.8 A instead of 5.6 A on J3 at full load.
 That means two bucks (24→12, 24→5) rather than one, and it makes the 24 V eFuse mandatory rather than
 optional. Current per rail, and therefore the regulator selection,
-follows from the IO board catalogue rather than from the PD module. See Q4 in
+follows from the IO board catalog rather than from the PD module. See Q4 in
 [11 — Open Questions](11-open-questions.md).
 
 ### Per-rail eFuse
@@ -200,7 +200,7 @@ with programmable current limit, circuit breaker, overvoltage protection, slew r
 | 5 V to J3 | TPS259803ONRGER | Same part, different sense resistor. Behind `PWR_EN` |
 | 5 V to J2 | TPS259803ONRGER, enable tied high | The unconditional mainboard feed. Keeps current limit and inrush without firmware |
 
-Using one eFuse part across three rails is worth more than optimising each one. Same footprint, same
+Using one eFuse part across three rails is worth more than optimizing each one. Same footprint, same
 driver code, one line in the BOM.
 
 Pick the trip thresholds from the declared per-rail limits in the descriptor, not from what the regulator
@@ -240,7 +240,7 @@ Descriptor layout and field definitions are in [06 — Board Interfaces](06-boar
 
 Strap pins were considered and rejected. They read before I2C is up, which sounds useful, but they carry no
 serial and no calibration data, and the mainboard has nothing useful to do in the window before I2C
-initialises anyway. It cannot enable an IO board until it knows the budget, and it does not know the budget
+initializes anyway. It cannot enable an IO board until it knows the budget, and it does not know the budget
 until it has read the descriptor.
 
 ## Thermal

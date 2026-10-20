@@ -15,7 +15,7 @@ PAD warning. Every symbol except the test points and mounting holes comes from P
 
 - [ ] **Optional: +VDC plane at PS1 pad 1** (datasheet Fig. 12). VIN− and −VDC planes are in; VPOE leaves pad 1 as
       a 1.0 mm track only. A VPOE zone on F.Cu/B.Cu at about x 74.1–78.4, y 108.9–114.7 with a few vias.
-- [ ] Board marking: name, "Node v0.2" and "Designed by hrueger" are on; date and project URL/licence are not.
+- [ ] Board marking: name, "Node v0.2" and "Designed by hrueger" are on; date and project URL/license are not.
 - [x] JLC files regenerated in `production/jlc_final/` (2026-10-17 20:44, board saved 20:42): 154 SMD parts, 54
       lines, hand-parts lists.
 - [ ] Check the new parts in JLC's placement preview (list in `production/jlc_final/README.md`), set

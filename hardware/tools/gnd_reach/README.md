@@ -16,12 +16,12 @@ Close KiCad or save first, otherwise the map shows the last saved state.
 
 ## Reading the map
 
-| Colour | Meaning |
+| Color | Meaning |
 |---|---|
 | green → yellow → orange → red → dark red | 0 / 3 / 6 / 10 / ≥ 20 mm through copper to the nearest GND via |
 | blue | GND copper with no path to any via (floating island) |
 | magenta tint | zone fill thinner than 0.6 mm |
-| grey | copper of other nets |
+| gray | copper of other nets |
 | white rings | GND vias |
 | yellow / red circle with label | SMD GND pad, nearest GND via > 1 / > 2 mm away (edge to edge) |
 
@@ -30,5 +30,5 @@ Close KiCad or save first, otherwise the map shows the last saved state.
 ## Assumptions
 
 - Inner layers are solid GND planes, so every GND via and plated GND hole counts as a plane connection.
-- Only the GND net is analysed; other nets are drawn grey for orientation.
-- Thresholds (0.6 mm thin, 1 / 2 mm pad distance, colour stops) are constants in `gnd_map.py`.
+- Only the GND net is analyzed; other nets are drawn gray for orientation.
+- Thresholds (0.6 mm thin, 1 / 2 mm pad distance, color stops) are constants in `gnd_map.py`.
