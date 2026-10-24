@@ -1,0 +1,16 @@
+menu "OpenHaunt audio"
+    config OH_AUDIO
+        bool "Audio output: stored clips and an RTP stream (OpenHaunt/node doc 13)"
+        default y if OH_BOARD_OH_NODE_V0
+        default n
+        depends on SPIRAM
+        help
+            Needs the board's I2S pins (OpenHaunt board menu), PSRAM for the
+            stream's buffer and the clip readers, and a FAT partition named
+            "clips" in the partition table.
+
+    config OH_AUDIO_CLIPS_PARTITION
+        string "Partition label of the clip store"
+        depends on OH_AUDIO
+        default "clips"
+endmenu
