@@ -181,6 +181,65 @@ into Color (at 1).
 
 A four-channel strip in `effect` mode leaves W at 0.
 
+### Exactly
+
+The effects are drawn in two places — on the node, and in a console that shows what a
+strip is doing (the-pult's plan and 3D view) — so the words above are not enough. This is
+the arithmetic, and **[`14-pixel-effects.json`](14-pixel-effects.json) is the same thing
+as bytes**: 600 cases, every effect under five parameter sets at six moments of the
+console clock, generated from the firmware's C (`firmware/test/host/pixfx_corpus.c`).
+The firmware checks itself against it exactly (`test_pixfx_corpus`); another
+implementation must land within one byte of every case, and on no more than 1% of bytes —
+a platform's `sinf` or a fused multiply-add may move the last bit of a float, and a float
+on a rounding edge then moves a byte by one, never by more. An effect changed on purpose
+regenerates the file, and the commit says so.
+
+All arithmetic is 32-bit float, in the order written; time is integer milliseconds.
+
+**Phase.** `mHz = round(Speed × 1000)` (half away from zero) and
+`units = now_ms × mHz`, an exact integer in millionths of a cycle. `j = ⌊units / 10⁶⌋`,
+`tf = (units − j·10⁶) / 10⁶`. The ideal phase is `tf` of `Speed`'s own `units`. A node
+advances its phase by `Speed × dt` and, at a steady Speed, pulls it 2% a frame towards the
+ideal; a console draws the ideal.
+
+**Position.** For pixel `i` of `count`: `u = (i + 0.5) × Segments / count`, `seg = ⌊u⌋`
+(truncated), `x = u − seg`. Mirror: `x = 1 − |2x − 1|`; then Reverse: `x = 1 − x`.
+`wrap(v) = v − ⌊v⌋`, and 0 where that rounds to 1.
+
+**Hash.** `mix(x)` is splitmix64's finalizer on a u64 (add `0x9E3779B97F4A7C15`, then
+`x ^= x>>30; x *= 0xBF58476D1CE4E5B9; x ^= x>>27; x *= 0x94D049BB133111EB; x ^= x>>31`),
+truncated to u32. `hash2(a, b) = mix((u64)a × 0xD6E8FEB86659FD93 ^ mix(b))` on i64
+arguments. `unit(h) = (h >> 8) / 2²⁴`. `noise2(x, j, tf, salt)` is value noise: lattice
+`xi = ⌊x⌋`, corners `unit(hash2(xi·31 + salt, j))`, `…(xi+1)·31+salt, j)`, and the same at
+`j + 1`, blended by `s(t) = t²(3 − 2t)` across `x − xi`, then across `tf`.
+
+**Level**, blending Color 2 (0) into Color (1), per effect:
+
+| Effect | Level |
+|---|---|
+| solid | 1 |
+| gradient | `1 − wrap(x − phase)` |
+| chase | 1 if `wrap(x − phase) < Size`, else 0 |
+| comet | `d = wrap(phase − x)`, `tail = max(Size, 0.001)`: `(1 − d/tail)²` if `d < tail`, else 0 |
+| wave | `0.5 + 0.5·sin(2π(x / max(Size, 0.02) − phase))` |
+| breathe | `0.5 − 0.5·cos(2π·phase)` |
+| sparkle | `m = units + (hash2(i, 1) mod 10⁶)`; lit when Speed > 0 and `unit(hash2(i, ⌊m/10⁶⌋)) < Size`, then `(1 − f)²` with `f` the fraction of `m`; else 0 |
+| lightning | 1 while a strike is lit, else 0 (below) |
+
+`fire` and `candle` draw a color directly. **Fire**: `c = 1 / max(Size, 0.05)`;
+`heat = noise2(x·c, j, tf, 7)·0.75 + noise2(2x·c, j₂, tf₂, 13)·0.35` with `j₂, tf₂` from
+`2·units`, then `heat × (1 − 0.6x)`; below 0.5 it is black → Color at `2·heat`, above it
+Color → Color 2 at `2(heat − 0.5)`. **Candle**: `n = noise2(3.7·seg, j₃, tf₃, 29)·0.7 +
+noise2(3.7·seg, j₇, tf₇, 31)·0.3` from `3·units` and `7·units`; black → Color at
+`0.55 + 0.45n`. **Lightning** (Speed > 0): window `b = j` of `1000/Speed` ms; a strike
+happens when `unit(hash2(b, 101)) < Size`, starts at `unit(hash2(b, 102))·0.6` of the
+window, and is `2 + hash2(b, 103) mod 2` flashes, flash `f` lit for
+`40 + unit(hash2(b, 110 + f))·40` ms with `60 + unit(hash2(b, 120 + f))·60` ms after it.
+
+**Bytes.** Each channel is `lo + (hi − lo)·level` (level clamped to 0..1), then
+`× Brightness + 0.5`, clamped to 0..255 and truncated. The parameters are clamped first:
+Brightness and Size 0..1, Speed 0..10, Segments 1..16.
+
 ## `sacn` mode: the mapping
 
 The strip reads E1.31 on UDP 5568, unicast and by multicast (239.255.*hi*.*lo*), the same receiver
