@@ -8,6 +8,7 @@
 #include "esp_netif.h"
 #include "esp_netif_sntp.h"
 #include "esp_timer.h"
+#include "dhcpserver/dhcpserver.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "oh_config.h"
@@ -90,6 +91,35 @@ static void sntp_start(void)
 
 static esp_err_t wifi_init(void);
 
+/* The setup AP hands out itself as the DNS server.
+ *
+ * IDF's DHCP server offers no DNS at all unless told to, and a phone given none
+ * cannot ask the captive DNS anything: its portal check fails as "no internet"
+ * rather than "sign in", no page comes up, and Android then sends everything —
+ * 192.168.4.1 included — over mobile data. The option can only be set while the
+ * server is stopped, so it is stopped, told, and started again. */
+static void ap_offer_dns(void)
+{
+    esp_netif_ip_info_t ip;
+    if (esp_netif_get_ip_info(s.ap, &ip) != ESP_OK) {
+        return;
+    }
+    esp_netif_dhcps_stop(s.ap);
+    esp_netif_dns_info_t dns = {0};
+    dns.ip.type = ESP_IPADDR_TYPE_V4;
+    dns.ip.u_addr.ip4 = ip.ip;
+    esp_err_t err = esp_netif_set_dns_info(s.ap, ESP_NETIF_DNS_MAIN, &dns);
+    dhcps_offer_t offer = OFFER_DNS;
+    if (err == ESP_OK) {
+        err = esp_netif_dhcps_option(s.ap, ESP_NETIF_OP_SET, ESP_NETIF_DOMAIN_NAME_SERVER, &offer,
+                                     sizeof(offer));
+    }
+    esp_netif_dhcps_start(s.ap);
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "setup AP offers no DNS (%s): no captive portal", esp_err_to_name(err));
+    }
+}
+
 static void ap_open(void)
 {
     if (s.ap_up || !CONFIG_OH_WIFI_SOFTAP_FALLBACK) {
@@ -104,6 +134,7 @@ static void ap_open(void)
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &cfg));
     s.ap_up = true;
+    ap_offer_dns();
     oh_captive_dns_start();
     ESP_LOGW(TAG, "setup access point \"%s\" is open (192.168.4.1)", s.hostname);
     set_state(OH_NET_SETUP_AP);

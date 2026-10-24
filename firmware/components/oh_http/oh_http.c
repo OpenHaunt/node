@@ -8,6 +8,8 @@
 #include "esp_http_server.h"
 #include "esp_ota_ops.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "oh_app.h"
 #include "oh_audio.h"
 #include "oh_board.h"
@@ -438,7 +440,11 @@ static esp_err_t get_status(httpd_req_t *req)
 
 static esp_err_t get_wifi_scan(httpd_req_t *req)
 {
-    return send_json(req, oh_net_wifi_scan(), NULL);
+    cJSON *list = oh_net_wifi_scan();
+    /* What the scan left of the stack, so the next time it is too deep a log line
+     * says so before a reboot does. */
+    ESP_LOGI(TAG, "wifi scan: %u bytes of stack to spare", (unsigned)uxTaskGetStackHighWaterMark(NULL));
+    return send_json(req, list, NULL);
 }
 
 static esp_err_t get_module(httpd_req_t *req)
@@ -580,7 +586,11 @@ esp_err_t oh_http_start(void)
     cfg.max_uri_handlers = 28;
     /* /api/v1/audio/clips/<sha> names its clip in the path. */
     cfg.uri_match_fn = httpd_uri_match_wildcard;
-    cfg.stack_size = 8192;
+    /* 12 KB, not 8: the setup page's Wi-Fi scan runs on this task, and a blocking
+     * scan overflowed 8 KB — the node rebooted, and the setup AP it was serving
+     * vanished from under the phone. The serial console runs the same scan on
+     * 12 KB and always has. */
+    cfg.stack_size = 12288;
     cfg.lru_purge_enable = true;
     cfg.recv_wait_timeout = 10;
     cfg.send_wait_timeout = 10;
