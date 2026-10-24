@@ -9,6 +9,7 @@
 
 #include "driver/gpio.h"
 #include "driver/i2s_std.h"
+#include "oh_amp.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -52,8 +53,7 @@ static struct {
     bool downmix;
     bool line_enabled;
     bool speaker_enabled;
-    bool amp_on;
-    int64_t quiet_since_us;
+    oh_amp_t amp;
     /* The stream's receiver. */
     uint16_t want_port;
     bool has_ssrc;
@@ -86,7 +86,7 @@ static void set_pin(int gpio, bool level)
 static void apply_outputs(void)
 {
     set_pin(s.pins->dac_mute, s.line_enabled);
-    set_pin(s.pins->amp_en, s.speaker_enabled && s.amp_on);
+    set_pin(s.pins->amp_en, s.speaker_enabled && s.amp.on);
 }
 
 /* ── The output task ─────────────────────────────────────────────────── */
@@ -129,21 +129,10 @@ static void audio_task(void *arg)
             }
         }
 
-        /* The amplifier draws power, and V0.2's budget is tight: on just ahead of a
-         * sound, off a while after. */
-        if (wanted) {
-            s.quiet_since_us = 0;
-            if (!s.amp_on) {
-                s.amp_on = true;
-                apply_outputs();
-            }
-        } else if (s.amp_on) {
-            if (!s.quiet_since_us) {
-                s.quiet_since_us = show_us;
-            } else if (show_us - s.quiet_since_us > AMP_IDLE_US) {
-                s.amp_on = false;
-                apply_outputs();
-            }
+        /* On just ahead of a sound and off a while after — or, where the board's
+         * output hums when let go of, on for good (oh_amp.h). */
+        if (oh_amp_step(&s.amp, wanted, show_us)) {
+            apply_outputs();
         }
 
         size_t w = 0;
@@ -415,7 +404,11 @@ esp_err_t oh_audio_start(void)
     s.downmix = s.pins->dac_mute < 0;
     s.line_enabled = true;
     s.speaker_enabled = true;
-    s.amp_on = false;
+#ifdef CONFIG_OH_AUDIO_AMP_ALWAYS_ON
+    oh_amp_init(&s.amp, AMP_IDLE_US, true);
+#else
+    oh_amp_init(&s.amp, AMP_IDLE_US, false);
+#endif
     apply_outputs();
 
     s.up = true;

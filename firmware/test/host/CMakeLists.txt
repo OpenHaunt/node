@@ -27,7 +27,7 @@ target_link_libraries(oh_core PUBLIC cjson m)
 target_compile_options(oh_core PRIVATE -std=gnu11 -Wall -Wextra -Werror)
 
 enable_testing()
-foreach(t descriptor json vmod debounce e131 curve effect transition clock_sync wav rtp mixer audio_proto pixel pixfx sacn_merge brokers)
+foreach(t descriptor json vmod debounce e131 curve effect transition clock_sync wav rtp mixer audio_proto pixel pixfx sacn_merge brokers amp)
     add_executable(test_${t} test_${t}.c)
     target_link_libraries(test_${t} oh_core unity)
     target_compile_options(test_${t} PRIVATE -std=gnu11 -Wall -Wextra)
