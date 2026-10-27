@@ -3,6 +3,7 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "oh_board.h"
+#include "oh_config.h"
 #include "oh_node.h"
 #include "sdkconfig.h"
 
@@ -24,6 +25,9 @@ static struct {
     int64_t identify_until_us;
     esp_timer_handle_t tick;
     uint32_t n;
+    bool dark;        /* oh_config_dark(), kept here so the tick takes no lock */
+    bool pressed;     /* the BOOT button, debounced */
+    uint8_t press_ticks;
 } s;
 
 typedef struct {
@@ -95,18 +99,75 @@ static void mirror_indicators(void)
     }
 }
 
+static void indicators_off(void)
+{
+    const oh_board_pins_t *b = oh_board_pins();
+    for (int i = 0; i < 4; i++) {
+        if (b->relay_leds[i] >= 0) {
+            gpio_set_level(b->relay_leds[i], 0);
+        }
+    }
+    for (int i = 0; i < 2; i++) {
+        if (b->sensor_leds[i] >= 0) {
+            gpio_set_level(b->sensor_leds[i], 0);
+        }
+    }
+}
+
+/* The BOOT button, read every tick. Two ticks the same way round (100 ms) count, which
+ * rides out contact bounce. The press itself is handled on the event loop: toggling
+ * dark writes flash, which the timer task is too small and too busy for. */
+static void poll_button(void)
+{
+    const oh_board_pins_t *b = oh_board_pins();
+    if (b->button < 0) {
+        return;
+    }
+    const bool down = gpio_get_level(b->button) == (b->button_active_low ? 0 : 1);
+    if (down == s.pressed) {
+        s.press_ticks = 0;
+        return;
+    }
+    if (++s.press_ticks < 2) {
+        return;
+    }
+    s.press_ticks = 0;
+    s.pressed = down;
+    oh_node_post(OH_EVENT_BUTTON, &down, sizeof(down));
+}
+
+bool oh_status_button(bool *pressed)
+{
+    *pressed = s.pressed;
+    return oh_board_pins()->button >= 0;
+}
+
 /* 50 ms ticks. Each pattern is "on for these ticks out of this period". */
 static void on_tick(void *arg)
 {
     (void)arg;
     uint32_t t = s.n++;
     int64_t now = esp_timer_get_time();
-    mirror_indicators();
+    poll_button();
+    /* Dark mode turns every indicator off. Identify still blinks: a node has to be
+     * findable, and the person asking for it wants to see it. */
+    if (s.dark) {
+        indicators_off();
+    } else {
+        mirror_indicators();
+    }
     const int err_led = oh_board_pins()->error_led;
     if (now < s.identify_until_us) {
         led_set((t & 1) == 0, (rgb_t){60, 60, 60});
         if (err_led >= 0) {
             gpio_set_level(err_led, (t & 1) == 0);
+        }
+        return;
+    }
+    if (s.dark) {
+        led_set(false, (rgb_t){0, 0, 0});
+        if (err_led >= 0) {
+            gpio_set_level(err_led, 0);
         }
         return;
     }
@@ -174,6 +235,16 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     case OH_EVENT_IDENTIFY:
         s.identify_until_us = esp_timer_get_time() + (int64_t)(*(uint32_t *)data) * 1000;
         break;
+    case OH_EVENT_BUTTON:
+        if (*(bool *)data) {
+            oh_config_set_dark(!oh_config_dark());
+        }
+        break;
+    case OH_EVENT_CONFIG_CHANGED:
+        if (*(uint32_t *)data & OH_CFG_DARK) {
+            s.dark = oh_config_dark();
+        }
+        break;
     case OH_EVENT_ERRORS_CHANGED: {
         char codes[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
         s.fault = oh_node_errors(codes, OH_MAX_ERRORS) > 0;
@@ -220,6 +291,16 @@ esp_err_t oh_status_start(void)
     for (int i = 0; i < 2; i++) {
         out_pin(b->sensor_leds[i]);
     }
+    if (b->button >= 0) {
+        gpio_config_t cfg = {
+            .pin_bit_mask = 1ULL << b->button,
+            .mode = GPIO_MODE_INPUT,
+            .pull_up_en = b->button_active_low,
+            .pull_down_en = !b->button_active_low,
+        };
+        gpio_config(&cfg);
+    }
+    s.dark = oh_config_dark();
     char codes[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
     s.fault = oh_node_errors(codes, OH_MAX_ERRORS) > 0;
     ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, ESP_EVENT_ANY_ID, on_event, NULL));

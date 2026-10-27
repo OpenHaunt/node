@@ -41,6 +41,7 @@ typedef enum {
      * every single value a port took has to read the store, not listen.
      */
     OH_EVENT_RENDERED,
+    OH_EVENT_BUTTON,         /* bool: the board's BOOT button went down (true) or up */
 } oh_event_id_t;
 
 /* How often the renderer walks the ports. 25 ms is 40 Hz: finer than DMX's refresh

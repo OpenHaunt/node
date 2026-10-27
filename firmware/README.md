@@ -93,6 +93,13 @@ Decisions, and why:
 - **Audio is the `oh_audio` component** (below). Boot holds the amplifier off and the DAC
   muted, as before, until it starts. V0.2's line out is enabled for good from then on; the
   speaker amplifier is powered only while something is playing.
+- **BOOT toggles dark mode.** A press (GPIO0, debounced 100 ms) turns every indicator
+  LED off: status, error, and on V0.2 the relay and sensor LEDs. Identify still blinks.
+  Dark is kept in NVS, so a node that reboots mid-show stays dark, and is also set with
+  `POST /api/v1/config {"dark": true}` or the web UI. `/status` shows `dark` and the
+  button (`buttonPressed`), live on the event stream. The Ethernet jack's LEDs are the
+  W5500's own and stay on. A virtual module that binds GPIO0 as a contact still gets the
+  presses, and each one still toggles dark.
 - **The console is the USB-C socket** (the S3's USB Serial/JTAG). UART0 is on test points.
 
 ## Pixel strips

@@ -42,7 +42,7 @@ input[type=range]{padding:0}input[type=color]{padding:0;height:32px}
 
 <section id="status" class="on">
 <div class="card"><h2>Node</h2><table id="tStatus"></table>
-<button class="b p" onclick="post('/api/v1/identify',{}).then(()=>flash(this,'blinking'))">Identify</button></div>
+<button class="b p" onclick="post('/api/v1/identify',{}).then(()=>flash(this,'blinking'))">Identify</button><button class="b" id="bDark" onclick="toggleDark()">Dark mode</button></div>
 <div class="card"><h2>Ports</h2><table id="tPorts"><tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr></table></div>
 <div class="card"><h2>Errors</h2><div id="errs" class="msg">none</div></div>
 </section>
@@ -105,6 +105,7 @@ function since(ts){if(!ts)return'';if(ts>1e12)return new Date(ts).toLocaleTimeSt
 function fmt(v,p){if('state'in v)return v.state?'on':'off';
  if('value'in v){const n=Number(v.value);if(p&&p.unit==='percent'){const frac=p.maximum!=null&&p.maximum<=1;return Math.round(frac?n*100:n)+'%';}if(p&&p.unit==='degree-celsius')return n.toFixed(1)+' °C';return n.toFixed(3).replace(/\.?0+$/,'');}
  if('text'in v)return JSON.stringify(v.text);if('r'in v)return`<span class="swatch" style="background:rgb(${v.r},${v.g},${v.b})"></span>rgb(${v.r},${v.g},${v.b})`;return'';}
+function toggleDark(){post('/api/v1/config',{dark:!status.dark}).then(refresh).catch(e=>msg('errs',e.message,false));}
 function drive(p,v){document.activeElement?.blur();post('/api/v1/state',{outputs:{[p]:v}}).then(refresh).catch(e=>msg('errs',e.message,false));}
 function control(p,st){const v=st||{};
  if(p.dataType==='boolean')return`<span class="sw ${v.state?'on':''}" onclick="drive(${p.port},{state:${!v.state}})"></span>`;
@@ -123,6 +124,9 @@ function render(){if(!info||!status)return;
   // the first thing to look at when a port is moving out of step with the console.
   ['Console clock',status.clockLocked?(status.consoleOffsetMs>=0?'+':'')+status.consoleOffsetMs+' ms offset':'no sample yet — shapes run on this node\'s own clock'],
   ['Free heap',(status.freeHeap/1024).toFixed(0)+' kB']];
+ if('buttonPressed'in status)rows.push(['BOOT button',status.buttonPressed?'pressed':'released']);
+ rows.push(['LEDs',status.dark?'dark: indicators off, identify still blinks':'on']);
+ $('bDark').textContent=status.dark?'LEDs on':'Dark mode';
  if(info.dmx)rows.push(['DMX',info.dmx.protocols.join(', ')+' · '+info.dmx.universes+' universe'+(cfg?.dmx?' · universe '+cfg.dmx.universe:'')]);
  $('tStatus').innerHTML=rows.map(r=>`<tr><th>${r[0]}</th><td class="v">${esc(r[1])}</td></tr>`).join('');
  const st={};status.ports.forEach(p=>st[p.port]=p);

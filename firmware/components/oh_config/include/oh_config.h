@@ -22,6 +22,7 @@ extern "C" {
 #define OH_CFG_DMX (1u << 2)
 #define OH_CFG_WIFI (1u << 3)
 #define OH_CFG_NETWORK (1u << 4)
+#define OH_CFG_DARK (1u << 5)
 
 typedef struct {
     char name[OH_NAME_MAX];   /* "" = default "<module name> <sn>" */
@@ -33,6 +34,7 @@ typedef struct {
     char wifi_psk[65];
     bool static_ip;
     char ip[16], netmask[16], gateway[16], dns[16];
+    bool dark;                /* indicator LEDs off, identify still blinks */
 } oh_config_t;
 
 esp_err_t oh_config_init(void);
@@ -56,6 +58,9 @@ esp_err_t oh_config_set_mqtt_brokers(const oh_brokers_t *list);
 esp_err_t oh_config_set_dmx(const char *protocol, uint16_t universe);
 esp_err_t oh_config_set_wifi(const char *ssid, const char *psk);
 bool oh_config_has_wifi(void);
+/* Dark mode: the node's indicator LEDs stay off (the BOOT button toggles it on V0). */
+esp_err_t oh_config_set_dark(bool dark);
+bool oh_config_dark(void);
 
 /* The friendly name as the TXT record and /info carry it. */
 void oh_config_node_name(const oh_module_t *module, const char *sn, char *out, size_t cap);

@@ -106,6 +106,9 @@ esp_err_t oh_config_init(void)
         nvs_read_str(h, "netmask", s_cfg.netmask, sizeof(s_cfg.netmask));
         nvs_read_str(h, "gateway", s_cfg.gateway, sizeof(s_cfg.gateway));
         nvs_read_str(h, "dns", s_cfg.dns, sizeof(s_cfg.dns));
+        uint8_t dark = 0;
+        nvs_get_u8(h, "dark", &dark);
+        s_cfg.dark = dark != 0;
         nvs_close(h);
     }
     if (!s_cfg.wifi_ssid[0] && CONFIG_OH_WIFI_SSID[0]) {
@@ -209,6 +212,36 @@ esp_err_t oh_config_set_dmx(const char *protocol, uint16_t universe)
     return err;
 }
 
+esp_err_t oh_config_set_dark(bool dark)
+{
+    lock();
+    const bool same = s_cfg.dark == dark;
+    s_cfg.dark = dark;
+    unlock();
+    if (same) {
+        return ESP_OK;
+    }
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(NS_CFG, NVS_READWRITE, &h);
+    if (err == ESP_OK) {
+        err = nvs_set_u8(h, "dark", dark);
+        if (err == ESP_OK) {
+            err = nvs_commit(h);
+        }
+        nvs_close(h);
+    }
+    announce(OH_CFG_DARK);
+    return err;
+}
+
+bool oh_config_dark(void)
+{
+    lock();
+    const bool dark = s_cfg.dark;
+    unlock();
+    return dark;
+}
+
 esp_err_t oh_config_set_wifi(const char *ssid, const char *psk)
 {
     lock();
@@ -282,6 +315,7 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
     oh_brokers_t brokers;
     char ip[16] = "", mask[16] = "", gw[16] = "", dns[16] = "";
     bool has_name = false, has_broker = false, has_dmx = false, has_wifi = false, has_net = false, static_ip = false;
+    bool has_dark = false, dark = false;
     uint16_t universe = 0;
 
     const cJSON *item = cJSON_GetObjectItemCaseSensitive(body, "name");
@@ -386,6 +420,16 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
         has_net = true;
     }
 
+    item = cJSON_GetObjectItemCaseSensitive(body, "dark");
+    if (item) {
+        if (!cJSON_IsBool(item)) {
+            snprintf(err, OH_ERR_MAX, "dark is true or false");
+            return ESP_ERR_INVALID_ARG;
+        }
+        dark = cJSON_IsTrue(item);
+        has_dark = true;
+    }
+
     /* Pass 2: apply, each setter persisting and announcing only on change. */
     oh_config_t before;
     oh_config_get(&before);
@@ -404,6 +448,10 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
     if (has_wifi) {
         oh_config_set_wifi(ssid, psk);
         *changed |= (strcmp(before.wifi_ssid, ssid) || strcmp(before.wifi_psk, psk)) ? OH_CFG_WIFI : 0;
+    }
+    if (has_dark) {
+        oh_config_set_dark(dark);
+        *changed |= before.dark != dark ? OH_CFG_DARK : 0;
     }
     if (has_net) {
         set_network(static_ip, ip, mask, gw, dns);
@@ -441,6 +489,7 @@ cJSON *oh_config_to_json(void)
     cJSON_AddStringToObject(net, "netmask", c.netmask);
     cJSON_AddStringToObject(net, "gateway", c.gateway);
     cJSON_AddStringToObject(net, "dns", c.dns);
+    cJSON_AddBoolToObject(o, "dark", c.dark);
     return o;
 }
 

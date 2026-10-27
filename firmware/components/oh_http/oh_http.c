@@ -25,6 +25,7 @@
 #include "oh_node.h"
 #include "oh_ota.h"
 #include "oh_sacn.h"
+#include "oh_status.h"
 #include "oh_vmod.h"
 
 static const char *TAG = "oh_http";
@@ -435,6 +436,12 @@ static cJSON *status_json(void)
     }
 
     cJSON_AddStringToObject(o, "moduleSource", oh_app_module_source());
+    /* The BOOT button, live, and the dark mode it toggles. */
+    bool pressed;
+    if (oh_status_button(&pressed)) {
+        cJSON_AddBoolToObject(o, "buttonPressed", pressed);
+    }
+    cJSON_AddBoolToObject(o, "dark", oh_config_dark());
     cJSON_AddNumberToObject(o, "uptime_s", oh_clock_uptime_s());
     /* Why the last boot happened, and whether a crash left a core dump behind: a node
      * that rebooted on its own says so here, rather than only on a serial console
