@@ -128,16 +128,6 @@ static void audio_task(void *arg)
                 buf[2 * i] = buf[2 * i + 1] = m;
             }
         }
-#if CONFIG_OH_AUDIO_SWAP_LR
-        else {
-            /* V0.2's jack has tip and ring the wrong way round (Kconfig). */
-            for (int i = 0; i < BLOCK; i++) {
-                const int16_t l = buf[2 * i];
-                buf[2 * i] = buf[2 * i + 1];
-                buf[2 * i + 1] = l;
-            }
-        }
-#endif
 
         /* On just ahead of a sound and off a while after — or, where the board's
          * output hums when let go of, on for good (oh_amp.h). */

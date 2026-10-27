@@ -163,7 +163,8 @@ and the middle spring ring; Kycon's STX-3501-3N, same symbol, puts the end-conta
 jack where the tip sits. So pin 2 = ring, pin 3 = tip. The footprint first had it the other way round and
 was fixed on 2026-10-17. Pins 2 and 3 sit at the same depth, so the drawing's symbol is the only evidence.
 Confirmed on a built V0.2 on 2026-10-26: a 440 Hz tone on the left channel only and 880 Hz on the right
-only came out left and right in headphones.
+only came out left and right in headphones; on 2026-10-27 so did a spoken "left" and "right", one per
+channel, and with the channels swapped in firmware they came out of the wrong sides.
 
 **GND stitching.** 162 GND vias added on 2026-10-17 with a script that checks clearance on all four layers,
 keepouts and hole spacing: next to SMD GND pads more than 1 mm from a via, beside signal vias that had no
@@ -250,7 +251,5 @@ pegs) instead of the SJ1-3523N (12 mm wide), which was taken for V0 without a co
 3D model from SamacSys (Kycon offers none), placed by its own geometry: board plane at the 0.5 mm standoff,
 not SamacSys's z offset, which sinks it 0.5 mm into the board. The model's kinked pins sit 0.15 mm off the
 drawing's slot centers, inside the slots. Part-DB entry still to be created (DigiKey 2092-STX-3000-ND).
-*Built in V0.2 as described ("V0.2 board changes"); Part-DB 617. The T and R pad names were swapped on
-2026-10-17 on the reading of the drawing below, and that reading was wrong: the first V0.2 board, on
-2026-10-26, played the left channel out of the ring. The footprint is back the way it was first drawn (T at
-(−4.25, −5.3), R at (1.25, −5.3)); the built V0.2 boards are put right in firmware (`OH_AUDIO_SWAP_LR`).*
+*Built in V0.2 as described ("V0.2 board changes"); Part-DB 617. The T and R pad names were swapped in the
+first version of the footprint and fixed on 2026-10-17.*
