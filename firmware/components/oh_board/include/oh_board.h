@@ -41,6 +41,9 @@ bool oh_board_has_ethernet(void);
 bool oh_board_has_builtin_io(void);
 /* "0.1", "0.2" for a board with a revision of its own, else "". */
 const char *oh_board_rev(void);
+/* The chip's own temperature in °C: the die, which runs above the air around it.
+ * False where the chip has no sensor or it would not start. */
+bool oh_board_chip_temp(float *celsius);
 
 #ifdef __cplusplus
 }

@@ -124,6 +124,7 @@ function render(){if(!info||!status)return;
   // the first thing to look at when a port is moving out of step with the console.
   ['Console clock',status.clockLocked?(status.consoleOffsetMs>=0?'+':'')+status.consoleOffsetMs+' ms offset':'no sample yet — shapes run on this node\'s own clock'],
   ['Free heap',(status.freeHeap/1024).toFixed(0)+' kB']];
+ if('chipTempC'in status)rows.push(['Chip temperature',status.chipTempC.toFixed(1)+' °C (the die, above ambient)']);
  if('buttonPressed'in status)rows.push(['BOOT button',status.buttonPressed?'pressed':'released']);
  rows.push(['LEDs',status.dark?'dark: indicators off, identify still blinks':'on']);
  $('bDark').textContent=status.dark?'LEDs on':'Dark mode';

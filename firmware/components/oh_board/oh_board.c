@@ -5,6 +5,16 @@
 
 #include "driver/gpio.h"
 #include "sdkconfig.h"
+#include "soc/soc_caps.h"
+
+#if SOC_TEMP_SENSOR_SUPPORTED
+#include "driver/temperature_sensor.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+/* One sensor per chip, read by MQTT health and /status alike. */
+static temperature_sensor_handle_t s_tsens;
+static SemaphoreHandle_t s_tsens_lock;
+#endif
 
 static void parse_list(const char *text, int *out, int cap)
 {
@@ -124,6 +134,14 @@ const char *oh_board_rev(void)
 
 void oh_board_init(void)
 {
+#if SOC_TEMP_SENSOR_SUPPORTED
+    temperature_sensor_config_t tcfg = TEMPERATURE_SENSOR_CONFIG_DEFAULT(-10, 80);
+    if (temperature_sensor_install(&tcfg, &s_tsens) == ESP_OK && temperature_sensor_enable(s_tsens) == ESP_OK) {
+        s_tsens_lock = xSemaphoreCreateMutex();
+    } else {
+        s_tsens = NULL;
+    }
+#endif
     const oh_board_pins_t *b = oh_board_pins();
     /* Audio stays silent until a driver claims it: the amplifier off and the
      * DAC muted. Both already default that way through their resistors; this
@@ -136,4 +154,20 @@ void oh_board_init(void)
             gpio_set_level(quiet[i], 0);
         }
     }
+}
+
+bool oh_board_chip_temp(float *celsius)
+{
+#if SOC_TEMP_SENSOR_SUPPORTED
+    if (!s_tsens || !s_tsens_lock) {
+        return false;
+    }
+    xSemaphoreTake(s_tsens_lock, portMAX_DELAY);
+    const bool ok = temperature_sensor_get_celsius(s_tsens, celsius) == ESP_OK;
+    xSemaphoreGive(s_tsens_lock);
+    return ok;
+#else
+    (void)celsius;
+    return false;
+#endif
 }

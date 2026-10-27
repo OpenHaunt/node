@@ -354,7 +354,9 @@ stream (the console side is being written), and the V0.1.
 Two things worth knowing when a node misbehaves: `/status` says `resetReason` and whether a
 `coredump` is in flash, and `GET /api/v1/coredump` returns it raw for
 `esp-coredump info_corefile --core-format raw`, against the ELF of the image that crashed
-(`DELETE` to clear it).
+(`DELETE` to clear it). `/status` also carries `chipTempC`, the chip's own die temperature (the
+same reading MQTT health sends as `temp_c`), which runs well above the air around it: 47 °C on
+a V0.2 on the bench.
 
 Still written only from the schematic, the datasheets and the ESP-IDF documentation: the
 sensor polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW,

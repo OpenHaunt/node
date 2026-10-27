@@ -455,6 +455,10 @@ static cJSON *status_json(void)
     cJSON_AddBoolToObject(o, "clockLocked", oh_clock_console_locked());
     cJSON_AddNumberToObject(o, "consoleOffsetMs", oh_clock_console_offset_ms());
     cJSON_AddNumberToObject(o, "freeHeap", esp_get_free_heap_size());
+    float chip_temp;
+    if (oh_board_chip_temp(&chip_temp)) {
+        cJSON_AddNumberToObject(o, "chipTempC", (int)(chip_temp * 10.0f + (chip_temp < 0 ? -0.5f : 0.5f)) / 10.0);
+    }
     cJSON_AddStringToObject(o, "partition", oh_ota_running_partition());
     cJSON_AddBoolToObject(o, "pendingVerify", oh_ota_pending_verify());
     /* Which ports are running something of their own, so a glance at /status says

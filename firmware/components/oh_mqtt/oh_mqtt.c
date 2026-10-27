@@ -15,15 +15,12 @@
 #include "oh_brokers.h"
 #include "oh_clock.h"
 #include "oh_config.h"
+#include "oh_board.h"
 #include "oh_json.h"
 #include "oh_net.h"
 #include "oh_node.h"
 #include "sdkconfig.h"
 
-#if SOC_TEMP_SENSOR_SUPPORTED
-#include "driver/temperature_sensor.h"
-static temperature_sensor_handle_t s_tsens;
-#endif
 
 static const char *TAG = "oh_mqtt";
 
@@ -148,13 +145,8 @@ static void publish_health(void *arg)
     if (!s.client || !s.connected) {
         return;
     }
-    const float *temp_p = NULL;
-#if SOC_TEMP_SENSOR_SUPPORTED
     float temp = 0;
-    if (s_tsens && temperature_sensor_get_celsius(s_tsens, &temp) == ESP_OK) {
-        temp_p = &temp;
-    }
-#endif
+    const float *temp_p = oh_board_chip_temp(&temp) ? &temp : NULL;
     char codes[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
     const char *errs[OH_MAX_ERRORS];
     size_t n = oh_node_errors(codes, OH_MAX_ERRORS);
@@ -592,12 +584,6 @@ esp_err_t oh_mqtt_start(void)
     oh_config_t cfg;
     oh_config_get(&cfg);
     oh_brokers_set(&s.list, &cfg.mqtt_brokers, NULL);
-#if SOC_TEMP_SENSOR_SUPPORTED
-    temperature_sensor_config_t tcfg = TEMPERATURE_SENSOR_CONFIG_DEFAULT(-10, 80);
-    if (temperature_sensor_install(&tcfg, &s_tsens) == ESP_OK) {
-        temperature_sensor_enable(s_tsens);
-    }
-#endif
     ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, ESP_EVENT_ANY_ID, on_event, NULL));
     esp_timer_create_args_t r = {.callback = retry, .name = "mqtt-retry"};
     ESP_ERROR_CHECK(esp_timer_create(&r, &s.retry));
