@@ -88,8 +88,10 @@ Decisions, and why:
   It runs at 20 MHz (`OH_W5500_CLOCK_MHZ`) because the V0 pins go through the GPIO matrix.
 - **Yellow is status, red is faults.** The yellow LED (GPIO36) shows the usual patterns; on a
   board with a red LED (GPIO35) a fault double-flashes that instead of riding on the yellow.
-  On V0.2 the LED beside each relay and each sensor terminal follows the pin itself, whichever
-  module is bound.
+  On V0.2 the LED beside each relay follows the pin itself, whichever module is bound. The
+  LED beside each sensor terminal shows the sensor's state: lit while the port reading that
+  terminal is true, its `invert` included, so an NC contact or a sensor that drives its output
+  lights on a trip as a contact to GND does. A terminal no port reads shows its pin instead.
 - **Audio is the `oh_audio` component** (below). Boot holds the amplifier off and the DAC
   muted, as before, until it starts. V0.2's line out is enabled for good from then on; the
   speaker amplifier is powered only while something is playing.

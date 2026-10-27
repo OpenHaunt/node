@@ -1,5 +1,9 @@
 #include "oh_status.h"
 
+#include <stdlib.h>
+#include <string.h>
+
+#include "cJSON.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "oh_board.h"
@@ -28,7 +32,8 @@ static struct {
     bool dark;        /* oh_config_dark(), kept here so the tick takes no lock */
     bool pressed;     /* the BOOT button, debounced */
     uint8_t press_ticks;
-} s;
+    int sensor_port[2]; /* the port that reads each sensor terminal, -1 = none bound */
+} s = {.sensor_port = {-1, -1}};
 
 typedef struct {
     uint8_t r, g, b;
@@ -78,11 +83,48 @@ static bool driven_high(int gpio)
     return (reg >> (gpio & 31)) & 1;
 }
 
-/* The indicator LEDs beside each relay and sensor terminal (V0.2) follow the
- * pins rather than the ports, so they say what the hardware is doing whatever
- * module is bound: a relay LED is lit while its coil is driven, whoever drives
- * it. Read every tick rather than on port events, which would miss a pin a
- * driver toggles without going through a port. */
+/* Which port reads each sensor terminal: the gpio_in binding on its pin, whatever
+ * module is bound. Run on the event loop when a module is bound, not in the tick. */
+static void map_sensor_ports(void)
+{
+    const oh_board_pins_t *b = oh_board_pins();
+    int found[2] = {-1, -1};
+    oh_module_t *m = malloc(sizeof(*m));
+    if (m) {
+        oh_node_module_copy(m);
+        for (int j = 0; j < m->n_bindings; j++) {
+            const oh_binding_t *bind = &m->bindings[j];
+            if (strcmp(bind->driver, "gpio_in") != 0) {
+                continue;
+            }
+            cJSON *params = cJSON_Parse(bind->params_json);
+            const cJSON *gpios = cJSON_GetObjectItemCaseSensitive(params, "gpios");
+            const cJSON *gpio = cJSON_GetObjectItemCaseSensitive(params, "gpio");
+            for (int k = 0; k < bind->n_ports; k++) {
+                const cJSON *g = cJSON_IsArray(gpios) ? cJSON_GetArrayItem(gpios, k) : gpio;
+                for (int i = 0; i < 2; i++) {
+                    if (cJSON_IsNumber(g) && b->sensors[i] >= 0 && g->valueint == b->sensors[i]) {
+                        found[i] = bind->ports[k];
+                    }
+                }
+            }
+            cJSON_Delete(params);
+        }
+        free(m);
+    }
+    s.sensor_port[0] = found[0];
+    s.sensor_port[1] = found[1];
+}
+
+/* The indicator LEDs beside each relay and sensor terminal (V0.2). A relay LED
+ * follows its pin rather than its port, so it is lit while the coil is driven,
+ * whoever drives it; read every tick rather than on port events, which would miss a
+ * pin a driver toggles without going through a port.
+ *
+ * A sensor LED shows the sensor's state: lit while the port reading the terminal is
+ * true, which takes the binding's invert into account, so an NC contact or a sensor
+ * that drives its output lights on a trip too. A terminal no port reads falls back
+ * to its pin: lit while the contact is closed to GND. */
 static void mirror_indicators(void)
 {
     const oh_board_pins_t *b = oh_board_pins();
@@ -92,10 +134,18 @@ static void mirror_indicators(void)
         }
     }
     for (int i = 0; i < 2; i++) {
-        if (b->sensor_leds[i] >= 0 && b->sensors[i] >= 0) {
-            bool level = gpio_get_level(b->sensors[i]);
-            gpio_set_level(b->sensor_leds[i], level != b->sensor_contact_low);
+        if (b->sensor_leds[i] < 0 || b->sensors[i] < 0) {
+            continue;
         }
+        oh_port_desc_t desc;
+        oh_port_state_t st;
+        bool on;
+        if (s.sensor_port[i] >= 0 && oh_node_get(s.sensor_port[i], &desc, &st) == ESP_OK) {
+            on = st.valid && st.value.type == OH_DT_BOOLEAN && st.value.state;
+        } else {
+            on = gpio_get_level(b->sensors[i]) != b->sensor_contact_low;
+        }
+        gpio_set_level(b->sensor_leds[i], on);
     }
 }
 
@@ -235,6 +285,9 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     case OH_EVENT_IDENTIFY:
         s.identify_until_us = esp_timer_get_time() + (int64_t)(*(uint32_t *)data) * 1000;
         break;
+    case OH_EVENT_MODULE_BOUND:
+        map_sensor_ports();
+        break;
     case OH_EVENT_BUTTON:
         if (*(bool *)data) {
             oh_config_set_dark(!oh_config_dark());
@@ -301,6 +354,7 @@ esp_err_t oh_status_start(void)
         gpio_config(&cfg);
     }
     s.dark = oh_config_dark();
+    map_sensor_ports();
     char codes[OH_MAX_ERRORS][OH_ERROR_CODE_MAX];
     s.fault = oh_node_errors(codes, OH_MAX_ERRORS) > 0;
     ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, ESP_EVENT_ANY_ID, on_event, NULL));
