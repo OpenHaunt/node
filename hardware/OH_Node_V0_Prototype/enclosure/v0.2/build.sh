@@ -5,6 +5,9 @@ set -e
 cd "$(dirname "$0")"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-for p in base hood pin; do openscad --backend Manifold -D "part=\"$p\"" -o "$tmp/$p.stl" enclosure.scad; done
-python3 ../make_3mf.py OH_Node_V0.2_enclosure.3mf "$tmp/base.stl" "$tmp/hood.stl" "$tmp/pin.stl" 2
+for p in base hood; do openscad --backend Manifold -D "part=\"$p\"" -o "$tmp/$p.stl" enclosure.scad; done
+# the BOOT pin stands out further than RST, so they are two parts
+openscad --backend Manifold -D 'part="pin"' -D pin_i=0 -o "$tmp/pin BOOT.stl" enclosure.scad
+openscad --backend Manifold -D 'part="pin"' -D pin_i=1 -o "$tmp/pin RST.stl" enclosure.scad
+python3 ../make_3mf.py OH_Node_V0.2_enclosure.3mf "$tmp/base.stl" "$tmp/hood.stl" "$tmp/pin BOOT.stl,$tmp/pin RST.stl"
 python3 ../check_print.py OH_Node_V0.2_enclosure.3mf

@@ -55,9 +55,12 @@ insert_depth = 6.7;  // blind hole, closed at the bottom: room below the insert 
 insert_od = 4.6;
 tap_d = 2.2;         // self-tapping alternative
 screw_d = 2.9;       // clearance through the hood post
-head_d = 5.0;        // seat is head_d + 0.4
+countersunk = true;  // DIN 965 M2.5 x 25 (Part-DB 285) in a 90° countersink; false = ISO 14580 cheese head
+head_d = 5.0;        // cheese head seat is head_d + 0.4
 head_k = 1.85;       // ISO 14580 M2.5 head height
-seat_depth = head_k + 0.15;   // head sits just below the lid surface
+seat_depth = head_k + 0.15;   // cheese head sits just below the lid surface
+csk_dk = 4.7;        // DIN 965 M2.5 head Ø, actual max.
+csk_d = csk_dk + 0.5;         // countersink Ø at the lid surface; the head top sits 0.25 below it
 boss_d = 7.5;        // insert_d + 2 × 1.75
 post_d = 6.0;        // hood clamp post at board
 post_d_top = 7.0;
@@ -77,14 +80,18 @@ sw = [85.26, -31.2];
 sw_top = 3.6;        // plunger top above board bottom
 pin_d = 4.0;
 pin_gap = 0.25;      // pin rest gap above plunger
-pin_protrude = 1.0;
+pin_protrude = 2.0;  // 1.0 until 2026-10-26
 guide_d = pin_d + 0.4;
 guide_bottom = 11;
 collar_d = 6.0;
 collar_t = 1.0;
 
+/* [USB-C J11] */
+usb_w = 13.0;        // opening for the plug overmold: USB-C allows 12.35 x 6.5, some cables are wider
+usb_h = 8.0;
+
 /* [LED windows D1/D2] */
-led_skin = 0.4;      // 0 = open hole
+led_skin = 0;        // 0 = open hole; 0.4 = skin that lets light through a light filament
 led_box = [105.4, -26.0, 111.1, -21.3];   // x0, y0, x1, y1 outer
 led_div_x = 108.25;
 led_bottom = 4.5;
@@ -122,8 +129,10 @@ module cutouts(zb = z_split - 5) {
     yt1 = wall + 1;
     // RJ45 J3 face x 29.84..47.15, z 1.25..14.96
     box(29.84 - clr, 47.15 + clr, yt, yt1, zb, 14.96 + clr);
-    // USB-C J11 center x 53.44, z 3.25; opening sized for the plug overmold
-    usb_w = 10; usb_h = 6.5;
+    // USB-C J11 center x 53.44, z 3.25; opening sized for the plug overmold. The wall left
+    // between it and the RJ45 or the jack would be about 1 thin and a wide plug hits it,
+    // so the opening runs into both
+    box(47.15, 65.19, yt, yt1, zb, 3.25 + usb_h / 2);
     hull() {
         translate([53.44, yt, 3.25]) rotate([-90, 0, 0])
             linear_extrude(yt1 - yt) offset(r = 1.5) offset(delta = -1.5)
@@ -236,12 +245,16 @@ module hood() {
         // screw holes and head seats
         for (h = holes) translate([h[0], h[1], 0]) {
             cylinder(d = screw_d, h = 100);
-            translate([0, 0, z_top - seat_depth]) cylinder(d = head_d + 0.4, h = seat_depth + 1);
+            if (countersunk)
+                translate([0, 0, z_top - (csk_d - screw_d) / 2])
+                    cylinder(d1 = screw_d, d2 = csk_d + 2, h = (csk_d - screw_d) / 2 + 1);
+            else
+                translate([0, 0, z_top - seat_depth]) cylinder(d = head_d + 0.4, h = seat_depth + 1);
         }
         // button guide bore
         translate([sw[0], sw[1], 0]) cylinder(d = guide_d, h = 100);
-        // LED chambers, separated by a divider, closed by a thin skin on top
-        led_top = z_top - led_skin - (led_skin == 0 ? 1 : 0);
+        // LED chambers, separated by a divider, open or closed by a thin skin on top
+        led_top = led_skin == 0 ? z_top + 1 : z_top - led_skin;
         for (c = [[led_box[0] + 0.8, led_div_x - 0.4], [led_div_x + 0.4, led_box[2] - 0.8]])
             box(c[0], c[1], led_box[1] + 0.8, led_box[3] - 0.8, led_bottom - 1, led_top);
         // screwdriver windows over the terminal screws
@@ -286,14 +299,19 @@ module print_pin() { translate([0, 0, z_top + pin_protrude]) rotate([180, 0, 0])
 module pcb() { color("darkgreen", 0.9) import("pcb.stl", convexity = 10); }
 
 // --- hardware, assembly view only --------------------------------------------
-// ISO 14580 M2.5 x 25 (CNC Kitchen, head Ø4.5 x 1.85) on the hood seat,
+// DIN 965 M2.5 x 25 countersunk (length includes the head) in the lid countersink, or
+// ISO 14580 M2.5 x 25 (CNC Kitchen, head Ø4.5 x 1.85) on the flat seat;
 // CNC Kitchen M2.5 x 4.0 insert (Ø4.6) flush with the boss top.
 
 screw_l = 25;
 screw_head = [4.5, head_k];
+csk_k = (csk_dk - 2.5) / 2;   // 90° head, 1.1 high
 
 module screw() {
-    translate([0, 0, screw_seat]) {
+    if (countersunk) translate([0, 0, screw_seat]) {
+        translate([0, 0, -csk_k]) cylinder(d1 = 2.5, d2 = csk_dk, h = csk_k);
+        translate([0, 0, -screw_l]) cylinder(d = 2.5, h = screw_l - csk_k + 0.01);
+    } else translate([0, 0, screw_seat]) {
         difference() {
             cylinder(d = screw_head[0], h = screw_head[1]);
             translate([0, 0, screw_head[1] - 1]) cylinder(d = 1.8, h = 2, $fn = 6);
@@ -309,8 +327,12 @@ module insert() {
 }
 
 echo(str("Outer size: ", ow, " x ", oh, " x ", z_top - (z_floor - floor_t), " mm (without tabs)"));
-screw_seat = z_top - seat_depth;
-echo(str("Screw: M2.5, length ", screw_seat + insert_l - 1.5, "..", screw_seat + insert_depth - 0.3, " mm (at least insert length - 1.5 engaged / short of the bore bottom)"));
+// countersunk: head top; cheese head: head bottom
+screw_seat = countersunk ? z_top - (csk_d - csk_dk) / 2 : z_top - seat_depth;
+echo(str("Screw: M2.5, length ", screw_seat + insert_l - 1.5, "..", screw_seat + insert_depth - 0.3, " mm",
+    countersunk ? " including the head" : " under the head",
+    " (at least insert length - 1.5 engaged / short of the bore bottom)"));
+echo(str("Screw tip ", screw_seat - screw_l, " (insert -", insert_l, "..0, bore bottom -", insert_depth, ")"));
 echo(str("Floor under the insert bore: ", standoff + floor_t - insert_depth, " mm"));
 assert(!use_inserts || standoff + floor_t - insert_depth >= 0.8, "insert bore breaks through the floor");
 echo(str("Pin length: ", pin_len, " mm"));
