@@ -37,6 +37,7 @@ extern "C" {
 typedef struct {
     int64_t offset_ms;
     bool have_offset;
+    bool seeded; /* the estimate is a retained sample's, and no live one has come yet */
     uint64_t last_seq;
     bool have_seq;
 } oh_clock_sync_t;
@@ -48,8 +49,9 @@ void oh_clock_sync_init(oh_clock_sync_t *s);
  *
  * `retained` marks a message the broker replayed on subscribe: it was published at
  * an unknown time in the past, so it seeds an empty estimate and is never allowed to
- * correct a live one. A `seq` that goes backwards means the broker restarted, and
- * the estimate starts again rather than being smoothed through a stale number.
+ * correct a live one. The first live sample replaces such a seed outright. A `seq`
+ * that goes backwards means the broker restarted, and the estimate starts again
+ * rather than being smoothed through a stale number.
  */
 void oh_clock_sync_feed(oh_clock_sync_t *s, int64_t console_ms, uint64_t seq, int64_t local_ms, bool retained);
 
