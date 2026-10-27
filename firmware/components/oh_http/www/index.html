@@ -67,6 +67,7 @@ input[type=range]{padding:0}input[type=color]{padding:0;height:32px}
 <button class="b p" onclick="saveBroker()">Save</button><div class="msg" id="mBroker"></div></div>
 <div class="card" id="dmxCard" style="display:none"><h2>DMX</h2><div class="row"><div><label>Protocol</label><select id="dmxProto"></select></div><div><label>Universe</label><input id="dmxUni" type="number" min="1" max="63999"></div></div>
 <button class="b p" onclick="saveDmx()">Save</button><div class="msg" id="mDmx"></div></div>
+<div class="card" id="pxCard" style="display:none"><h2>Strips</h2><div id="pxStrips"></div></div>
 </section>
 
 <section id="module">
@@ -94,9 +95,10 @@ input[type=range]{padding:0}input[type=color]{padding:0;height:32px}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let info=null,status=null,cfg=null,mod=null;
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,main section').forEach(e=>e.classList.remove('on'));b.classList.add('on');$(b.dataset.t).classList.add('on');if(b.dataset.t==='module')loadModule();});
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,main section').forEach(e=>e.classList.remove('on'));b.classList.add('on');$(b.dataset.t).classList.add('on');if(b.dataset.t==='module')loadModule();if(b.dataset.t==='node')loadPixels();});
 async function get(u){const r=await fetch(u);if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error||r.statusText);return r.json();}
 async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok||j.ok===false)throw new Error(j.error||r.statusText);return j;}
+async function put(u,b){const r=await fetch(u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j;}
 function msg(id,t,ok){const e=$(id);e.textContent=t;e.className='msg '+(ok?'ok':'bad');}
 function flash(btn,t){const o=btn.textContent;btn.textContent=t;setTimeout(()=>btn.textContent=o,1500);}
 function since(ts){if(!ts)return'';if(ts>1e12)return new Date(ts).toLocaleTimeString();return'+'+(ts/1000).toFixed(1)+'s';}
@@ -142,6 +144,23 @@ async function loadModule(){try{mod=await get('/api/v1/module');$('modSrc').text
 async function loadPreset(){try{await post('/api/v1/module',{preset:$('preset').value});msg('mMod','preset applied and stored',true);await loadModule();refresh();}catch(e){msg('mMod',e.message,false);}}
 async function applyModule(){let j;try{j=JSON.parse($('modJson').value);}catch(e){return msg('mMod','not JSON: '+e.message,false);}try{await post('/api/v1/module',j);msg('mMod','applied and stored; controllers will see the new description on the next resolve',true);await loadModule();refresh();}catch(e){msg('mMod',e.message,false);}}
 async function clearModule(){try{await post('/api/v1/module',{clear:true});msg('mMod','virtual module cleared',true);await loadModule();refresh();}catch(e){msg('mMod',e.message,false);}}
+// Strips (doc 14): one form per output, built when the Node tab opens and after a save, not on
+// the 2 s refresh, so it does not overwrite what is being typed. A node with a stored virtual
+// module has no pixels object and gets no card.
+async function loadPixels(){let px;try{px=await get('/api/v1/pixels');}catch(e){$('pxCard').style.display='none';return;}
+ $('pxCard').style.display='';
+ $('pxStrips').innerHTML=px.strips.map(s=>{const o=s.output,st=s.status||{};
+  return`<div style="margin-bottom:14px"><b>Strip ${s.head}</b> <span style="color:var(--mut);font-size:13px">output ${o} · ${s.mode==='sacn'?(st.sources||0)+' sACN source'+(st.sources===1?'':'s')+' · '+(st.fps||0).toFixed(1)+' fps':'driven by ports'} · up to ${s.max_fps} fps at this length</span>
+  <div class="row"><div><label>Pixels (1–${px.max_count})</label><input id="pxCount${o}" type="number" min="1" max="${px.max_count}" value="${s.count}"></div>
+  <div><label>Color order</label><select id="pxOrder${o}">${px.orders.map(x=>`<option${x===s.order?' selected':''}>${x}</option>`).join('')}</select></div>
+  <div><label>Mode</label><select id="pxMode${o}" onchange="pxMode(${o})"><option value="effect"${s.mode==='effect'?' selected':''}>effect (ports)</option><option value="sacn"${s.mode==='sacn'?' selected':''}>sACN</option></select></div></div>
+  <div class="row" id="pxSacn${o}"><div><label>Universe</label><input id="pxUni${o}" type="number" min="1" max="63999" value="${s.universe||1}"></div><div><label>Start address</label><input id="pxAddr${o}" type="number" min="1" max="512" value="${s.address}"></div></div>
+  <button class="b p" onclick="savePixels(${o})">Save</button><div class="msg" id="mPx${o}"></div></div>`;}).join('');
+ px.strips.forEach(s=>pxMode(s.output));}
+function pxMode(o){$('pxSacn'+o).style.display=$('pxMode'+o).value==='sacn'?'':'none';}
+async function savePixels(o){const b={count:+$('pxCount'+o).value,order:$('pxOrder'+o).value,mode:$('pxMode'+o).value};
+ if(b.mode==='sacn'){b.universe=+$('pxUni'+o).value;b.address=+$('pxAddr'+o).value;}
+ try{await put('/api/v1/pixels/'+o,b);await loadPixels();msg('mPx'+o,'saved',true);refresh();}catch(e){msg('mPx'+o,e.message,false);}}
 function waitBack(id){msg(id,'rebooting…',true);const t0=Date.now();const iv=setInterval(async()=>{try{const i=await get('/api/v1/info');clearInterval(iv);msg(id,'back, firmware '+i.fw,true);info=i;refresh();}catch(e){if(Date.now()-t0>90000){clearInterval(iv);msg(id,'not back after 90 s — check the LED or the console',false);}}},2000);}
 function ota(){const f=$('fwFile').files[0];if(!f)return msg('mOta','pick a .bin first',false);const x=new XMLHttpRequest();$('otaProg').style.display='';$('otaProg').value=0;
  x.upload.onprogress=e=>{if(e.lengthComputable)$('otaProg').value=e.loaded/e.total*100;};

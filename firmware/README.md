@@ -94,7 +94,7 @@ Decisions, and why:
 ## Pixel strips
 
 Each of a V0's two strip outputs is in one of two modes, set with `PUT /api/v1/pixels/<0|1>`
-and kept in NVS (OpenHaunt/node [14 — Pixel strips, and heads](https://github.com/OpenHaunt/node/blob/main/docs/14-pixels.md)):
+or in the web UI (Node tab, Strips: pixel count, color order, mode, universe) and kept in NVS (OpenHaunt/node [14 — Pixel strips, and heads](https://github.com/OpenHaunt/node/blob/main/docs/14-pixels.md)):
 
 - **`effect`**: the node draws every pixel from nine ports. The effects are `solid`, `gradient`,
   `chase`, `comet`, `wave`, `breathe`, `fire`, `candle`, `sparkle` and `lightning`, each worked
@@ -235,7 +235,7 @@ oh wifi set <ssid> <passphrase>
 ```
 
 Once on the network the node is `openhaunt-<sn>.local` with a web UI at `/`
-(status, network, name and broker, module editor, firmware update) and the
+(status, network, name and broker, strips, module editor, firmware update) and the
 `/api/v1` the controller uses.
 
 ## What the node is
