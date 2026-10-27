@@ -35,6 +35,11 @@ static struct {
     esp_timer_handle_t ap_close;    /* close the AP a while after the station got an IP */
     esp_timer_handle_t eth_fallback; /* start Wi-Fi if Ethernet never comes up */
     bool sntp_started;
+    /* Whether each path is connected now. ESP-IDF keeps an address for
+     * CONFIG_ESP_NETIF_IP_LOST_TIMER_INTERVAL after its link goes, so an address
+     * alone does not say the path still carries anything. */
+    bool eth_link;
+    bool sta_link;
 } s;
 
 static void set_state(oh_net_state_t st)
@@ -54,6 +59,36 @@ static void set_state(oh_net_state_t st)
         oh_node_post(OH_EVENT_NET_DOWN, NULL, 0);
         break;
     }
+}
+
+static bool has_ip(esp_netif_t *n)
+{
+    esp_netif_ip_info_t ip;
+    return n && esp_netif_get_ip_info(n, &ip) == ESP_OK && ip.ip.addr;
+}
+
+/* The path the node prefers: the cable while it is plugged in, else Wi-Fi. */
+static esp_netif_t *active_netif(void)
+{
+    if (s.eth_link && has_ip(s.eth)) {
+        return s.eth;
+    }
+    if (s.sta_link && has_ip(s.sta)) {
+        return s.sta;
+    }
+    return NULL;
+}
+
+/*
+ * Up while either path is. With Wi-Fi standing by beside the cable, one of them
+ * going is not the node going: an access point rebooting must not take a cabled
+ * node off the broker, nor a pulled cable one that Wi-Fi still carries. Both did,
+ * when each path set the state on its own.
+ */
+static void refresh_state(void)
+{
+    set_state(active_netif() ? OH_NET_UP : (s.ap_up ? OH_NET_SETUP_AP : OH_NET_DOWN));
+    oh_node_post(OH_EVENT_NET_CHANGED, NULL, 0);
 }
 
 /* ── SNTP ─────────────────────────────────────────────────────────────── */
@@ -216,20 +251,6 @@ static void on_eth_fallback(void *arg)
     }
 }
 
-/* A cable pulled after boot: the fallback timer only ran once, at boot, so
- * without this a node whose switch went away would stay off the network. */
-static void on_eth_link(void *arg, esp_event_base_t base, int32_t id, void *data)
-{
-    (void)arg;
-    (void)base;
-    (void)data;
-    if (id == ETHERNET_EVENT_DISCONNECTED && !s.wifi_started) {
-        esp_timer_stop(s.eth_fallback);
-        esp_timer_start_once(s.eth_fallback, (uint64_t)CONFIG_OH_WIFI_STA_TIMEOUT_S * 1000000);
-    } else if (id == ETHERNET_EVENT_CONNECTED) {
-        esp_timer_stop(s.eth_fallback);
-    }
-}
 #endif
 
 static void schedule_reconnect(void)
@@ -257,10 +278,10 @@ static void wifi_event(void *arg, esp_event_base_t base, int32_t id, void *data)
         wifi_event_sta_disconnected_t *d = data;
         ESP_LOGW(TAG, "disconnected (reason %d)", d->reason);
         bool was_up = s.state == OH_NET_UP;
-        if (!s.ap_up) {
-            set_state(OH_NET_DOWN);
-        }
-        if (was_up && CONFIG_OH_WIFI_REOPEN_AP_S > 0 && CONFIG_OH_WIFI_SOFTAP_FALLBACK) {
+        s.sta_link = false;
+        refresh_state();
+        /* Still up means the cable carries the node: nothing to set up. */
+        if (was_up && !oh_net_is_up() && CONFIG_OH_WIFI_REOPEN_AP_S > 0 && CONFIG_OH_WIFI_SOFTAP_FALLBACK) {
             esp_timer_stop(s.sta_timeout);
             esp_timer_start_once(s.sta_timeout, (uint64_t)CONFIG_OH_WIFI_REOPEN_AP_S * 1000000);
         }
@@ -311,6 +332,11 @@ static esp_err_t wifi_init(void)
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     apply_static_ip(s.sta);
+#ifdef CONFIG_OH_TRANSPORT_ETH
+    /* Standing by beside the cable, not instead of it: the default route stays on
+     * the cable while it is plugged in. */
+    esp_netif_set_route_prio(s.sta, 40);
+#endif
     ESP_ERROR_CHECK(esp_wifi_start());
     /* Latency over power: a relay following a button must not wait for DTIM. */
     esp_wifi_set_ps(WIFI_PS_NONE);
@@ -321,12 +347,14 @@ static esp_err_t wifi_init(void)
 esp_err_t oh_net_apply_wifi(void)
 {
     if (!s.wifi_started) {
-        return ESP_ERR_INVALID_STATE;
+        /* Credentials given to a node on its cable: Wi-Fi stands by from now on. */
+        return oh_config_has_wifi() ? wifi_init() : ESP_ERR_INVALID_STATE;
     }
     s.retries = 0;
     esp_timer_stop(s.reconnect);
     esp_wifi_disconnect();
-    set_state(s.ap_up ? OH_NET_SETUP_AP : OH_NET_DOWN);
+    s.sta_link = false;
+    refresh_state();
     sta_connect();
     return ESP_OK;
 }
@@ -400,6 +428,9 @@ static void ip_event(void *arg, esp_event_base_t base, int32_t id, void *data)
         ESP_LOGI(TAG, "got ip " IPSTR, IP2STR(&e->ip_info.ip));
         s.retries = 0;
 #if HAVE_WIFI
+        if (id == IP_EVENT_STA_GOT_IP) {
+            s.sta_link = true;
+        }
         esp_timer_stop(s.sta_timeout);
         esp_timer_stop(s.reconnect);
         if (s.ap_up) {
@@ -408,13 +439,42 @@ static void ip_event(void *arg, esp_event_base_t base, int32_t id, void *data)
             esp_timer_start_once(s.ap_close, 15 * 1000000ULL);
         }
 #endif
-        set_state(OH_NET_UP);
+        refresh_state();
         sntp_start();
     } else if (id == IP_EVENT_STA_LOST_IP || id == IP_EVENT_ETH_LOST_IP) {
         ESP_LOGW(TAG, "lost ip");
-        set_state(s.ap_up ? OH_NET_SETUP_AP : OH_NET_DOWN);
+        refresh_state();
     }
 }
+
+#ifdef CONFIG_OH_TRANSPORT_ETH
+static void on_eth_link(void *arg, esp_event_base_t base, int32_t id, void *data)
+{
+    (void)arg;
+    (void)base;
+    (void)data;
+    if (id == ETHERNET_EVENT_DISCONNECTED) {
+        ESP_LOGW(TAG, "cable unplugged");
+        s.eth_link = false;
+#if HAVE_WIFI
+        /* With no credentials Wi-Fi is not standing by: the fallback timer only
+         * ran once, at boot, so without this a node whose switch went away would
+         * stay off the network. */
+        if (!s.wifi_started) {
+            esp_timer_stop(s.eth_fallback);
+            esp_timer_start_once(s.eth_fallback, (uint64_t)CONFIG_OH_WIFI_STA_TIMEOUT_S * 1000000);
+        }
+#endif
+        refresh_state();
+    } else if (id == ETHERNET_EVENT_CONNECTED) {
+        s.eth_link = true;
+#if HAVE_WIFI
+        esp_timer_stop(s.eth_fallback);
+#endif
+        refresh_state();
+    }
+}
+#endif
 
 esp_err_t oh_net_init(const char *hostname)
 {
@@ -434,20 +494,33 @@ esp_err_t oh_net_init(const char *hostname)
     ESP_ERROR_CHECK(esp_timer_create(&t3, &s.ap_close));
 #endif
 #ifdef CONFIG_OH_TRANSPORT_ETH
+#if HAVE_WIFI
+    /* Before the cable's netif, which lwIP then lists first. A new connection into
+     * the local subnet takes the first netif in that list with a link, so this is
+     * what keeps the broker, the console and every reply on the cable while it is
+     * plugged in, and puts them on Wi-Fi the moment it is not. */
+    if (oh_config_has_wifi()) {
+        wifi_init();
+    }
+#endif
     extern esp_err_t oh_eth_init(const char *hostname, esp_netif_t **netif);
     err = oh_eth_init(s.hostname, &s.eth);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "ethernet init failed: %s", esp_err_to_name(err));
+    } else {
+        ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, on_eth_link, NULL));
     }
 #if HAVE_WIFI
-    /* Wi-Fi is the fallback, not a second transport: it starts only if the
+    /* With credentials, Wi-Fi stands by beside the cable from boot, so pulling the
+     * cable moves the node rather than taking it off the network for the 30 s a
+     * fallback waits, and a console can send to both paths at once. Without them
+     * Wi-Fi is the fallback still: it starts, to open the setup AP, only if the
      * cable has not produced an address in time (or Ethernet failed to init). */
     esp_timer_create_args_t t4 = {.callback = on_eth_fallback, .name = "eth_fallback"};
     ESP_ERROR_CHECK(esp_timer_create(&t4, &s.eth_fallback));
-    esp_timer_start_once(s.eth_fallback,
-                         err == ESP_OK ? (uint64_t)CONFIG_OH_WIFI_STA_TIMEOUT_S * 1000000 : 1000000);
-    if (err == ESP_OK) {
-        ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, on_eth_link, NULL));
+    if (!s.wifi_started) {
+        esp_timer_start_once(s.eth_fallback,
+                             err == ESP_OK ? (uint64_t)CONFIG_OH_WIFI_STA_TIMEOUT_S * 1000000 : 1000000);
     }
     return ESP_OK;
 #else
@@ -481,16 +554,33 @@ bool oh_net_is_up(void)
     return s.state == OH_NET_UP;
 }
 
-static esp_netif_t *active_netif(void)
+void oh_net_ifname(char *out, size_t cap)
 {
-    esp_netif_ip_info_t ip;
-    if (s.eth && esp_netif_get_ip_info(s.eth, &ip) == ESP_OK && ip.ip.addr) {
-        return s.eth;
+    out[0] = '\0';
+    char name[8];
+    esp_netif_t *n = active_netif();
+    if (n && esp_netif_get_netif_impl_name(n, name) == ESP_OK) {
+        snprintf(out, cap, "%s", name);
     }
-    if (s.sta && esp_netif_get_ip_info(s.sta, &ip) == ESP_OK && ip.ip.addr) {
-        return s.sta;
+}
+
+size_t oh_net_addresses(oh_net_address_t *out, size_t cap)
+{
+    size_t n = 0;
+    esp_netif_t *first = active_netif();
+    esp_netif_t *order[2] = {first, first == s.eth ? s.sta : s.eth};
+    for (size_t i = 0; i < 2 && n < cap; i++) {
+        esp_netif_t *nif = order[i];
+        const bool live = nif && (nif == s.eth ? s.eth_link : s.sta_link);
+        esp_netif_ip_info_t ip;
+        if (!live || esp_netif_get_ip_info(nif, &ip) != ESP_OK || !ip.ip.addr) {
+            continue;
+        }
+        out[n].transport = nif == s.eth ? "ethernet" : "wifi";
+        snprintf(out[n].ip, sizeof(out[n].ip), IPSTR, IP2STR(&ip.ip));
+        n++;
     }
-    return NULL;
+    return n;
 }
 
 void oh_net_ip(char *out, size_t cap)

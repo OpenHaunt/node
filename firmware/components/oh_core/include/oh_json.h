@@ -39,6 +39,9 @@ cJSON *oh_json_input_event(const oh_port_desc_t *p, const oh_value_t *v, int64_t
 cJSON *oh_json_health(uint32_t uptime_s, const float *temp_c, const int *poe_class, const char *const *errors,
                       size_t n_errors);
 
+/* openhaunt/<sn>/net: {"addresses":[{"transport","ip"}, ...]}, the preferred path first. */
+cJSON *oh_json_net(const char *const *transports, const char *const *ips, size_t n);
+
 /* Walk {"outputs":{...}} and {"effects":{...}} calling `fn` and `effect_fn` for
  * every entry that names a writable port with a well-formed payload. Returns the
  * number applied, or -1 with `err` filled when the body is malformed or names a

@@ -404,6 +404,15 @@ static esp_err_t get_status(httpd_req_t *req)
     cJSON_AddStringToObject(net, "ssid", ssid);
     cJSON_AddNumberToObject(net, "rssi", oh_net_rssi());
     cJSON_AddStringToObject(net, "setupAp", ap);
+    oh_net_address_t addrs[2];
+    const size_t n_addrs = oh_net_addresses(addrs, 2);
+    cJSON *list = cJSON_AddArrayToObject(net, "addresses");
+    for (size_t i = 0; i < n_addrs; i++) {
+        cJSON *a = cJSON_CreateObject();
+        cJSON_AddStringToObject(a, "transport", addrs[i].transport);
+        cJSON_AddStringToObject(a, "ip", addrs[i].ip);
+        cJSON_AddItemToArray(list, a);
+    }
 
     cJSON_AddStringToObject(o, "moduleSource", oh_app_module_source());
     cJSON_AddNumberToObject(o, "uptime_s", oh_clock_uptime_s());

@@ -91,6 +91,24 @@ static void claim_block(oh_jitter_t *j, uint64_t block)
     }
 }
 
+static bool held(const oh_jitter_t *j, uint64_t t)
+{
+    int16_t f[2];
+    return oh_jitter_get(j, t, f);
+}
+
+/* Every frame of [from, to) arrived once already: a second copy of it, from the
+ * other of two paths, rather than something late. */
+static bool all_held(const oh_jitter_t *j, uint64_t from, uint64_t to)
+{
+    for (uint64_t t = from; t < to; t++) {
+        if (!held(j, t)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void oh_jitter_write_l16be(oh_jitter_t *j, uint64_t ext, const uint8_t *payload, size_t n)
 {
     if (j->capacity == 0 || n == 0) {
@@ -100,14 +118,22 @@ void oh_jitter_write_l16be(oh_jitter_t *j, uint64_t ext, const uint8_t *payload,
     /* Behind the reader, or so far ahead it would overwrite what is still to play. */
     const uint64_t floor = j->cursor;
     const uint64_t ceiling = (j->cursor ? j->cursor : ext) + j->capacity;
-    if (end <= floor || ext >= ceiling) {
+    if (end <= floor) {
+        if (!all_held(j, ext, end)) {
+            j->late++;
+        }
+        return;
+    }
+    if (ext >= ceiling) {
         j->late++;
         return;
     }
     size_t skip = 0;
     if (ext < floor) {
         skip = (size_t)(floor - ext);
-        j->late++;
+        if (!all_held(j, ext, floor)) {
+            j->late++;
+        }
     }
     size_t last = n;
     if (end > ceiling) {

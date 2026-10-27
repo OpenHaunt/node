@@ -164,8 +164,15 @@ openhaunt/<serial>/status          online / offline (retained, LWT)
 openhaunt/<serial>/input/<n>       edge events, with timestamp
 openhaunt/<serial>/output/<n>/set  command topic
 openhaunt/<serial>/health          uptime, temperature, PoE class, errors
+openhaunt/<serial>/net             every address the node is on, preferred first (retained)
 openhaunt/<serial>/power           per-rail V/I/W, budget headroom, eFuse trips
 ```
+
+`net` is `{"addresses":[{"transport":"ethernet","ip":"…"},{"transport":"wifi","ip":"…"}]}`, the path the
+node prefers first, republished whenever a path comes or goes. A node with no second path lists one entry.
+A console sending the node anything by unicast (an RTP stream above all, docs/13) moves on it at once
+rather than waiting for mDNS. Not every node has two paths: only a V0 stands Wi-Fi by beside its cable
+(D38).
 
 Last Will and Testament gives free failure detection: if a node drops off, the broker announces it and the
 show software can react rather than silently losing an effect.

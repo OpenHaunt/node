@@ -6,6 +6,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "cJSON.h"
 #include "esp_err.h"
@@ -28,6 +29,17 @@ bool oh_net_is_up(void);
 /* Dotted IPv4 of the active interface, "" when down. */
 void oh_net_ip(char *out, size_t cap);
 const char *oh_net_transport(void); /* "ethernet" | "wifi" | "softap" */
+
+typedef struct {
+    const char *transport; /* "ethernet" | "wifi" */
+    char ip[16];
+} oh_net_address_t;
+
+/* lwIP's name for the preferred path ("en1", "st1"), or "" with none. */
+void oh_net_ifname(char *out, size_t cap);
+
+/* Every path the node can be reached by now, the preferred one first. */
+size_t oh_net_addresses(oh_net_address_t *out, size_t cap);
 void oh_net_ssid(char *out, size_t cap);
 int oh_net_rssi(void);
 void oh_net_ap_ssid(char *out, size_t cap);

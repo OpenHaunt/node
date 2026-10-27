@@ -168,6 +168,26 @@ static void health_leaves_out_what_it_does_not_know(void)
     cJSON_Delete(h);
 }
 
+/* openhaunt/<sn>/net: every path the node can be reached by, the one it prefers
+ * first, so a console streaming to it can move at once when the first one goes. */
+static void net_lists_every_path_preferred_first(void)
+{
+    const char *transports[] = {"ethernet", "wifi"};
+    const char *ips[] = {"192.168.43.138", "192.168.43.134"};
+    cJSON *n = oh_json_net(transports, ips, 2);
+    cJSON *a = cJSON_GetObjectItem(n, "addresses");
+    TEST_ASSERT_EQUAL(2, cJSON_GetArraySize(a));
+    TEST_ASSERT_EQUAL_STRING("ethernet", cJSON_GetObjectItem(cJSON_GetArrayItem(a, 0), "transport")->valuestring);
+    TEST_ASSERT_EQUAL_STRING("192.168.43.138", cJSON_GetObjectItem(cJSON_GetArrayItem(a, 0), "ip")->valuestring);
+    TEST_ASSERT_EQUAL_STRING("wifi", cJSON_GetObjectItem(cJSON_GetArrayItem(a, 1), "transport")->valuestring);
+    cJSON_Delete(n);
+
+    /* Off the network altogether is an empty list, not a missing one. */
+    n = oh_json_net(NULL, NULL, 0);
+    TEST_ASSERT_EQUAL(0, cJSON_GetArraySize(cJSON_GetObjectItem(n, "addresses")));
+    cJSON_Delete(n);
+}
+
 typedef struct {
     int calls;
     uint8_t port;
@@ -308,6 +328,7 @@ int main(void)
     RUN_TEST(payloads_follow_the_data_type);
     RUN_TEST(an_input_event_carries_edge_or_unit_and_a_timestamp);
     RUN_TEST(health_leaves_out_what_it_does_not_know);
+    RUN_TEST(net_lists_every_path_preferred_first);
     RUN_TEST(a_state_body_is_applied_whole_or_not_at_all);
     RUN_TEST(an_effects_map_is_validated_with_the_outputs_beside_it);
     RUN_TEST(a_ports_description_says_what_it_can_trace);

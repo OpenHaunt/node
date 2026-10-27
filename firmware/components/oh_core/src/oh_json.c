@@ -276,6 +276,19 @@ cJSON *oh_json_health(uint32_t uptime_s, const float *temp_c, const int *poe_cla
     return o;
 }
 
+cJSON *oh_json_net(const char *const *transports, const char *const *ips, size_t n)
+{
+    cJSON *o = cJSON_CreateObject();
+    cJSON *list = cJSON_AddArrayToObject(o, "addresses");
+    for (size_t i = 0; i < n; i++) {
+        cJSON *a = cJSON_CreateObject();
+        cJSON_AddStringToObject(a, "transport", transports[i]);
+        cJSON_AddStringToObject(a, "ip", ips[i]);
+        cJSON_AddItemToArray(list, a);
+    }
+    return o;
+}
+
 static bool port_key(const char *key, uint8_t *port)
 {
     if (!key || !*key) {

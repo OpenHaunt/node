@@ -246,6 +246,25 @@ playout delay, and compensates on its own side by mapping that audio to `at = no
   - Beyond 20 ms (a stepped clock, a re-anchor), it jumps straight to the right place and counts a
     `resync`.
 
+### Redundant streams, and moving between paths
+
+A node may be on two paths at once, its cable and Wi-Fi (D38), and says which on the retained
+`openhaunt/<sn>/net` (docs/08), the path it prefers first.
+
+- **Moving.** The console sends the stream to the first address in `net` and, when that changes,
+  sends the next packet to the new one. Same session, same `ssrc`, no `stop` and no new `start`. The
+  node listens on the stream's port on every path, so it does not notice.
+- **Redundant.** The console may instead send every packet to every address in `net`. The node keeps
+  whichever copy arrives first and drops the other, without counting it as `late`. A copy of a
+  packet that never arrived by the faster path is still late if it lands after its moment. Pulling
+  the cable then costs nothing at all, at the price of the stream's airtime on Wi-Fi the whole time
+  (about 1.6 Mbit/s for 48 kHz stereo), which is why it is the console's choice per node and not
+  the default.
+
+Without redundancy, pulling the cable costs the time until the console hears the new `net`. The
+node notices within 100 ms and republishes once its broker connection has moved, which took under
+a second on a V0.2.
+
 ### Mixing
 
 The stream is one more voice in the mix, at its own gain, under the master gain, beside the clips.

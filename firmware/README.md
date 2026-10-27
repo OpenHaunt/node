@@ -75,11 +75,15 @@ Decisions, and why:
 - **60 pixels per strip by default, and DMA to the longer one.** The S3 has one DMA-capable
   RMT channel; the board gives it to the longer strip above 64 pixels and the other two memory
   blocks. `OH_STRIP_PIXELS` is the default count; `PUT /api/v1/pixels/<n>` sets each strip's.
-- **Ethernet first, Wi-Fi as the fallback.** The W5500 starts at boot. Wi-Fi starts if the
-  cable has produced no address within `OH_WIFI_STA_TIMEOUT_S` (30 s), if the W5500 does not
-  answer on SPI (after 1 s), or 30 s after the link goes down later. Once Wi-Fi is up it stays
-  up until a reboot; the address reported prefers Ethernet whenever both have one. So a node
-  on the far side of the garden needs only Wi-Fi credentials, and a cabled one needs nothing.
+- **Ethernet first, and Wi-Fi standing by beside it** (OpenHaunt/node D38). With Wi-Fi
+  credentials both start at boot and both stay up; the cable is preferred while its link is
+  up (checked every 100 ms) and Wi-Fi carries everything the moment it is not. The node is up
+  while either path is, the MQTT connection is bound to the preferred path and moved when it
+  changes, and retained `openhaunt/<sn>/net` lists both addresses so a console can move a
+  stream at once or send it down both. Without credentials Wi-Fi is still the fallback, and
+  starts to open the setup AP if the cable has produced no address within
+  `OH_WIFI_STA_TIMEOUT_S` (30 s), if the W5500 does not answer on SPI (after 1 s), or 30 s
+  after the link goes down later.
 - **The W5500 is given the S3's Ethernet MAC** from efuse, since it has none of its own.
   It runs at 20 MHz (`OH_W5500_CLOCK_MHZ`) because the V0 pins go through the GPIO matrix.
 - **Yellow is status, red is faults.** The yellow LED (GPIO36) shows the usual patterns; on a

@@ -306,6 +306,20 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
         listener_stop();
         reconsider();
         break;
+    case OH_EVENT_NET_CHANGED: {
+        /* A path came or went with the node staying up: if the preferred one is
+         * another now, the joins are on an interface that no longer carries them. */
+        char ip[16];
+        oh_net_ip(ip, sizeof(ip));
+        xSemaphoreTake(s.lock, portMAX_DELAY);
+        const bool moved = s.sock >= 0 && s.iface != inet_addr(ip);
+        xSemaphoreGive(s.lock);
+        if (moved) {
+            listener_stop();
+            reconsider();
+        }
+        break;
+    }
     case OH_EVENT_MODULE_BOUND:
         reconsider();
         break;

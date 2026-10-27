@@ -82,6 +82,9 @@ static esp_err_t new_driver(void)
     }
 
     esp_eth_config_t cfg = ETH_DEFAULT_CONFIG(mac, phy);
+    /* 2 s by default. Pulling the cable is how a stream moves to wifi, and every
+     * moment of not knowing is sound sent down a dead cable. */
+    cfg.check_link_period_ms = 100;
     esp_err_t err = esp_eth_driver_install(&cfg, &s_eth);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "driver install: %s", esp_err_to_name(err));
@@ -130,6 +133,9 @@ static esp_err_t new_driver(void)
         return ESP_FAIL;
     }
     esp_eth_config_t cfg = ETH_DEFAULT_CONFIG(mac, phy);
+    /* 2 s by default. Pulling the cable is how a stream moves to wifi, and every
+     * moment of not knowing is sound sent down a dead cable. */
+    cfg.check_link_period_ms = 100;
     err = esp_eth_driver_install(&cfg, &s_eth);
     if (err != ESP_OK) {
         /* The usual reason on a new board: nothing answering on the SPI bus. */
