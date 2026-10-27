@@ -4,10 +4,13 @@
 #include <string.h>
 #include <sys/param.h>
 
+#include "esp_core_dump.h"
+#include "esp_flash.h"
 #include "esp_heap_caps.h"
 #include "esp_http_server.h"
 #include "esp_ota_ops.h"
 #include "esp_log.h"
+#include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "oh_app.h"
@@ -356,6 +359,28 @@ static esp_err_t delete_clip(httpd_req_t *req)
 
 /* ── Beyond the protocol: what the web UI and the console need ────────── */
 
+static const char *reset_reason(void)
+{
+    switch (esp_reset_reason()) {
+    case ESP_RST_POWERON: return "power-on";
+    case ESP_RST_EXT: return "external";
+    case ESP_RST_SW: return "software";
+    case ESP_RST_PANIC: return "panic";
+    case ESP_RST_INT_WDT: return "interrupt-watchdog";
+    case ESP_RST_TASK_WDT: return "task-watchdog";
+    case ESP_RST_WDT: return "watchdog";
+    case ESP_RST_DEEPSLEEP: return "deep-sleep";
+    case ESP_RST_BROWNOUT: return "brownout";
+    case ESP_RST_SDIO: return "sdio";
+    case ESP_RST_USB: return "usb";
+    case ESP_RST_JTAG: return "jtag";
+    case ESP_RST_EFUSE: return "efuse";
+    case ESP_RST_PWR_GLITCH: return "power-glitch";
+    case ESP_RST_CPU_LOCKUP: return "cpu-lockup";
+    default: return "unknown";
+    }
+}
+
 static esp_err_t get_status(httpd_req_t *req)
 {
     cJSON *o = cJSON_CreateObject();
@@ -382,6 +407,11 @@ static esp_err_t get_status(httpd_req_t *req)
 
     cJSON_AddStringToObject(o, "moduleSource", oh_app_module_source());
     cJSON_AddNumberToObject(o, "uptime_s", oh_clock_uptime_s());
+    /* Why the last boot happened, and whether a crash left a core dump behind: a node
+     * that rebooted on its own says so here, rather than only on a serial console
+     * nobody had open. */
+    cJSON_AddStringToObject(o, "resetReason", reset_reason());
+    cJSON_AddBoolToObject(o, "coredump", esp_core_dump_image_check() == ESP_OK);
     cJSON_AddBoolToObject(o, "clockSynced", oh_clock_is_unix());
     /* What this node thinks the console's clock reads, relative to its own. A shape
      * is timed against this, so a large or missing offset is the first thing to look
@@ -547,6 +577,44 @@ static esp_err_t post_reboot(httpd_req_t *req)
     return err;
 }
 
+/* The core dump a crash left in flash, as the raw image `esp-coredump info_corefile
+ * --core-format raw` reads, so a node that rebooted on its own can be asked why
+ * without a USB cable. 404 when there is none. */
+static esp_err_t get_coredump(httpd_req_t *req)
+{
+    size_t addr, size;
+    if (esp_core_dump_image_check() != ESP_OK || esp_core_dump_image_get(&addr, &size) != ESP_OK) {
+        return send_error(req, "404 Not Found", "no core dump");
+    }
+    char *buf = malloc(4096);
+    if (!buf) {
+        return send_error(req, "500 Internal Server Error", "out of memory");
+    }
+    httpd_resp_set_type(req, "application/octet-stream");
+    esp_err_t err = ESP_OK;
+    for (size_t at = 0; at < size && err == ESP_OK; at += 4096) {
+        const size_t n = MIN(4096, size - at);
+        err = esp_flash_read(NULL, buf, addr + at, n);
+        if (err == ESP_OK) {
+            err = httpd_resp_send_chunk(req, buf, n);
+        }
+    }
+    free(buf);
+    if (err != ESP_OK) {
+        return err;
+    }
+    return httpd_resp_send_chunk(req, NULL, 0);
+}
+
+static esp_err_t delete_coredump(httpd_req_t *req)
+{
+    esp_err_t err = esp_core_dump_image_erase();
+    if (err != ESP_OK) {
+        return send_error(req, "500 Internal Server Error", esp_err_to_name(err));
+    }
+    return send_json(req, oh_json_ok(), NULL);
+}
+
 static esp_err_t post_reset(httpd_req_t *req)
 {
     esp_err_t err = send_json(req, oh_json_ok(), NULL);
@@ -614,6 +682,8 @@ esp_err_t oh_http_start(void)
         {"/api/v1/module", HTTP_POST, post_module, NULL},
         {"/api/v1/reboot", HTTP_POST, post_reboot, NULL},
         {"/api/v1/reset", HTTP_POST, post_reset, NULL},
+        {"/api/v1/coredump", HTTP_GET, get_coredump, NULL},
+        {"/api/v1/coredump", HTTP_DELETE, delete_coredump, NULL},
         {"/api/v1/audio/clips", HTTP_GET, get_clips, NULL},
         {"/api/v1/audio/clips/*", HTTP_PUT, put_clip, NULL},
         {"/api/v1/audio/clips/*", HTTP_DELETE, delete_clip, NULL},
