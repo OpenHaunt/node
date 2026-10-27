@@ -51,7 +51,8 @@ PAD warning. Every symbol except the test points and mounting holes comes from P
       spring (ring), pin 3 = end contact (tip), the same symbol as CUI's SJ1-3523N and Kycon's STX-3501-3N
       (where the end-contact pin sits at the back of the jack). The LRV footprint had 2 = "T", 3 = "R"; now
       swapped, J1 updated and AUD_L/AUD_R re-routed. Pins 2 and 3 sit at the same depth, so the symbol is the
-      only evidence: confirm with a plug and a meter on a real STX-3000.
+      only evidence. Confirmed by ear on a built V0.2 (2026-10-26 tones, 2026-10-27 spoken left/right), not
+      with a meter; see docs/12 "STX-3000 pinout".
 - [x] **Speaker plays (L+R)/2:** SD_MODE through R69 47K from GPIO48 with R70 10K to GND, ~0.53 V (window
       0.355–0.65 V, datasheet Table 5). GPIO48 low or floating = shutdown. Volume cannot be set per output:
       neither chip has a volume control, both get the same stream; XSMT and AMP_EN mute each output.

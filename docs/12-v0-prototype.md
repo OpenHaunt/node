@@ -165,6 +165,10 @@ was fixed on 2026-10-17. Pins 2 and 3 sit at the same depth, so the drawing's sy
 Confirmed on a built V0.2 on 2026-10-26: a 440 Hz tone on the left channel only and 880 Hz on the right
 only came out left and right in headphones; on 2026-10-27 so did a spoken "left" and "right", one per
 channel, and with the channels swapped in firmware they came out of the wrong sides.
+Not checked with a plug and a meter; the two listening tests, one each way round in firmware, stand in for
+it. A swap back to the first pad names on 2026-10-26 (29feacd, with `OH_AUDIO_SWAP_LR` in firmware) was
+wrong and was reverted on 2026-10-27, in this repo and in `LRV:Jack_3.5mm_Kycon_STX-3000_Horizontal`,
+which has R at (−4.25, −5.3) and T at (1.25, −5.3), as the boards were built.
 
 **GND stitching.** 162 GND vias added on 2026-10-17 with a script that checks clearance on all four layers,
 keepouts and hole spacing: next to SMD GND pads more than 1 mm from a via, beside signal vias that had no
