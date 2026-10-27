@@ -220,11 +220,20 @@ bool oh_mixer_gain(oh_mixer_t *m, const char *name, float gain, uint32_t fade_ms
     return any;
 }
 
+bool oh_mixer_stream_continues(const oh_mixer_t *m, uint16_t port, uint32_t rate, uint8_t channels, bool has_ssrc,
+                               uint32_t ssrc)
+{
+    const oh_mix_stream_t *s = &m->stream;
+    const bool same_source = !has_ssrc || !s->has_ssrc || ssrc == s->ssrc;
+    return s->active && !s->ending && s->port == port && s->rate == (rate ? rate : OH_MIX_RATE) && s->jb &&
+           s->jb->channels == channels && same_source;
+}
+
 void oh_mixer_stream_start(oh_mixer_t *m, oh_jitter_t *jb, uint16_t port, uint32_t rate, uint32_t ts, int64_t at_us,
-                           float gain)
+                           float gain, bool has_ssrc, uint32_t ssrc)
 {
     oh_mix_stream_t *s = &m->stream;
-    const bool reanchor = s->active && !s->ending && s->port == port && s->jb == jb && s->rate == rate;
+    const bool reanchor = s->jb == jb && oh_mixer_stream_continues(m, port, rate, jb->channels, has_ssrc, ssrc);
     if (!reanchor) {
         memset(s, 0, sizeof(*s));
         s->active = true;
@@ -232,6 +241,10 @@ void oh_mixer_stream_start(oh_mixer_t *m, oh_jitter_t *jb, uint16_t port, uint32
         s->port = port;
         s->rate = rate ? rate : OH_MIX_RATE;
         s->start_us = at_us;
+    }
+    if (has_ssrc) {
+        s->has_ssrc = true;
+        s->ssrc = ssrc;
     }
     s->anchor_ext = oh_jitter_widen(jb, ts);
     s->anchor_us = at_us;

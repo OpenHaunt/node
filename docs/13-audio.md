@@ -212,8 +212,11 @@ wifi possible, but at a large firmware cost. That is left for later.
 - `ssrc` is optional. When given, packets from any other source are dropped.
 - Send `start` **before** the first packet. The node opens the UDP port within 100 ms of the
   command, and anything that arrives before that is lost.
-- Sending `start` again on the same `port` **re-anchors** the mapping without dropping what is
-  already buffered. The console does this after a locate.
+- Sending `start` again on the same `port`, at the same `rate` and `channels`, **re-anchors** the
+  mapping without dropping what is already buffered. The console does this after a locate. A
+  `start` with a different `ssrc` is a new session instead, and the node empties its buffer: a
+  console that restarted begins again from a timestamp the old session is far past, and taken as
+  a re-anchor every one of its packets would land behind what was already played.
 - `{"op":"stop","at":…,"fade_ms":…}` ends the session. Stop and gain for the stream also go through
   `audio/stop` and `audio/gain` with `"voice":"stream"`.
 

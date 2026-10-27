@@ -259,7 +259,7 @@ static void the_stream_plays_each_sample_at_its_mapped_show_time(void)
     }
     oh_mixer_init(&mixer);
     /* ts 5000 is heard at T0 + 10 ms. */
-    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 5000, T0 + 10000, 1.0f);
+    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 5000, T0 + 10000, 1.0f, false, 0);
     oh_mixer_render(&mixer, T0, out, 4800);
     TEST_ASSERT_EQUAL_INT16(0, out[2 * 479]);
     /* After the 10 ms fade-in, frame i is ts 5000 + (i - 480). */
@@ -284,7 +284,7 @@ static void a_lost_packet_fades_out_instead_of_clicking_and_does_not_shift_the_r
         }
     }
     oh_mixer_init(&mixer);
-    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, T0, 1.0f);
+    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, T0, 1.0f, false, 0);
     oh_mixer_render(&mixer, T0, out, 6000);
     TEST_ASSERT_EQUAL_INT16(10000, out[2 * 2399]);
     /* Into the gap, decaying, never a step to zero. */
@@ -304,10 +304,10 @@ static void drift_is_trimmed_away_and_a_jump_is_resynced(void)
         feed(&j, ts, 240, by_ts);
     }
     oh_mixer_init(&mixer);
-    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, T0, 1.0f);
+    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, T0, 1.0f, false, 0);
     oh_mixer_render(&mixer, T0, out, 480);
     /* The console re-anchors 5 ms later than before: a small move is trimmed... */
-    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, T0 + 5000, 1.0f);
+    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, T0 + 5000, 1.0f, false, 0);
     int64_t t = T0 + 10000;
     oh_mixer_render(&mixer, t, out, 480);
     TEST_ASSERT_EQUAL_UINT32(0, mixer.stream.resyncs);
@@ -319,9 +319,57 @@ static void drift_is_trimmed_away_and_a_jump_is_resynced(void)
     const double expected = (double)mixer.stream.anchor_ext + (double)(t + 10000 - (T0 + 5000)) * 48.0 / 1000.0;
     TEST_ASSERT_TRUE(fabs(mixer.stream.pos - expected) < 48.0); /* within 1 ms */
     /* ...and a big one is a jump. */
-    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, T0 + 105000, 1.0f);
+    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, T0 + 105000, 1.0f, false, 0);
     oh_mixer_render(&mixer, t + 10000, out, 480);
     TEST_ASSERT_EQUAL_UINT32(1, mixer.stream.resyncs);
+}
+
+static int16_t sevens(uint32_t ts)
+{
+    (void)ts;
+    return 7;
+}
+
+/*
+ * A console that restarted starts its stream again under a new ssrc, from
+ * timestamp 0, while the node still plays the old session a minute further on.
+ * Taken as a re-anchor, that kept the old buffer and its cursor, every packet of
+ * the new session landed behind the cursor, and a V0.2 counted 7856 of them late
+ * in 40 s and played nothing until the console was stopped and started again.
+ */
+static void a_start_from_another_source_is_a_new_session(void)
+{
+    oh_jitter_t j;
+    oh_jitter_init(&j, jframes, jtags, jvalid, CAP, 1);
+    oh_jitter_reset(&j, 2880000);
+    for (uint32_t ts = 2880000; ts < 2880000 + 9600; ts += 240) {
+        feed(&j, ts, 240, by_ts);
+    }
+    oh_mixer_init(&mixer);
+    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 2880000, T0, 1.0f, true, 1);
+    oh_mixer_render(&mixer, T0, out, 4800);
+
+    /* The same source again is the console re-anchoring: keep what is buffered. */
+    TEST_ASSERT_TRUE(oh_mixer_stream_continues(&mixer, 5004, 48000, 1, true, 1));
+    /* Another source, or a console that names none against one that did not
+     * either, decides it; another rate, port or channel count is always new. */
+    TEST_ASSERT_FALSE(oh_mixer_stream_continues(&mixer, 5004, 48000, 1, true, 2));
+    TEST_ASSERT_FALSE(oh_mixer_stream_continues(&mixer, 5004, 44100, 1, true, 1));
+    TEST_ASSERT_FALSE(oh_mixer_stream_continues(&mixer, 5004, 48000, 2, true, 1));
+
+    /* What oh_audio does with a new session: an empty buffer around its first ts. */
+    oh_jitter_init(&j, jframes, jtags, jvalid, CAP, 1);
+    oh_jitter_reset(&j, 0);
+    const int64_t t1 = T0 + 200000;
+    oh_mixer_stream_start(&mixer, &j, 5004, 48000, 0, t1, 1.0f, true, 2);
+    for (uint32_t ts = 0; ts < 9600; ts += 240) {
+        feed(&j, ts, 240, sevens);
+    }
+    oh_mixer_render(&mixer, t1, out, 4800);
+    TEST_ASSERT_EQUAL_INT16(7, out[2 * 2000]);
+    TEST_ASSERT_EQUAL_UINT32(0, j.late);
+    TEST_ASSERT_EQUAL_UINT32(0, mixer.stream.missing);
+    TEST_ASSERT_EQUAL_UINT32(0, mixer.stream.resyncs);
 }
 
 int main(void)
@@ -337,5 +385,6 @@ int main(void)
     RUN_TEST(the_stream_plays_each_sample_at_its_mapped_show_time);
     RUN_TEST(a_lost_packet_fades_out_instead_of_clicking_and_does_not_shift_the_rest);
     RUN_TEST(drift_is_trimmed_away_and_a_jump_is_resynced);
+    RUN_TEST(a_start_from_another_source_is_a_new_session);
     return UNITY_END();
 }

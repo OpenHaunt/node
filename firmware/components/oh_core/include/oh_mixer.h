@@ -91,6 +91,8 @@ typedef struct {
     oh_jitter_t *jb;
     uint16_t port;
     uint32_t rate;
+    bool has_ssrc; /* the session names its source */
+    uint32_t ssrc;
     uint64_t anchor_ext; /* this widened timestamp ... */
     int64_t anchor_us;   /* ... is heard at this show time */
     double pos;          /* the widened timestamp being played */
@@ -139,11 +141,21 @@ bool oh_mixer_stop(oh_mixer_t *m, const char *name, int64_t at_us, uint32_t fade
 bool oh_mixer_gain(oh_mixer_t *m, const char *name, float gain, uint32_t fade_ms);
 
 /*
- * Start (or re-anchor) the stream: RTP timestamp `ts` is heard at `at_us`. A start on
- * the port already playing keeps what is buffered and moves only the mapping.
+ * Whether a start continues the stream that is playing: same port, rate and channel
+ * count, not ending, and the same source wherever the two name one. Then it is a
+ * re-anchor and what is buffered stays. Otherwise it is a new session, and the
+ * caller empties the jitter buffer (around `ts`) before oh_mixer_stream_start: a
+ * console that restarted begins again from a timestamp the old buffer is far past.
+ */
+bool oh_mixer_stream_continues(const oh_mixer_t *m, uint16_t port, uint32_t rate, uint8_t channels, bool has_ssrc,
+                               uint32_t ssrc);
+
+/*
+ * Start (or re-anchor) the stream: RTP timestamp `ts` is heard at `at_us`. A start
+ * that oh_mixer_stream_continues() keeps what is buffered and moves only the mapping.
  */
 void oh_mixer_stream_start(oh_mixer_t *m, oh_jitter_t *jb, uint16_t port, uint32_t rate, uint32_t ts, int64_t at_us,
-                           float gain);
+                           float gain, bool has_ssrc, uint32_t ssrc);
 
 /* Write `frames` stereo frames, the first heard at show time `t_us`. */
 void oh_mixer_render(oh_mixer_t *m, int64_t t_us, int16_t *out, size_t frames);

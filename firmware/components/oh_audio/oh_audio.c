@@ -254,9 +254,10 @@ void oh_audio_command(const char *verb, const char *data, size_t len)
         apply_outputs();
         break;
     case OH_AUDIO_STREAM_START: {
-        const oh_mix_stream_t *st = &s.mix->stream;
-        const bool reanchor = st->active && !st->ending && st->port == c.port && st->rate == c.rate &&
-                              s.jb.channels == c.channels;
+        /* The same session re-anchored keeps its buffer; a new one, and a console
+         * that restarted is one under a new ssrc, starts from an empty buffer. */
+        const bool reanchor =
+            oh_mixer_stream_continues(s.mix, c.port, c.rate, c.channels, c.has_ssrc, c.ssrc);
         if (!reanchor) {
             oh_jitter_init(&s.jb, s.jframes, s.jtags, s.jvalid, JB_FRAMES, c.channels);
             oh_jitter_reset(&s.jb, c.ts);
@@ -264,7 +265,7 @@ void oh_audio_command(const char *verb, const char *data, size_t len)
         s.has_ssrc = c.has_ssrc;
         s.ssrc = c.ssrc;
         s.want_port = c.port;
-        oh_mixer_stream_start(s.mix, &s.jb, c.port, c.rate, c.ts, at_us, c.gain);
+        oh_mixer_stream_start(s.mix, &s.jb, c.port, c.rate, c.ts, at_us, c.gain, c.has_ssrc, c.ssrc);
         break;
     }
     }
