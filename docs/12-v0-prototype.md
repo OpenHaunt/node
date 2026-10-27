@@ -60,6 +60,10 @@ V0.2 (2026-10-17) uses the spares and GPIO39, and swaps GPIO18 and GPIO38:
 | 38 | `WS_OUT2` (U5), moved from GPIO18 for routing |
 | 18 | header GPIO on J12 pin 5, in place of GPIO38 (ADC2_CH7, digital use only while WiFi runs) |
 
+The firmware numbers the sensors by position, like the strips: sensor 1 is the lower terminal
+(J10) on both revisions, which is GPIO15 and "PIR1" on V0.2 but GPIO16 on V0.1. So a harness fits
+either board (2026-10-27).
+
 `WS_OUT1` stays on GPIO17. Firmware: the second WS2812 output is GPIO38 on V0.2 and GPIO18 on V0.1.
 
 J12 in V0.2: 3V3, 5V, 12V, GPIO2, GPIO18, SCL, SDA, GND (pins 1–8).

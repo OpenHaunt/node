@@ -172,7 +172,12 @@ menu "OpenHaunt board"
             default "4,5,6,7"
         config OH_PIN_SENSORS
             string "Sensor terminal GPIOs, terminal 1 first"
+            default "16,15" if OH_BOARD_OH_NODE_V0_1
             default "15,16"
+            help
+                Terminal 1 is the lower one on the right edge on both revisions,
+                like strip 1. V0.2 routes it (J10, silkscreen "PIR1") to GPIO15,
+                V0.1 to GPIO16.
         config OH_SENSOR_CONTACT_READS_LOW
             bool "A contact closed to GND on a sensor terminal reads low at the GPIO"
             default y if OH_BOARD_OH_NODE_V0_1

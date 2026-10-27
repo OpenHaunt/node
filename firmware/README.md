@@ -53,7 +53,7 @@ node describes itself from the board instead: module type **`0x0F01` "Node V0"**
 | Port | What | Head | Driver | Pin (V0.1 / V0.2) |
 |---:|---|---:|---|---|
 | 0–3 | Relay 1–4, class `switch` | 0 | `gpio_out` | 4, 5, 6, 7 |
-| 4–5 | Sensor 1–2, class `contact` | 0 | `gpio_in` | 15, 16 |
+| 4–5 | Sensor 1–2, class `contact`, sensor 1 the lower terminal | 0 | `gpio_in` | **16, 15** / 15, 16 |
 | 6–14 | Strip 1 in `effect` mode: Color, Brightness, Color 2, Effect, Speed, Size, Reverse, Mirror, Segments | 1 | `ws2812` | 17 |
 | 15–23 | Strip 2, the same nine | 2 | `ws2812` | 18 / **38** |
 
