@@ -6,6 +6,8 @@
 |---|---|---|
 | `v0.1/` | tag `v0.1` | `v0.1/OH_Node_V0.1_enclosure.3mf` |
 | `v0.2/` | tag `v0.2`, the board in this folder | `v0.2/OH_Node_V0.2_enclosure.3mf` |
+| both | 2 × v0.2 and 1 × v0.1 on one plate, written by `build_plate.sh` | `OH_Node_V0_2x0.2_1x0.1_enclosures.3mf` |
+| `v0.2/` × 3 | 3 × v0.2 on one plate, written by `build_plate_3x0.2.sh` | `OH_Node_V0_3x0.2_enclosures.3mf` |
 
 Shared by both:
 
