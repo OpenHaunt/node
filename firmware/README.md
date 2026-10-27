@@ -147,7 +147,7 @@ an `audio` object in `/info`, `PUT|GET|DELETE /api/v1/audio/clips[/<sha256>]`, a
 | Clips | RIFF WAVE, PCM16 or IMA ADPCM, mono/stereo, any rate (resampled), on FAT partition `clips` (9.8 MiB) |
 | Stream | RTP L16, any rate, 1 s buffer, played by its mapping to show time |
 | V0.1 | MAX98357A only, wired to one I2S slot, so the mix is **downmixed to mono** |
-| V0.2 | PCM5102A stereo line out (`XSMT` GPIO39) and the MAX98357A on the same bus, mixing (L+R)/2 itself |
+| V0.2 | PCM5102A stereo line out (`XSMT` GPIO39) and the MAX98357A on the same bus, mixing (L+R)/2 itself. Left and right are swapped on the way out (`OH_AUDIO_SWAP_LR`), because the built boards have the jack's tip and ring the wrong way round |
 
 Decisions, and why:
 

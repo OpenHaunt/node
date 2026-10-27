@@ -45704,7 +45704,7 @@
 		(layer "F.Cu")
 		(uuid "ec5a4881-ea88-4902-8822-9084d41bb17e")
 		(at 109.2 76.2 180)
-		(descr "TRS 3.5mm, horizontal, through-hole, kinked pins, slots 1.0x1.5mm per Kycon recommended layout; Kycon pin 1 = S, pin 2 = R (middle spring), pin 3 = T (end contact), https://www.kycon.com/Pub_Eng_Draw/STX-3000.pdf")
+		(descr "TRS 3.5mm, horizontal, through-hole, kinked pins, slots 1.0x1.5mm per Kycon recommended layout; S at the origin, T at (-4.25, -5.3), R at (1.25, -5.3): measured on OpenHaunt Node V0.2 on 2026-10-26, where the opposite naming put the left channel on the ring, https://www.kycon.com/Pub_Eng_Draw/STX-3000.pdf")
 		(tags "TRS audio jack stereo horizontal")
 		(property "Reference" "J1"
 			(at -1.5 -7.6 180)
@@ -46036,13 +46036,13 @@
 			(layers "*.Cu" "*.Mask")
 			(uuid "5ca6439d-8789-4e6b-b0f5-cedca280593b")
 		)
-		(pad "R" thru_hole oval
+		(pad "T" thru_hole oval
 			(at -4.25 -5.3 180)
 			(size 1.8 2.4)
 			(drill oval 1 1.5)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net "/AUD_R")
+			(net "/AUD_L")
 			(pintype "passive")
 			(uuid "f8e957e6-ba8a-4286-867f-ac381c441a97")
 		)
@@ -46056,13 +46056,13 @@
 			(pintype "passive")
 			(uuid "6c0353d1-abdb-48d9-bf15-58ba4e764107")
 		)
-		(pad "T" thru_hole oval
+		(pad "R" thru_hole oval
 			(at 1.25 -5.3 180)
 			(size 1.8 2.4)
 			(drill oval 1 1.5)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net "/AUD_L")
+			(net "/AUD_R")
 			(pintype "passive")
 			(uuid "2c66531f-50e3-48e0-be67-fb04676606e4")
 		)

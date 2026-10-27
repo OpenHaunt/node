@@ -13,6 +13,11 @@ PAD warning. Every symbol except the test points and mounting holes comes from P
 
 ## Open before ordering
 
+- [ ] **Re-route J1's two audio traces** (2026-10-26). The STX-3000 footprint had T and R the wrong way round:
+      the first V0.2 played the left channel out of the ring. The pad names and nets are swapped back on the
+      board (kicad-custom-libs footprint too), so `/AUD_L` and `/AUD_R` still end on each other's pads and DRC
+      reports the short. Confirm with a plug and a meter before re-routing: tip should ring through to R62.
+
 - [ ] **Optional: +VDC plane at PS1 pad 1** (datasheet Fig. 12). VIN− and −VDC planes are in; VPOE leaves pad 1 as
       a 1.0 mm track only. A VPOE zone on F.Cu/B.Cu at about x 74.1–78.4, y 108.9–114.7 with a few vias.
 - [ ] Board marking: name, "Node v0.2" and "Designed by hrueger" are on; date and project URL/license are not.
