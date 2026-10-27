@@ -55,6 +55,8 @@ static struct {
      * the client's own task takes to flush the backlog: stopping a client waits for
      * that task, and the two would wait for each other. */
     SemaphoreHandle_t client_lock;
+    /* Given by a new client's own task once it is running (`client_start`). */
+    SemaphoreHandle_t running;
     char status_topic[48];
     char prefix[32]; /* openhaunt/<sn> */
     bool connected;
@@ -321,6 +323,9 @@ static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     }
     esp_mqtt_event_handle_t e = data;
     switch (id) {
+    case MQTT_EVENT_BEFORE_CONNECT:
+        xSemaphoreGive(s.running);
+        break;
     case MQTT_EVENT_CONNECTED: {
         ESP_LOGI(TAG, "connected to %s", s.broker);
         s.connected = true;
@@ -436,7 +441,17 @@ static void client_start(void)
     }
     s.generation++;
     esp_mqtt_client_register_event(s.client, ESP_EVENT_ANY_ID, mqtt_event, (void *)(uintptr_t)s.generation);
+    xSemaphoreTake(s.running, 0);
     esp_mqtt_client_start(s.client);
+    /* esp-mqtt marks a client running from inside its task, the first time that task
+     * is scheduled, and destroy reads the mark without a lock. A stop that comes
+     * before then is refused, destroy frees the client anyway, and the task wakes on
+     * the other core in freed memory. A console restarting configures a node twice at
+     * once, over HTTP and its retained list, and on a V0.2 that did exactly this. So
+     * the client is not handed back until its task has said it is running. */
+    if (xSemaphoreTake(s.running, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        ESP_LOGW(TAG, "client task did not start within 1 s");
+    }
     ESP_LOGI(TAG, "connecting to %s as %s (%u of %u)", s.broker, client_id, (unsigned)s.list.current + 1,
              (unsigned)s.list.n);
 }
@@ -516,6 +531,7 @@ esp_err_t oh_mqtt_start(void)
 {
     s.lock = xSemaphoreCreateMutex();
     s.client_lock = xSemaphoreCreateMutex();
+    s.running = xSemaphoreCreateBinary();
     snprintf(s.prefix, sizeof(s.prefix), "openhaunt/%s", oh_app_sn());
     snprintf(s.status_topic, sizeof(s.status_topic), "%s/status", s.prefix);
     oh_config_t cfg;
