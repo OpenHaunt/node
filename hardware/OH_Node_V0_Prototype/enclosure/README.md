@@ -16,6 +16,7 @@ Shared by both:
 | `make_3mf.py` | lays the rendered parts out as a PrusaSlicer plate, one named object per part, brim on the pins |
 | `check_print.py` | printability: each part one closed solid, on the bed, inside the Prusa XL volume |
 | `check_collision.py` | parts against the board's 3D models |
+| `wiring_terminals.svg` | which screw of the relay, PIR and WS2812 terminals is what, seen on the lid; numbered as the firmware does |
 
 Each folder's `build.sh` writes its 3MF and runs the print check; its README has the parts list
 (screws, inserts, filament) and the assembly steps.
