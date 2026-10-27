@@ -1244,3 +1244,43 @@ and the S3 may reset. The budget is tight again: about 5 W typical and 8.9 W wor
 "V0.2 power path".
 
 **Does not supersede** D16, D17, D19, D20, D26, D28, D29 or D35. V0 is a prototype, not a variant.
+
+## D38 — On V0, Wi-Fi stands by beside the cable, and the cable is never the only way in
+
+**Decided 2026-10-26**, after pulling a V0.2's cable while it played a stream. This is V0 only. The product's
+mainboard has no Wi-Fi (Q2, D34), so nothing here reaches it.
+
+**What it was.** Wi-Fi was the fallback. It started 30 s after boot if the cable had produced no address, or
+30 s after a cable was pulled later. A pulled cable took the node off the network for 30 s plus an
+association, and a stream to it for longer.
+
+**What it is.** A node with Wi-Fi credentials brings Wi-Fi up at boot, beside the cable, and keeps both. The
+cable is preferred while its link is up and Wi-Fi carries everything the moment it is not:
+
+- **The node is up while either path is.** Each path used to set the state on its own, so an access point
+  rebooting took a cabled node off the broker, and the cable's address timing out two minutes after it was
+  pulled marked a node on Wi-Fi as down. A node in that state never reconnected to its broker again.
+- **The cable is checked every 100 ms**, not every 2 s, and the MQTT connection is bound to the preferred path
+  and moved, quietly, whenever that changes. Without the binding lwIP picks the first netif in the subnet in
+  the order they were created. `oh_net` creates Wi-Fi's netif first for that reason, and gives Wi-Fi a lower
+  route priority than the cable.
+- **`openhaunt/<sn>/net`**, retained, lists every path the node has an address on, the preferred one first
+  (docs/08). A console moves a stream on it instead of on mDNS, which took 2–4 s.
+- **A console may send a stream down both paths** (docs/13, "Redundant streams"). The node keeps whichever copy
+  arrives first and drops the other without counting it late.
+
+Without credentials Wi-Fi is the fallback still, to open the setup AP.
+
+**Why.** On the V0.2, with a stream playing, the TPS2121 moved between PoE and USB in both directions without
+a reset, and the node changed path in under a second. Every gap that was left came from the console not yet
+knowing where to send. With Wi-Fi standing by, only the moment the cable goes can still cost sound, and
+sending down both paths removes that too.
+
+**Cost.** The radio receives all the time, with `WIFI_PS_NONE` as before when it was the active path. That
+is roughly 90 mA at 3.3 V, ~0.45 W at 5 V through the LDO. docs/12 allows 1.8 W typical and 2.5 W peak for
+the S3 and the W5500 together, which should cover it; not measured yet. A redundant stream costs its Wi-Fi
+airtime, about 1.6 Mbit/s for 48 kHz stereo, all the time and not only when the cable fails, which is why
+the console turns it on per node rather than always. Ten nodes doing it fill a 2.4 GHz network.
+
+**Amends** the "Ethernet first, Wi-Fi as the fallback" of the firmware README and docs/12, which stays true
+for a node without credentials.

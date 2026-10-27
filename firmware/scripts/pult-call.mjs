@@ -22,8 +22,9 @@ ws.onmessage = (ev) => {
   if (m.payload && m.payload.request_id && m.payload.request_id !== id) return;
   if (m.type === "CallResult" || m.type === "GetResult" || m.type === "SetAck" || m.type === "Error") {
     console.log(JSON.stringify(m.payload ?? m, null, 1));
+    clearTimeout(timer);
     ws.close();
   }
 };
 ws.onerror = (e) => { console.error("ws error", e.message || e); process.exit(1); };
-setTimeout(() => { console.error("timeout"); process.exit(1); }, 8000);
+const timer = setTimeout(() => { console.error("timeout"); process.exit(1); }, 8000);

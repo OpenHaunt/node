@@ -1,6 +1,7 @@
 /*
- * RTP in, samples out: the header, the 32-bit wrap, a lap of the ring, and the
- * packets that arrive too late or too early.
+ * RTP in, samples out: the header, the 32-bit wrap, a lap of the ring, the
+ * packets that arrive too late or too early, and the second copy of a redundant
+ * stream.
  */
 #include <string.h>
 
@@ -137,6 +138,37 @@ static void behind_the_cursor_or_a_whole_buffer_ahead_is_late(void)
     TEST_ASSERT_EQUAL_UINT32(50, oh_jitter_depth(&j));
 }
 
+/*
+ * A console may send every packet to a node by both its cable and its wifi, so that
+ * pulling the cable costs nothing. The slower copy usually lands after the faster
+ * one has been played. That is not lateness, and counting it would bury the late
+ * packets that do matter; only a copy of something that never arrived is late.
+ */
+static void a_second_copy_of_what_was_played_is_not_late(void)
+{
+    oh_jitter_t j;
+    oh_jitter_init(&j, frames, tags, valid, CAP, 2);
+    oh_jitter_reset(&j, 1000);
+    const uint64_t base = oh_jitter_widen(&j, 1000);
+    uint8_t payload[400] = {0};
+    oh_jitter_write_l16be(&j, base, payload, 100);
+    oh_jitter_write_l16be(&j, base + 200, payload, 100);
+    oh_jitter_consume(&j, base + 300);
+
+    oh_jitter_write_l16be(&j, base, payload, 100);       /* the wifi copy, after playing */
+    oh_jitter_write_l16be(&j, base + 200, payload, 100); /* likewise */
+    TEST_ASSERT_EQUAL_UINT32(0, j.late);
+
+    oh_jitter_write_l16be(&j, base + 100, payload, 100); /* never came by cable: late */
+    TEST_ASSERT_EQUAL_UINT32(1, j.late);
+
+    /* Straddling the cursor: the part behind it was played, the rest is in time. */
+    oh_jitter_write_l16be(&j, base + 300, payload, 100);
+    oh_jitter_consume(&j, base + 350);
+    oh_jitter_write_l16be(&j, base + 300, payload, 100);
+    TEST_ASSERT_EQUAL_UINT32(1, j.late);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -144,5 +176,6 @@ int main(void)
     RUN_TEST(samples_come_back_by_timestamp_across_the_32_bit_wrap);
     RUN_TEST(a_lost_packet_is_a_hole_and_a_lap_old_frame_is_not_sound);
     RUN_TEST(behind_the_cursor_or_a_whole_buffer_ahead_is_late);
+    RUN_TEST(a_second_copy_of_what_was_played_is_not_late);
     return UNITY_END();
 }

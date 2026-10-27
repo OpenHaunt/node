@@ -76,8 +76,9 @@ the sensor terminals on 4–5, and each strip as a head of its own (head 1 on po
 15–23, or no ports at all in `sacn` mode: see [14 — Pixel strips, and heads](14-pixels.md)),
 identical on both revisions so the console makes one fixture type per head. The revision only changes the bindings: the sensor polarity
 (a contact closed to GND reads *true* on both, so V0.1 inverts and V0.2 does not) and the second strip
-pin. Ethernet (W5500, 20 MHz, the S3's own Ethernet MAC) comes first and Wi-Fi is the fallback. Details
-and the reasons are in the firmware README, "The V0 prototype". None of it has run on a board yet.
+pin. Ethernet (W5500, 20 MHz, the S3's own Ethernet MAC) comes first, and with credentials Wi-Fi stands by
+beside it (D38). Details and the reasons are in the firmware README, "The V0 prototype", and what has run on
+a V0.2 so far in its "Status".
 
 ## Power budget
 
@@ -134,7 +135,8 @@ CC1/CC2 makes it switch on. A 500 mA PC port browns out once relays and amplifie
 nothing flows back into the host or the module. When PoE drops, the mux switches to USB within 5 µs (fast
 switchover, CP2 above VREF); +5V dips by roughly 1 A × 5 µs / 130 µF ≈ 0.04 V below the 4.57 V threshold,
 estimated from the datasheet's VOUT,MIN formula. With CP2 on GND, as first drawn, it was up to 100 µs and
-~0.8 V, enough to brown out the S3.
+~0.8 V, enough to brown out the S3. On a built V0.2 (2026-10-26), plugging PoE in and pulling it again with
+USB attached, with a stream playing, reset nothing in either direction.
 
 **Short on a sensor cable.** The boost cannot disconnect its output, so the short draws from +5V through L2
 and D21 (9 A surge rating) until the terminal's PPTC trips. +5V may dip long enough to reset the S3.
@@ -158,10 +160,10 @@ table where they differ; the open list is `hardware/ToDo.md`.
 **STX-3000 pinout.** Kycon's drawing gives pin 1 = sleeve (the long contact), pin 2 = the middle spring, pin 3
 = the contact at the plug's end. CUI uses the same symbol on the SJ1-3523N and labels the end contact tip
 and the middle spring ring; Kycon's STX-3501-3N, same symbol, puts the end-contact pin at the back of the
-jack where the tip sits. That reading gave pin 2 = ring, pin 3 = tip, and the footprint was changed to it on
-2026-10-17. **It was wrong**: pins 2 and 3 sit at the same depth, so the drawing's symbol was the only
-evidence, and the first V0.2 board played left out of the ring. The pad at (−4.25, −5.3) is the tip. Still
-to confirm with a plug and a meter.
+jack where the tip sits. So pin 2 = ring, pin 3 = tip. The footprint first had it the other way round and
+was fixed on 2026-10-17. Pins 2 and 3 sit at the same depth, so the drawing's symbol is the only evidence.
+Confirmed on a built V0.2 on 2026-10-26: a 440 Hz tone on the left channel only and 880 Hz on the right
+only came out left and right in headphones.
 
 **GND stitching.** 162 GND vias added on 2026-10-17 with a script that checks clearance on all four layers,
 keepouts and hole spacing: next to SMD GND pads more than 1 mm from a via, beside signal vias that had no

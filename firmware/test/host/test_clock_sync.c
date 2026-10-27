@@ -47,12 +47,31 @@ static void a_retained_sample_seeds_but_never_corrects(void)
 
     oh_clock_sync_feed(&s, 90000, 2, 10000, true);
     TEST_ASSERT_EQUAL_INT64(1000, oh_clock_sync_now(&s, 0));
+}
 
-    /* A live one does correct it. Five hundred milliseconds out is more than one
-     * step may cover, so it moves by the slew limit and would reach the rest over
-     * the next few seconds. */
-    oh_clock_sync_feed(&s, 11500, 3, 10000, false);
-    TEST_ASSERT_EQUAL_INT64(1000 + OH_CLOCK_MAX_SLEW_MS, oh_clock_sync_now(&s, 0));
+/*
+ * The seed is only as good as the retained message was fresh: up to a second old
+ * while the console runs, several when it has just restarted. Slewing out of that at
+ * the slew limit took 75 s on a V0.2 after a console restart, with show time running
+ * 5% fast and a stream jumping all the while. So the first live sample replaces a
+ * retained seed outright, as it would an empty estimate, and smoothing starts there.
+ */
+static void the_first_live_sample_replaces_a_retained_seed(void)
+{
+    oh_clock_sync_t s;
+    oh_clock_sync_init(&s);
+
+    oh_clock_sync_feed(&s, 6300, 1800, 10000, true);
+    TEST_ASSERT_EQUAL_INT64(-3700, oh_clock_sync_now(&s, 0));
+
+    oh_clock_sync_feed(&s, 10980, 1801, 11000, false);
+    TEST_ASSERT_EQUAL_INT64(-20, oh_clock_sync_now(&s, 0));
+
+    /* From here it is a live estimate like any other: smoothed, and slewed. */
+    oh_clock_sync_feed(&s, 12080, 1802, 12000, false);
+    TEST_ASSERT_EQUAL_INT64(0, oh_clock_sync_now(&s, 0));
+    oh_clock_sync_feed(&s, 23000, 1803, 13000, false);
+    TEST_ASSERT_EQUAL_INT64(OH_CLOCK_MAX_SLEW_MS, oh_clock_sync_now(&s, 0));
 }
 
 /*
@@ -109,6 +128,7 @@ int main(void)
     UNITY_BEGIN();
     RUN_TEST(the_first_live_sample_is_taken_outright_and_later_ones_are_smoothed);
     RUN_TEST(a_retained_sample_seeds_but_never_corrects);
+    RUN_TEST(the_first_live_sample_replaces_a_retained_seed);
     RUN_TEST(a_sequence_that_goes_backwards_starts_the_estimate_again);
     RUN_TEST(a_large_correction_arrives_gradually_rather_than_as_a_jolt);
     RUN_TEST(with_no_sample_yet_the_nodes_own_clock_is_the_answer);

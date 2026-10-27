@@ -23,6 +23,9 @@ typedef enum {
     OH_EVENT_NET_UP,         /* no data */
     OH_EVENT_NET_DOWN,       /* no data */
     OH_EVENT_NET_SETUP_AP,   /* no data: the setup access point is open */
+    /* A path came or went, the node perhaps staying up throughout: no data. Posted
+     * after NET_UP / NET_DOWN where both apply. */
+    OH_EVENT_NET_CHANGED,
     OH_EVENT_MQTT_CONNECTED, /* no data */
     OH_EVENT_MQTT_DISCONNECTED,
     OH_EVENT_ERRORS_CHANGED, /* no data */

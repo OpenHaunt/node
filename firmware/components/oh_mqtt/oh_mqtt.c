@@ -8,6 +8,7 @@
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#include "lwip/sockets.h"
 #include "mqtt_client.h"
 #include "oh_app.h"
 #include "oh_audio.h"
@@ -55,6 +56,10 @@ static struct {
      * the client's own task takes to flush the backlog: stopping a client waits for
      * that task, and the two would wait for each other. */
     SemaphoreHandle_t client_lock;
+    /* Given by a new client's own task once it is running (`client_start`). */
+    SemaphoreHandle_t running;
+    /* The path the client is bound to. */
+    struct ifreq ifr;
     char status_topic[48];
     char prefix[32]; /* openhaunt/<sn> */
     bool connected;
@@ -161,6 +166,31 @@ static void publish_health(void *arg)
     cJSON_Delete(h);
     if (payload) {
         publish("health", payload, 0, false);
+        free(payload);
+    }
+}
+
+/* openhaunt/<sn>/net, retained: every path a console can send this node a stream
+ * by, the preferred one first. Republished whenever one comes or goes, so a console
+ * moves a stream on this rather than on mDNS, seconds later. */
+static void publish_net(void)
+{
+    if (!s.client || !s.connected) {
+        return;
+    }
+    oh_net_address_t a[2];
+    const size_t n = oh_net_addresses(a, 2);
+    const char *transports[2];
+    const char *ips[2];
+    for (size_t i = 0; i < n; i++) {
+        transports[i] = a[i].transport;
+        ips[i] = a[i].ip;
+    }
+    cJSON *j = oh_json_net(transports, ips, n);
+    char *payload = cJSON_PrintUnformatted(j);
+    cJSON_Delete(j);
+    if (payload) {
+        publish("net", payload, 1, true);
         free(payload);
     }
 }
@@ -321,6 +351,9 @@ static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     }
     esp_mqtt_event_handle_t e = data;
     switch (id) {
+    case MQTT_EVENT_BEFORE_CONNECT:
+        xSemaphoreGive(s.running);
+        break;
     case MQTT_EVENT_CONNECTED: {
         ESP_LOGI(TAG, "connected to %s", s.broker);
         s.connected = true;
@@ -344,6 +377,7 @@ static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
         esp_mqtt_client_subscribe(s.client, OH_BROKERS_TOPIC, 1);
         backlog_flush();
         publish_health(NULL);
+        publish_net();
         oh_node_post(OH_EVENT_MQTT_CONNECTED, NULL, 0);
         break;
     }
@@ -429,6 +463,13 @@ static void client_start(void)
         .network.timeout_ms = 3000,
         .task.priority = 5,
     };
+    /* Bound to the preferred path rather than left to lwIP, which picks the first
+     * netif in the subnet in the order they were made: Wi-Fi given credentials while
+     * the cable is in would otherwise carry the broker until a reboot. */
+    oh_net_ifname(s.ifr.ifr_name, sizeof(s.ifr.ifr_name));
+    if (s.ifr.ifr_name[0]) {
+        cfg.network.if_name = &s.ifr;
+    }
     s.client = esp_mqtt_client_init(&cfg);
     if (!s.client) {
         ESP_LOGE(TAG, "client init failed");
@@ -436,7 +477,17 @@ static void client_start(void)
     }
     s.generation++;
     esp_mqtt_client_register_event(s.client, ESP_EVENT_ANY_ID, mqtt_event, (void *)(uintptr_t)s.generation);
+    xSemaphoreTake(s.running, 0);
     esp_mqtt_client_start(s.client);
+    /* esp-mqtt marks a client running from inside its task, the first time that task
+     * is scheduled, and destroy reads the mark without a lock. A stop that comes
+     * before then is refused, destroy frees the client anyway, and the task wakes on
+     * the other core in freed memory. A console restarting configures a node twice at
+     * once, over HTTP and its retained list, and on a V0.2 that did exactly this. So
+     * the client is not handed back until its task has said it is running. */
+    if (xSemaphoreTake(s.running, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        ESP_LOGW(TAG, "client task did not start within 1 s");
+    }
     ESP_LOGI(TAG, "connecting to %s as %s (%u of %u)", s.broker, client_id, (unsigned)s.list.current + 1,
              (unsigned)s.list.n);
 }
@@ -492,6 +543,25 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     case OH_EVENT_NET_SETUP_AP:
         s.net_up = oh_net_is_up();
         break;
+    case OH_EVENT_NET_CHANGED: {
+        char now[sizeof(s.ifr.ifr_name)];
+        oh_net_ifname(now, sizeof(now));
+        xSemaphoreTake(s.client_lock, portMAX_DELAY);
+        if (s.client && now[0] && strcmp(now, s.ifr.ifr_name) != 0) {
+            /* The preferred path is another one now. A connection on a pulled cable
+             * is dead, though nothing says so until the keepalive runs out 15 s on;
+             * one on Wi-Fi with the cable back would stay there. Either way a new
+             * one goes to the same broker on the new path, without the offline a
+             * stop would publish: the node has not gone anywhere. */
+            ESP_LOGI(TAG, "moving to %s on %s", s.broker, now);
+            s.connected = false;
+            client_stop();
+            client_start();
+        }
+        xSemaphoreGive(s.client_lock);
+        publish_net();
+        break;
+    }
     case OH_EVENT_CONFIG_CHANGED:
         if (*(uint32_t *)data & OH_CFG_MQTT) {
             reconfigure();
@@ -516,6 +586,7 @@ esp_err_t oh_mqtt_start(void)
 {
     s.lock = xSemaphoreCreateMutex();
     s.client_lock = xSemaphoreCreateMutex();
+    s.running = xSemaphoreCreateBinary();
     snprintf(s.prefix, sizeof(s.prefix), "openhaunt/%s", oh_app_sn());
     snprintf(s.status_topic, sizeof(s.status_topic), "%s/status", s.prefix);
     oh_config_t cfg;

@@ -16,6 +16,7 @@ void oh_clock_sync_feed(oh_clock_sync_t *s, int64_t console_ms, uint64_t seq, in
     if (s->have_seq && seq < s->last_seq) {
         s->offset_ms = sample;
         s->have_offset = true;
+        s->seeded = retained;
         s->last_seq = seq;
         return;
     }
@@ -25,10 +26,18 @@ void oh_clock_sync_feed(oh_clock_sync_t *s, int64_t console_ms, uint64_t seq, in
     if (!s->have_offset) {
         s->offset_ms = sample;
         s->have_offset = true;
+        s->seeded = retained;
         return;
     }
     /* A retained sample is a starting point, never a correction. */
     if (retained) {
+        return;
+    }
+    /* And only a starting point: it may be seconds old, and slewing out of that
+     * leaves show time running fast or slow for a minute. */
+    if (s->seeded) {
+        s->offset_ms = sample;
+        s->seeded = false;
         return;
     }
 

@@ -75,11 +75,15 @@ Decisions, and why:
 - **60 pixels per strip by default, and DMA to the longer one.** The S3 has one DMA-capable
   RMT channel; the board gives it to the longer strip above 64 pixels and the other two memory
   blocks. `OH_STRIP_PIXELS` is the default count; `PUT /api/v1/pixels/<n>` sets each strip's.
-- **Ethernet first, Wi-Fi as the fallback.** The W5500 starts at boot. Wi-Fi starts if the
-  cable has produced no address within `OH_WIFI_STA_TIMEOUT_S` (30 s), if the W5500 does not
-  answer on SPI (after 1 s), or 30 s after the link goes down later. Once Wi-Fi is up it stays
-  up until a reboot; the address reported prefers Ethernet whenever both have one. So a node
-  on the far side of the garden needs only Wi-Fi credentials, and a cabled one needs nothing.
+- **Ethernet first, and Wi-Fi standing by beside it** (OpenHaunt/node D38). With Wi-Fi
+  credentials both start at boot and both stay up; the cable is preferred while its link is
+  up (checked every 100 ms) and Wi-Fi carries everything the moment it is not. The node is up
+  while either path is, the MQTT connection is bound to the preferred path and moved when it
+  changes, and retained `openhaunt/<sn>/net` lists both addresses so a console can move a
+  stream at once or send it down both. Without credentials Wi-Fi is still the fallback, and
+  starts to open the setup AP if the cable has produced no address within
+  `OH_WIFI_STA_TIMEOUT_S` (30 s), if the W5500 does not answer on SPI (after 1 s), or 30 s
+  after the link goes down later.
 - **The W5500 is given the S3's Ethernet MAC** from efuse, since it has none of its own.
   It runs at 20 MHz (`OH_W5500_CLOCK_MHZ`) because the V0 pins go through the GPIO matrix.
 - **Yellow is status, red is faults.** The yellow LED (GPIO36) shows the usual patterns; on a
@@ -326,13 +330,23 @@ node's audio (see *Audio*), and
 
 ## Status
 
-The V0 boards build cleanly for both revisions and the host tests pass, but **no V0 board
-has run this firmware yet**: the W5500 bring-up, the Wi-Fi fallback on that board, the sensor
-polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW, the
-sACN receiver with several multicast joins, the frame rates), the indicator LEDs, all of audio
-(I2S on both revisions, the clip store, the stream, the timing against the DAC), and the broker
-list (esp-mqtt with auto-reconnect off, `set_uri` and `reconnect` from a timer) are written from
-the schematic, the datasheets and the ESP-IDF documentation, and unverified.
+**On a V0.2 (2026-10-26), against the-pult:** Ethernet and Wi-Fi, moving between them both
+ways with PoE and USB plugged in together (no reset, no gap with a console streaming over
+Wi-Fi), adoption and MQTT, the broker list across a console restart, the relays and their
+LEDs, the status LEDs, the line out in stereo (left is left), clips from the store and an RTP
+stream with no drops over the cable, show time locked to the console, OTA, and a core dump
+read back over HTTP. Not yet: the sensor terminals, both strips, the speaker, a redundant
+stream (the console side is being written), and the V0.1.
+
+Two things worth knowing when a node misbehaves: `/status` says `resetReason` and whether a
+`coredump` is in flash, and `GET /api/v1/coredump` returns it raw for
+`esp-coredump info_corefile --core-format raw`, against the ELF of the image that crashed
+(`DELETE` to clear it).
+
+Still written only from the schematic, the datasheets and the ESP-IDF documentation: the
+sensor polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW,
+the sACN receiver with several multicast joins, the frame rates), the speaker amplifier, and
+everything on the V0.1.
 
 Verified on the ESP32-1732S019 against the-pult: setup AP and captive portal,
 discovery and the TXT record, every `/api/v1` endpoint, adoption, MQTT in both
