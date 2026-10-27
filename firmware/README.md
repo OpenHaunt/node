@@ -330,13 +330,23 @@ node's audio (see *Audio*), and
 
 ## Status
 
-The V0 boards build cleanly for both revisions and the host tests pass, but **no V0 board
-has run this firmware yet**: the W5500 bring-up, the Wi-Fi fallback on that board, the sensor
-polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW, the
-sACN receiver with several multicast joins, the frame rates), the indicator LEDs, all of audio
-(I2S on both revisions, the clip store, the stream, the timing against the DAC), and the broker
-list (esp-mqtt with auto-reconnect off, `set_uri` and `reconnect` from a timer) are written from
-the schematic, the datasheets and the ESP-IDF documentation, and unverified.
+**On a V0.2 (2026-10-26), against the-pult:** Ethernet and Wi-Fi, moving between them both
+ways with PoE and USB plugged in together (no reset, no gap with a console streaming over
+Wi-Fi), adoption and MQTT, the broker list across a console restart, the relays and their
+LEDs, the status LEDs, the line out in stereo (left is left), clips from the store and an RTP
+stream with no drops over the cable, show time locked to the console, OTA, and a core dump
+read back over HTTP. Not yet: the sensor terminals, both strips, the speaker, a redundant
+stream (the console side is being written), and the V0.1.
+
+Two things worth knowing when a node misbehaves: `/status` says `resetReason` and whether a
+`coredump` is in flash, and `GET /api/v1/coredump` returns it raw for
+`esp-coredump info_corefile --core-format raw`, against the ELF of the image that crashed
+(`DELETE` to clear it).
+
+Still written only from the schematic, the datasheets and the ESP-IDF documentation: the
+sensor polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW,
+the sACN receiver with several multicast joins, the frame rates), the speaker amplifier, and
+everything on the V0.1.
 
 Verified on the ESP32-1732S019 against the-pult: setup AP and captive portal,
 discovery and the TXT record, every `/api/v1` endpoint, adoption, MQTT in both
