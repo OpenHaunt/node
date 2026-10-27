@@ -105,11 +105,13 @@ function since(ts){if(!ts)return'';if(ts>1e12)return new Date(ts).toLocaleTimeSt
 function fmt(v,p){if('state'in v)return v.state?'on':'off';
  if('value'in v){const n=Number(v.value);if(p&&p.unit==='percent'){const frac=p.maximum!=null&&p.maximum<=1;return Math.round(frac?n*100:n)+'%';}if(p&&p.unit==='degree-celsius')return n.toFixed(1)+' °C';return n.toFixed(3).replace(/\.?0+$/,'');}
  if('text'in v)return JSON.stringify(v.text);if('r'in v)return`<span class="swatch" style="background:rgb(${v.r},${v.g},${v.b})"></span>rgb(${v.r},${v.g},${v.b})`;return'';}
-function drive(p,v){post('/api/v1/state',{outputs:{[p]:v}}).then(refresh).catch(e=>msg('errs',e.message,false));}
+function drive(p,v){document.activeElement?.blur();post('/api/v1/state',{outputs:{[p]:v}}).then(refresh).catch(e=>msg('errs',e.message,false));}
 function control(p,st){const v=st||{};
  if(p.dataType==='boolean')return`<span class="sw ${v.state?'on':''}" onclick="drive(${p.port},{state:${!v.state}})"></span>`;
  if(p.dataType==='number'){const mn=p.minimum??0,mx=p.maximum??1,step=(mx-mn)/100;return`<input type="range" min="${mn}" max="${mx}" step="${step}" value="${v.value??mn}" onchange="drive(${p.port},{value:+this.value})">`;}
  if(p.dataType==='color'){const h='#'+[v.r||0,v.g||0,v.b||0].map(x=>x.toString(16).padStart(2,'0')).join('');return`<input type="color" value="${h}" onchange="const c=this.value;drive(${p.port},{r:parseInt(c.substr(1,2),16),g:parseInt(c.substr(3,2),16),b:parseInt(c.substr(5,2),16)})">`;}
+ if(p.class==='pixel-effect'&&info.pixels){const cur=v.text||'';const opts=info.pixels.effects.includes(cur)?info.pixels.effects:[cur,...info.pixels.effects];
+  return`<select onchange="drive(${p.port},{text:this.value})">${opts.map(e=>`<option${e===cur?' selected':''}>${esc(e)}</option>`).join('')}</select>`;}
  if(p.dataType==='string')return`<input value="${esc(v.text||'')}" onchange="drive(${p.port},{text:this.value})">`;return'';}
 function render(){if(!info||!status)return;
  $('hName').textContent=info.name;$('hSn').textContent=info.sn;
@@ -124,7 +126,9 @@ function render(){if(!info||!status)return;
  if(info.dmx)rows.push(['DMX',info.dmx.protocols.join(', ')+' · '+info.dmx.universes+' universe'+(cfg?.dmx?' · universe '+cfg.dmx.universe:'')]);
  $('tStatus').innerHTML=rows.map(r=>`<tr><th>${r[0]}</th><td class="v">${esc(r[1])}</td></tr>`).join('');
  const st={};status.ports.forEach(p=>st[p.port]=p);
- $('tPorts').innerHTML='<tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr>'+(info.ports.length?info.ports.map(p=>`<tr><td>${p.port}</td><td>${esc(p.name)}${p.class?' <span class="pill">'+p.class+'</span>':''}</td><td>${p.access==='readonly'?'in':'out'} ${p.dataType}${p.unit?' '+p.unit:''}</td><td class="v">${st[p.port]?fmt(st[p.port],p)+' <span style="color:var(--mut)">'+since(st[p.port].ts)+'</span>':''}${status.effects&&status.effects[p.port]?' <span class="pill">'+esc(status.effects[p.port])+'</span>':''}</td><td>${p.access==='readwrite'?control(p,st[p.port]):''}</td></tr>`).join(''):'<tr><td colspan=5 style="color:var(--mut)">No ports: this node describes nothing and will not be adopted. Pick a module.</td></tr>');
+ // Rebuilding the table while a control in it has focus closes an open select and drops a
+ // half-typed value; the next refresh after it loses focus catches up.
+ const a=document.activeElement;if(!(a&&a!==document.body&&$('tPorts').contains(a)))$('tPorts').innerHTML='<tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr>'+(info.ports.length?info.ports.map(p=>`<tr><td>${p.port}</td><td>${esc(p.name)}${p.class?' <span class="pill">'+p.class+'</span>':''}</td><td>${p.access==='readonly'?'in':'out'} ${p.dataType}${p.unit?' '+p.unit:''}</td><td class="v">${st[p.port]?fmt(st[p.port],p)+' <span style="color:var(--mut)">'+since(st[p.port].ts)+'</span>':''}${status.effects&&status.effects[p.port]?' <span class="pill">'+esc(status.effects[p.port])+'</span>':''}</td><td>${p.access==='readwrite'?control(p,st[p.port]):''}</td></tr>`).join(''):'<tr><td colspan=5 style="color:var(--mut)">No ports: this node describes nothing and will not be adopted. Pick a module.</td></tr>');
  $('errs').textContent=status.errors.length?status.errors.join(', '):'none';$('errs').className='msg '+(status.errors.length?'bad':'ok');
  $('fwCur').textContent=info.fw;$('board').textContent=status.board;$('modSrc').textContent=status.moduleSource;
  if(info.dmx){$('dmxCard').style.display='';$('dmxProto').innerHTML=info.dmx.protocols.map(p=>`<option>${p}</option>`).join('');}}
