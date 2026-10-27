@@ -170,7 +170,18 @@ function ota(){const f=$('fwFile').files[0];if(!f)return msg('mOta','pick a .bin
  x.upload.onprogress=e=>{if(e.lengthComputable)$('otaProg').value=e.loaded/e.total*100;};
  x.onload=()=>{let j={};try{j=JSON.parse(x.responseText);}catch(e){}if(x.status===200&&j.ok!==false){msg('mOta','flashed '+(j.version||'')+' — rebooting',true);waitBack('mOta');}else msg('mOta',j.error||('HTTP '+x.status),false);};
  x.onerror=()=>msg('mOta','upload failed',false);x.open('POST','/api/v1/ota');x.setRequestHeader('Content-Type','application/octet-stream');x.send(f);msg('mOta','uploading '+(f.size/1024).toFixed(0)+' kB…',true);}
-refresh();loadCfg();setInterval(refresh,2000);
+// Live state from GET /api/v1/events (server-sent events): a sensor shows the moment it
+// trips. The browser reconnects by itself; a node without the stream (older firmware, or
+// it refused) falls back to polling every 2 s and tries the stream again after a while.
+let es=null,poll=null;
+function startPoll(){if(!poll)poll=setInterval(refresh,2000);}
+function stopPoll(){if(poll){clearInterval(poll);poll=null;}}
+function live(){if(!window.EventSource)return startPoll();es=new EventSource('/api/v1/events');
+ es.addEventListener('status',e=>{status=JSON.parse(e.data);stopPoll();render();});
+ es.addEventListener('ports',e=>{if(status){status.ports=JSON.parse(e.data);render();}});
+ es.addEventListener('module',()=>refresh());
+ es.onerror=()=>{if(es.readyState===EventSource.CLOSED){es=null;startPoll();setTimeout(live,30000);}else{$('hNet').textContent='reconnecting…';$('hNet').className='pill bad';}};}
+refresh();loadCfg();live();
 </script>
 </body>
 </html>

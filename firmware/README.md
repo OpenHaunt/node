@@ -241,6 +241,12 @@ oh wifi set <ssid> <passphrase>
 Once on the network the node is `openhaunt-<sn>.local` with a web UI at `/`
 (status, network, name and broker, strips, module editor, firmware update) and the
 `/api/v1` the controller uses.
+The UI follows the node live over `GET /api/v1/events`, a server-sent event
+stream: `status` (what `/status` answers) on connect, on any network, broker,
+error or config change and every 5 s; `ports` (the `ports` array) within 50 ms
+of a port changing, so a sensor shows the moment it trips; `module` when the
+node binds its I/O again. Two streams at a time, a third evicts the oldest. A
+node without the stream gets polled every 2 s as before.
 
 ## What the node is
 

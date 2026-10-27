@@ -11,7 +11,9 @@
 #include "esp_ota_ops.h"
 #include "esp_log.h"
 #include "esp_system.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "oh_app.h"
 #include "oh_audio.h"
@@ -381,7 +383,25 @@ static const char *reset_reason(void)
     }
 }
 
-static esp_err_t get_status(httpd_req_t *req)
+/* Each port's value with its timestamp, for the live table. */
+static cJSON *ports_json(void)
+{
+    cJSON *ports = cJSON_CreateArray();
+    oh_node_lock();
+    const oh_module_t *m = oh_node_module();
+    const oh_port_state_t *st = oh_node_states();
+    for (int i = 0; i < m->n_ports; i++) {
+        cJSON *p = oh_json_value(&st[i].value);
+        cJSON_AddNumberToObject(p, "port", m->ports[i].port);
+        cJSON_AddNumberToObject(p, "ts", (double)st[i].ts_ms);
+        cJSON_AddItemToArray(ports, p);
+    }
+    oh_node_unlock();
+    return ports;
+}
+
+/* What GET /status answers, and the stream's `status` event carries. */
+static cJSON *status_json(void)
 {
     cJSON *o = cJSON_CreateObject();
     cJSON_AddStringToObject(o, "sn", oh_app_sn());
@@ -432,12 +452,15 @@ static esp_err_t get_status(httpd_req_t *req)
     cJSON_AddBoolToObject(o, "pendingVerify", oh_ota_pending_verify());
     /* Which ports are running something of their own, so a glance at /status says
      * whether the node is being driven or is getting on with it. */
-    oh_module_t module;
-    oh_node_module_copy(&module);
+    /* On the heap: 5.5 KB would take most of the event stream's stack. */
+    oh_module_t *module = malloc(sizeof(*module));
+    if (module) {
+        oh_node_module_copy(module);
+    }
     cJSON *tracing = NULL;
-    for (int i = 0; i < module.n_ports; i++) {
+    for (int i = 0; module && i < module->n_ports; i++) {
         char summary[40];
-        oh_node_motion_summary(module.ports[i].port, summary, sizeof(summary));
+        oh_node_motion_summary(module->ports[i].port, summary, sizeof(summary));
         if (!summary[0]) {
             continue;
         }
@@ -445,9 +468,10 @@ static esp_err_t get_status(httpd_req_t *req)
             tracing = cJSON_AddObjectToObject(o, "effects");
         }
         char key[8];
-        snprintf(key, sizeof(key), "%u", module.ports[i].port);
+        snprintf(key, sizeof(key), "%u", module->ports[i].port);
         cJSON_AddStringToObject(tracing, key, summary);
     }
+    free(module);
 
     if (oh_node_has_dmx()) {
         cJSON *sacn = cJSON_AddObjectToObject(o, "sacn");
@@ -462,19 +486,13 @@ static esp_err_t get_status(httpd_req_t *req)
     for (size_t i = 0; i < n; i++) {
         cJSON_AddItemToArray(errors, cJSON_CreateString(codes[i]));
     }
-    /* Each port's value with its timestamp, for the live table. */
-    cJSON *ports = cJSON_AddArrayToObject(o, "ports");
-    oh_node_lock();
-    const oh_module_t *m = oh_node_module();
-    const oh_port_state_t *st = oh_node_states();
-    for (int i = 0; i < m->n_ports; i++) {
-        cJSON *p = oh_json_value(&st[i].value);
-        cJSON_AddNumberToObject(p, "port", m->ports[i].port);
-        cJSON_AddNumberToObject(p, "ts", (double)st[i].ts_ms);
-        cJSON_AddItemToArray(ports, p);
-    }
-    oh_node_unlock();
-    return send_json(req, o, NULL);
+    cJSON_AddItemToObject(o, "ports", ports_json());
+    return o;
+}
+
+static esp_err_t get_status(httpd_req_t *req)
+{
+    return send_json(req, status_json(), NULL);
 }
 
 static esp_err_t get_wifi_scan(httpd_req_t *req)
@@ -656,11 +674,208 @@ static esp_err_t not_found(httpd_req_t *req, httpd_err_code_t code)
     return send_error(req, "404 Not Found", "no such endpoint");
 }
 
+/* ── Live state: server-sent events ───────────────────────────────────── */
+
+/*
+ * GET /api/v1/events is a text/event-stream, so the web UI shows a sensor the
+ * moment it trips instead of on the next poll. Three events:
+ *
+ *   status   what GET /status answers: on connect, when the network, the broker,
+ *            the errors or the config change, and every 5 s for the counters
+ *   ports    the `ports` array alone, within 50 ms of a port changing, and at the
+ *            renderer's 4 Hz while a port traces a shape
+ *   module   the node bound its I/O again; /info has new ports
+ *
+ * Each stream is an async request: the server neither reads nor purges its socket,
+ * and one task writes every stream. Each holds one of the server's seven sessions,
+ * so there are two at most; a third evicts the oldest, which is usually a page that
+ * was reloaded and has not been noticed gone yet.
+ */
+#define SSE_MAX 2
+#define SSE_PORTS_EVERY_MS 50
+#define SSE_STATUS_EVERY_MS 5000
+#define SSE_PORTS BIT0
+#define SSE_STATUS BIT1
+#define SSE_MODULE BIT2
+
+static struct {
+    httpd_req_t *req;
+    int64_t opened_ms;
+} s_sse[SSE_MAX];
+static SemaphoreHandle_t s_sse_lock;
+static TaskHandle_t s_sse_task;
+
+/* Under s_sse_lock. */
+static void sse_drop(int i)
+{
+    const int fd = httpd_req_to_sockfd(s_sse[i].req);
+    httpd_req_async_handler_complete(s_sse[i].req);
+    httpd_sess_trigger_close(s_server, fd);
+    s_sse[i].req = NULL;
+}
+
+/* One event as one chunk. False when the stream is gone. */
+static bool sse_send(httpd_req_t *req, const char *event, const char *data)
+{
+    const size_t cap = strlen(event) + strlen(data) + 20;
+    char *buf = malloc(cap);
+    if (!buf) {
+        return true;   /* skip this one, the stream is not at fault */
+    }
+    const int n = snprintf(buf, cap, "event: %s\ndata: %s\n\n", event, data);
+    const bool ok = httpd_resp_send_chunk(req, buf, n) == ESP_OK;
+    free(buf);
+    return ok;
+}
+
+/* Send to every stream; takes the JSON. */
+static void sse_broadcast(const char *event, cJSON *json)
+{
+    char *text = json ? cJSON_PrintUnformatted(json) : NULL;
+    cJSON_Delete(json);
+    xSemaphoreTake(s_sse_lock, portMAX_DELAY);
+    for (int i = 0; i < SSE_MAX; i++) {
+        if (s_sse[i].req && !sse_send(s_sse[i].req, event, text ? text : "{}")) {
+            ESP_LOGI(TAG, "event stream %d closed", i);
+            sse_drop(i);
+        }
+    }
+    xSemaphoreGive(s_sse_lock);
+    cJSON_free(text);
+}
+
+static bool sse_open(void)
+{
+    bool any = false;
+    xSemaphoreTake(s_sse_lock, portMAX_DELAY);
+    for (int i = 0; i < SSE_MAX; i++) {
+        any |= s_sse[i].req != NULL;
+    }
+    xSemaphoreGive(s_sse_lock);
+    return any;
+}
+
+static void sse_task(void *arg)
+{
+    (void)arg;
+    int64_t last_status = 0, last_ports = 0;
+    uint32_t pending = 0;
+    for (;;) {
+        int64_t now = esp_timer_get_time() / 1000;
+        int64_t wait = last_status + SSE_STATUS_EVERY_MS - now;
+        if (pending & SSE_PORTS) {
+            wait = MIN(wait, last_ports + SSE_PORTS_EVERY_MS - now);
+        }
+        uint32_t bits = 0;
+        xTaskNotifyWait(0, UINT32_MAX, &bits, pdMS_TO_TICKS(MAX(wait, 0)));
+        pending |= bits;
+        now = esp_timer_get_time() / 1000;
+        if (now - last_status >= SSE_STATUS_EVERY_MS) {
+            pending |= SSE_STATUS;
+        }
+        if (!sse_open()) {
+            pending = 0;
+            last_status = now;
+            continue;
+        }
+        if (pending & SSE_MODULE) {
+            sse_broadcast("module", NULL);
+        }
+        if (pending & SSE_STATUS) {
+            /* carries the ports too */
+            sse_broadcast("status", status_json());
+            static bool logged;
+            if (!logged) {
+                logged = true;
+                ESP_LOGI(TAG, "event stream: %u bytes of stack to spare", (unsigned)uxTaskGetStackHighWaterMark(NULL));
+            }
+            last_status = last_ports = now;
+            pending = 0;
+        } else if ((pending & SSE_PORTS) && now - last_ports >= SSE_PORTS_EVERY_MS) {
+            sse_broadcast("ports", ports_json());
+            last_ports = now;
+            pending = 0;
+        } else {
+            pending &= SSE_PORTS;   /* not yet: wait out the 50 ms */
+        }
+    }
+}
+
+static void sse_on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
+{
+    (void)arg, (void)base, (void)data;
+    uint32_t bits;
+    switch (id) {
+    case OH_EVENT_PORT_CHANGED:
+    case OH_EVENT_RENDERED:
+        bits = SSE_PORTS;
+        break;
+    case OH_EVENT_MODULE_BOUND:
+        bits = SSE_MODULE | SSE_STATUS;
+        break;
+    case OH_EVENT_IDENTIFY:
+        return;
+    default:
+        bits = SSE_STATUS;
+        break;
+    }
+    xTaskNotify(s_sse_task, bits, eSetBits);
+}
+
+static esp_err_t get_events(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "text/event-stream");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    cJSON *status = status_json();
+    char *text = cJSON_PrintUnformatted(status);
+    cJSON_Delete(status);
+    xSemaphoreTake(s_sse_lock, portMAX_DELAY);
+    int slot = 0;
+    for (int i = 0; i < SSE_MAX; i++) {
+        if (!s_sse[i].req) {
+            slot = i;
+            break;
+        }
+        if (s_sse[i].opened_ms < s_sse[slot].opened_ms) {
+            slot = i;
+        }
+    }
+    if (s_sse[slot].req) {
+        ESP_LOGI(TAG, "event stream %d evicted by a newer one", slot);
+        sse_drop(slot);
+    }
+    /* The first chunk carries the headers and the reconnect delay; the async copy
+     * takes over from there. */
+    esp_err_t err = httpd_resp_send_chunk(req, "retry: 2000\n\n", HTTPD_RESP_USE_STRLEN);
+    if (err == ESP_OK && text && !sse_send(req, "status", text)) {
+        err = ESP_FAIL;
+    }
+    httpd_req_t *copy = NULL;
+    if (err == ESP_OK) {
+        err = httpd_req_async_handler_begin(req, &copy);
+    }
+    if (err == ESP_OK) {
+        s_sse[slot].req = copy;
+        s_sse[slot].opened_ms = esp_timer_get_time() / 1000;
+    }
+    xSemaphoreGive(s_sse_lock);
+    cJSON_free(text);
+    return err;
+}
+
+static void sse_start(void)
+{
+    s_sse_lock = xSemaphoreCreateMutex();
+    xTaskCreate(sse_task, "oh_sse", 8192, NULL, 4, &s_sse_task);
+    ESP_ERROR_CHECK(esp_event_handler_register(OH_EVENT, ESP_EVENT_ANY_ID, sse_on_event, NULL));
+}
+
 esp_err_t oh_http_start(void)
 {
     httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
     cfg.server_port = 80;
-    cfg.max_uri_handlers = 28;
+    cfg.max_uri_handlers = 29;
     /* /api/v1/audio/clips/<sha> names its clip in the path. */
     cfg.uri_match_fn = httpd_uri_match_wildcard;
     /* 12 KB, not 8: the setup page's Wi-Fi scan runs on this task, and a blocking
@@ -676,6 +891,9 @@ esp_err_t oh_http_start(void)
         ESP_LOGE(TAG, "httpd: %s", esp_err_to_name(err));
         return err;
     }
+    if (!s_sse_task) {
+        sse_start();
+    }
     const httpd_uri_t routes[] = {
         {"/", HTTP_GET, get_index, NULL},
         {"/api/v1/info", HTTP_GET, get_info, NULL},
@@ -686,6 +904,7 @@ esp_err_t oh_http_start(void)
         {"/api/v1/identify", HTTP_POST, post_identify, NULL},
         {"/api/v1/ota", HTTP_POST, post_ota, NULL},
         {"/api/v1/status", HTTP_GET, get_status, NULL},
+        {"/api/v1/events", HTTP_GET, get_events, NULL},
         {"/api/v1/wifi/scan", HTTP_GET, get_wifi_scan, NULL},
         {"/api/v1/module", HTTP_GET, get_module, NULL},
         {"/api/v1/module", HTTP_POST, post_module, NULL},

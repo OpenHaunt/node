@@ -140,6 +140,7 @@ with `curl`.
 ```
 GET  /api/v1/info              node identity, both firmware versions, both board descriptors
 GET  /api/v1/state             current state of all IO board channels
+GET  /api/v1/events            the same, live: server-sent events for the web UI
 POST /api/v1/state             set outputs
 GET  /api/v1/power             per-rail voltage, current, power, and the budget
 GET  /api/v1/config            network, name, protocol settings
