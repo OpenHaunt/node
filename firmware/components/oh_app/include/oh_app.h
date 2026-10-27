@@ -22,6 +22,8 @@ esp_err_t oh_app_start_network(void);
 
 const char *oh_app_sn(void);       /* 8 hex from the eFuse MAC */
 const char *oh_app_fw(void);       /* version.txt */
+const char *oh_app_build_id(void); /* the commit, 7 hex, "-dirty" with local changes */
+const char *oh_app_build_time(void); /* when it was built, ISO 8601 UTC */
 const char *oh_app_hostname(void); /* openhaunt-<sn> */
 void oh_app_node_name(char *out, size_t cap);
 

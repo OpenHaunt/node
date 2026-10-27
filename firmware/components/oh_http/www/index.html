@@ -117,7 +117,7 @@ function control(p,st){const v=st||{};
 function render(){if(!info||!status)return;
  $('hName').textContent=info.name;$('hSn').textContent=info.sn;
  const n=status.network;$('hNet').textContent=n.state==='up'?n.transport+' '+n.ip:n.state==='setup-ap'?'setup AP '+n.setupAp:n.state;$('hNet').className='pill '+(n.state==='up'?'ok':'bad');
- const rows=[['Serial',info.sn],['Firmware',info.fw+' on '+status.board],['Hostname',status.hostname+'.local'],['Network',n.transport+' '+n.ip+(n.ssid?' · '+n.ssid+' '+n.rssi+' dBm':'')+(n.setupAp?' · setup AP '+n.setupAp+' open':'')],
+ const rows=[['Serial',info.sn],['Firmware',info.fw+' on '+status.board+(status.build?' · build '+status.build+' · '+new Date(status.buildTime).toLocaleString():'')],['Hostname',status.hostname+'.local'],['Network',n.transport+' '+n.ip+(n.ssid?' · '+n.ssid+' '+n.rssi+' dBm':'')+(n.setupAp?' · setup AP '+n.setupAp+' open':'')],
   ['Module',info.module.type+' '+info.module.name+' rev '+info.module.rev+' ('+status.moduleSource+')'+(info.module.flags&64?' ⚠ mains':'')],['MQTT broker',cfg?.mqtt?.broker||'— not adopted'],
   ['Uptime',Math.floor(status.uptime_s/3600)+'h '+Math.floor(status.uptime_s%3600/60)+'m '+status.uptime_s%60+'s'],['Clock',status.clockSynced?'NTP synced':'since boot (no NTP)'],
   // A shape is timed against the console's clock, so a missing or large offset is
@@ -135,7 +135,7 @@ function render(){if(!info||!status)return;
  // half-typed value; the next refresh after it loses focus catches up.
  const a=document.activeElement;if(!(a&&a!==document.body&&$('tPorts').contains(a)))$('tPorts').innerHTML='<tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr>'+(info.ports.length?info.ports.map(p=>`<tr><td>${p.port}</td><td>${esc(p.name)}${p.class?' <span class="pill">'+p.class+'</span>':''}</td><td>${p.access==='readonly'?'in':'out'} ${p.dataType}${p.unit?' '+p.unit:''}</td><td class="v">${st[p.port]?fmt(st[p.port],p)+' <span style="color:var(--mut)">'+since(st[p.port].ts)+'</span>':''}${status.effects&&status.effects[p.port]?' <span class="pill">'+esc(status.effects[p.port])+'</span>':''}</td><td>${p.access==='readwrite'?control(p,st[p.port]):''}</td></tr>`).join(''):'<tr><td colspan=5 style="color:var(--mut)">No ports: this node describes nothing and will not be adopted. Pick a module.</td></tr>');
  $('errs').textContent=status.errors.length?status.errors.join(', '):'none';$('errs').className='msg '+(status.errors.length?'bad':'ok');
- $('fwCur').textContent=info.fw;$('board').textContent=status.board;$('modSrc').textContent=status.moduleSource;
+ $('fwCur').textContent=info.fw+(info.build?' '+info.build:'');$('board').textContent=status.board;$('modSrc').textContent=status.moduleSource;
  if(info.dmx){$('dmxCard').style.display='';$('dmxProto').innerHTML=info.dmx.protocols.map(p=>`<option>${p}</option>`).join('');}}
 async function refresh(){try{[info,status]=await Promise.all([get('/api/v1/info'),get('/api/v1/status')]);render();}catch(e){$('hNet').textContent='unreachable';$('hNet').className='pill bad';}}
 async function loadCfg(){cfg=await get('/api/v1/config');$('name').value=cfg.name;$('broker').value=cfg.mqtt.broker;$('ssid').value=cfg.wifi.ssid;$('psk').placeholder=cfg.wifi.pskSet?'leave empty to keep the stored one':'';
@@ -170,7 +170,7 @@ function pxMode(o){$('pxSacn'+o).style.display=$('pxMode'+o).value==='sacn'?'':'
 async function savePixels(o){const b={count:+$('pxCount'+o).value,order:$('pxOrder'+o).value,mode:$('pxMode'+o).value};
  if(b.mode==='sacn'){b.universe=+$('pxUni'+o).value;b.address=+$('pxAddr'+o).value;}
  try{await put('/api/v1/pixels/'+o,b);await loadPixels();msg('mPx'+o,'saved',true);refresh();}catch(e){msg('mPx'+o,e.message,false);}}
-function waitBack(id){msg(id,'rebooting…',true);const t0=Date.now();const iv=setInterval(async()=>{try{const i=await get('/api/v1/info');clearInterval(iv);msg(id,'back, firmware '+i.fw,true);info=i;refresh();}catch(e){if(Date.now()-t0>90000){clearInterval(iv);msg(id,'not back after 90 s — check the LED or the console',false);}}},2000);}
+function waitBack(id){msg(id,'rebooting…',true);const t0=Date.now();const iv=setInterval(async()=>{try{const i=await get('/api/v1/info');clearInterval(iv);msg(id,'back, firmware '+i.fw+(i.build?' '+i.build:''),true);info=i;refresh();}catch(e){if(Date.now()-t0>90000){clearInterval(iv);msg(id,'not back after 90 s — check the LED or the console',false);}}},2000);}
 function ota(){const f=$('fwFile').files[0];if(!f)return msg('mOta','pick a .bin first',false);const x=new XMLHttpRequest();$('otaProg').style.display='';$('otaProg').value=0;
  x.upload.onprogress=e=>{if(e.lengthComputable)$('otaProg').value=e.loaded/e.total*100;};
  x.onload=()=>{let j={};try{j=JSON.parse(x.responseText);}catch(e){}if(x.status===200&&j.ok!==false){msg('mOta','flashed '+(j.version||'')+' — rebooting',true);waitBack('mOta');}else msg('mOta',j.error||('HTTP '+x.status),false);};

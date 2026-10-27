@@ -22,6 +22,10 @@
 
 static const char *TAG = "oh_app";
 
+/* oh_build_info.c, generated on every build. */
+extern const char oh_build_id[];
+extern const char oh_build_time[];
+
 static char s_sn[9];
 static char s_hostname[24];
 static esp_timer_handle_t s_reboot;
@@ -34,6 +38,16 @@ const char *oh_app_sn(void)
 const char *oh_app_fw(void)
 {
     return esp_app_get_description()->version;
+}
+
+const char *oh_app_build_id(void)
+{
+    return oh_build_id;
+}
+
+const char *oh_app_build_time(void)
+{
+    return oh_build_time;
 }
 
 const char *oh_app_hostname(void)
@@ -409,7 +423,8 @@ esp_err_t oh_app_init(void)
     esp_efuse_mac_get_default(mac);
     snprintf(s_sn, sizeof(s_sn), "%02x%02x%02x%02x", mac[2], mac[3], mac[4], mac[5]);
     snprintf(s_hostname, sizeof(s_hostname), "openhaunt-%s", s_sn);
-    ESP_LOGI(TAG, "OpenHaunt node %s, fw %s, board %s", s_sn, oh_app_fw(), oh_board_name());
+    ESP_LOGI(TAG, "OpenHaunt node %s, fw %s (%s, %s), board %s", s_sn, oh_app_fw(), oh_build_id,
+             oh_build_time, oh_board_name());
 
     ESP_ERROR_CHECK(oh_config_init());
     ESP_ERROR_CHECK(oh_node_init());

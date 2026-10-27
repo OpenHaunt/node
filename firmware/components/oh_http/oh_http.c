@@ -102,6 +102,10 @@ static esp_err_t get_info(httpd_req_t *req)
     oh_node_lock();
     cJSON *info = oh_json_info(oh_node_module(), &id);
     oh_node_unlock();
+    /* Here rather than in oh_json_info, which also feeds the TXT record's `desc`
+     * checksum: a rebuild is not a change to what the node is. */
+    cJSON_AddStringToObject(info, "build", oh_app_build_id());
+    cJSON_AddStringToObject(info, "buildTime", oh_app_build_time());
     if (oh_audio_available()) {
         oh_audio_caps_t caps;
         oh_audio_caps(&caps);
@@ -407,6 +411,8 @@ static cJSON *status_json(void)
     cJSON *o = cJSON_CreateObject();
     cJSON_AddStringToObject(o, "sn", oh_app_sn());
     cJSON_AddStringToObject(o, "fw", oh_app_fw());
+    cJSON_AddStringToObject(o, "build", oh_app_build_id());
+    cJSON_AddStringToObject(o, "buildTime", oh_app_build_time());
     cJSON_AddStringToObject(o, "board", oh_board_name());
     cJSON_AddStringToObject(o, "hostname", oh_app_hostname());
     char name[OH_NAME_MAX];

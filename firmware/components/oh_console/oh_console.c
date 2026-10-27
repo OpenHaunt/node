@@ -43,7 +43,8 @@ static int cmd_info(void)
     oh_net_ssid(ssid, sizeof(ssid));
     oh_net_ap_ssid(ap, sizeof(ap));
     printf("node      %s  \"%s\"\n", oh_app_sn(), name);
-    printf("firmware  %s on %s\n", oh_app_fw(), oh_board_name());
+    printf("firmware  %s on %s, build %s %s\n", oh_app_fw(), oh_board_name(), oh_app_build_id(),
+           oh_app_build_time());
     printf("hostname  %s.local\n", oh_app_hostname());
     printf("network   %s %s%s%s%s%s\n", oh_net_transport(), ip, ssid[0] ? "  ssid " : "", ssid,
            ap[0] ? "  setup AP " : "", ap);

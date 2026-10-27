@@ -358,7 +358,9 @@ Two things worth knowing when a node misbehaves: `/status` says `resetReason` an
 `esp-coredump info_corefile --core-format raw`, against the ELF of the image that crashed
 (`DELETE` to clear it). `/status` also carries `chipTempC`, the chip's own die temperature (the
 same reading MQTT health sends as `temp_c`), which runs well above the air around it: 47 °C on
-a V0.2 on the bench.
+a V0.2 on the bench. `/status` and `/info` name the build as well: `build` is the commit it was
+built from (`-dirty` with uncommitted changes) and `buildTime` when, in UTC, since `fw` stays the
+same from one build to the next.
 
 Still written only from the schematic, the datasheets and the ESP-IDF documentation: the
 sensor polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW,
