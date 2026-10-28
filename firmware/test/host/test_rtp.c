@@ -34,6 +34,25 @@ static size_t packet(uint8_t *p, uint32_t ts, uint16_t seq, const int16_t *sampl
     return 12 + 2 * n;
 }
 
+static void sequence_gaps_are_lost_until_they_turn_up(void)
+{
+    oh_rtp_seq_t t;
+    oh_rtp_seq_reset(&t);
+    TEST_ASSERT_EQUAL_UINT32(0, oh_rtp_seq_note(&t, 65534));
+    TEST_ASSERT_EQUAL_UINT32(0, oh_rtp_seq_note(&t, 65535));
+    /* Across the wrap, two skipped: 0 and 1. */
+    TEST_ASSERT_EQUAL_UINT32(2, oh_rtp_seq_note(&t, 2));
+    TEST_ASSERT_EQUAL_UINT32(2, t.lost);
+    /* One of them turns up after all. */
+    TEST_ASSERT_EQUAL_UINT32(0, oh_rtp_seq_note(&t, 1));
+    TEST_ASSERT_EQUAL_UINT32(1, t.lost);
+    TEST_ASSERT_EQUAL_UINT32(1, t.reordered);
+    /* The other path's copy of the newest. */
+    TEST_ASSERT_EQUAL_UINT32(0, oh_rtp_seq_note(&t, 2));
+    TEST_ASSERT_EQUAL_UINT32(1, t.duplicates);
+    TEST_ASSERT_EQUAL_UINT32(5, t.packets);
+}
+
 static void a_header_with_csrcs_an_extension_and_padding_is_read_past(void)
 {
     uint8_t p[64] = {0xB2, 0xE0, 0x12, 0x34, 0xDE, 0xAD, 0xBE, 0xEF, 0x01, 0x02, 0x03, 0x04};
@@ -172,6 +191,7 @@ static void a_second_copy_of_what_was_played_is_not_late(void)
 int main(void)
 {
     UNITY_BEGIN();
+    RUN_TEST(sequence_gaps_are_lost_until_they_turn_up);
     RUN_TEST(a_header_with_csrcs_an_extension_and_padding_is_read_past);
     RUN_TEST(samples_come_back_by_timestamp_across_the_32_bit_wrap);
     RUN_TEST(a_lost_packet_is_a_hole_and_a_lap_old_frame_is_not_sound);

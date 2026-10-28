@@ -85,6 +85,18 @@ typedef struct {
     bool locked;
     uint32_t stream_late;
     uint32_t stream_depth_frames;
+    /* What reached the receiving task, by sequence number (oh_rtp_seq_t). */
+    uint32_t stream_packets;
+    uint32_t stream_seq_lost;
+    uint32_t stream_reordered;
+    uint32_t stream_duplicates;
+    /* Packets under another session's ssrc, ignored. */
+    uint32_t stream_foreign;
+    /* The longest the receiving task went between two packets: since the last status,
+     * and since the session started. Over the socket queue's length (6 packets, 30 ms
+     * of a 5 ms stream) is a queue that overflowed while the task was not running. */
+    uint32_t stream_rx_gap_ms;
+    uint32_t stream_rx_gap_max_ms;
 } oh_audio_counters_t;
 
 /* openhaunt/<sn>/audio/status. */

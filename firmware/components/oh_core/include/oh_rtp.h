@@ -74,6 +74,30 @@ void oh_jitter_consume(oh_jitter_t *j, uint64_t ext);
 /* Frames buffered ahead of the cursor. */
 uint32_t oh_jitter_depth(const oh_jitter_t *j);
 
+/*
+ * What the sequence numbers say about the packets that reached the receiver.
+ *
+ * The buffer's `missing` says a frame was not there when it was played; this says
+ * whether its packet ever reached the socket's reader. A gap here is a packet lost on
+ * the way to it — on the wire, or dropped by the stack because its queue was full —
+ * and a gap the buffer reports with none here was lost after it. A packet that comes
+ * in behind a gap fills it again (counted as reordered, not lost), and a second copy
+ * of one — a redundant stream's other path — is a duplicate.
+ */
+typedef struct {
+    bool have;
+    uint16_t last;       /* the newest sequence number seen */
+    uint32_t packets;    /* accepted packets */
+    uint32_t lost;       /* skipped by the sequence and never seen since */
+    uint32_t reordered;  /* arrived behind a newer one */
+    uint32_t duplicates; /* arrived twice */
+} oh_rtp_seq_t;
+
+void oh_rtp_seq_reset(oh_rtp_seq_t *t);
+
+/* Note one packet. Answers how many it found skipped before it: 0 in order. */
+uint32_t oh_rtp_seq_note(oh_rtp_seq_t *t, uint16_t seq);
+
 #ifdef __cplusplus
 }
 #endif

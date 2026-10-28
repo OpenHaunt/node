@@ -1,6 +1,7 @@
 #include "oh_audio.h"
 #include "oh_audio_priv.h"
 
+#include <inttypes.h>
 #include <string.h>
 
 #include "sdkconfig.h"
@@ -58,6 +59,12 @@ static struct {
     uint16_t want_port;
     bool has_ssrc;
     uint32_t ssrc;
+    /* What reached the receiver this session; see oh_audio_counters_t. */
+    oh_rtp_seq_t seq;
+    uint32_t foreign;
+    int64_t last_rx_us;
+    uint32_t rx_gap_ms;
+    uint32_t rx_gap_max_ms;
     bool was_busy;
     const oh_board_pins_t *pins;
 } s;
@@ -195,10 +202,32 @@ static void rx_task(void *arg)
         if (!oh_rtp_parse(pkt, (size_t)n, &r)) {
             continue;
         }
+        /* Stamped before the lock: time spent waiting for it is the task not reading. */
+        const int64_t now_us = esp_timer_get_time();
         xSemaphoreTake(s.lock, portMAX_DELAY);
         if (!s.has_ssrc || r.ssrc == s.ssrc) {
             const size_t frames = r.payload_len / (2u * s.jb.channels);
             oh_jitter_write_l16be(&s.jb, oh_jitter_widen(&s.jb, r.ts), r.payload, frames);
+            const uint32_t gap_ms = s.last_rx_us ? (uint32_t)((now_us - s.last_rx_us) / 1000) : 0;
+            if (s.last_rx_us) {
+                if (gap_ms > s.rx_gap_ms) {
+                    s.rx_gap_ms = gap_ms;
+                }
+                if (gap_ms > s.rx_gap_max_ms) {
+                    s.rx_gap_max_ms = gap_ms;
+                }
+            }
+            s.last_rx_us = now_us;
+            const uint32_t skipped = oh_rtp_seq_note(&s.seq, r.seq);
+            if (skipped) {
+                /* The wait that overflowed the queue is before the packets queued behind
+                 * it, not on the one after the gap: so the longest wait this second. */
+                ESP_LOGW(TAG, "stream: %" PRIu32 " packet(s) before seq %u never arrived; longest wait "
+                              "for a packet this second %" PRIu32 " ms",
+                         skipped, r.seq, s.rx_gap_ms);
+            }
+        } else {
+            s.foreign++;
         }
         xSemaphoreGive(s.lock);
     }
@@ -261,6 +290,11 @@ void oh_audio_command(const char *verb, const char *data, size_t len)
         if (!reanchor) {
             oh_jitter_init(&s.jb, s.jframes, s.jtags, s.jvalid, JB_FRAMES, c.channels);
             oh_jitter_reset(&s.jb, c.ts);
+            oh_rtp_seq_reset(&s.seq);
+            s.foreign = 0;
+            s.last_rx_us = 0;
+            s.rx_gap_ms = 0;
+            s.rx_gap_max_ms = 0;
         }
         s.has_ssrc = c.has_ssrc;
         s.ssrc = c.ssrc;
@@ -299,8 +333,16 @@ cJSON *oh_audio_status_poll(void)
             .locked = oh_clock_console_locked(),
             .stream_late = s.jb.late,
             .stream_depth_frames = oh_jitter_depth(&s.jb),
+            .stream_packets = s.seq.packets,
+            .stream_seq_lost = s.seq.lost,
+            .stream_reordered = s.seq.reordered,
+            .stream_duplicates = s.seq.duplicates,
+            .stream_foreign = s.foreign,
+            .stream_rx_gap_ms = s.rx_gap_ms,
+            .stream_rx_gap_max_ms = s.rx_gap_max_ms,
         };
         j = oh_json_audio_status(s.mix, &c);
+        s.rx_gap_ms = 0;
     }
     xSemaphoreGive(s.lock);
     return j;

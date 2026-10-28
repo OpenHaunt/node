@@ -185,6 +185,43 @@ void oh_jitter_consume(oh_jitter_t *j, uint64_t ext)
     }
 }
 
+void oh_rtp_seq_reset(oh_rtp_seq_t *t)
+{
+    *t = (oh_rtp_seq_t){0};
+}
+
+uint32_t oh_rtp_seq_note(oh_rtp_seq_t *t, uint16_t seq)
+{
+    t->packets++;
+    if (!t->have) {
+        t->have = true;
+        t->last = seq;
+        return 0;
+    }
+    /* Ahead by less than half the sequence space is forward; the rest is behind. */
+    const uint16_t ahead = (uint16_t)(seq - t->last);
+    if (ahead == 0) {
+        t->duplicates++;
+        return 0;
+    }
+    if (ahead < 0x8000u) {
+        t->last = seq;
+        t->lost += ahead - 1u;
+        return ahead - 1u;
+    }
+    /* Behind: one that was counted lost has turned up, or a copy of one already in.
+     * Which of the two cannot be told without a history, and a redundant stream's
+     * second path makes copies the ordinary case, so a packet behind is taken off
+     * `lost` only while there is a loss to take it off. */
+    if (t->lost > 0) {
+        t->lost--;
+        t->reordered++;
+    } else {
+        t->duplicates++;
+    }
+    return 0;
+}
+
 uint32_t oh_jitter_depth(const oh_jitter_t *j)
 {
     if (!j->have || j->newest <= j->cursor) {

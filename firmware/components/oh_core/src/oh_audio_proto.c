@@ -246,6 +246,13 @@ cJSON *oh_json_audio_status(const oh_mixer_t *m, const oh_audio_counters_t *c)
         cJSON_AddNumberToObject(s, "late", c->stream_late);
         cJSON_AddNumberToObject(s, "missing", m->stream.missing);
         cJSON_AddNumberToObject(s, "resyncs", m->stream.resyncs);
+        cJSON_AddNumberToObject(s, "packets", c->stream_packets);
+        cJSON_AddNumberToObject(s, "seq_lost", c->stream_seq_lost);
+        cJSON_AddNumberToObject(s, "reordered", c->stream_reordered);
+        cJSON_AddNumberToObject(s, "duplicates", c->stream_duplicates);
+        cJSON_AddNumberToObject(s, "foreign", c->stream_foreign);
+        cJSON_AddNumberToObject(s, "rx_gap_ms", c->stream_rx_gap_ms);
+        cJSON_AddNumberToObject(s, "rx_gap_max_ms", c->stream_rx_gap_max_ms);
     }
     cJSON_AddNumberToObject(o, "underruns", c->underruns);
     cJSON_AddNumberToObject(o, "master", m->master.target);
