@@ -9,6 +9,12 @@ CONFIG_LWIP_IPV6=n
 CONFIG_LWIP_DHCP_GET_NTP_SRV=y
 CONFIG_LWIP_LOCAL_HOSTNAME="openhaunt"
 CONFIG_LWIP_SO_RCVBUF=y
+# A UDP socket queues this many packets, whatever SO_RCVBUF says. The stock 6 is
+# 30 ms of the audio stream (a packet every 5 ms), and the receiving task was
+# measured going 40-50 ms without the CPU every couple of seconds at HHG: each
+# time the stack dropped the next packets, and the node played a hole
+# (2026-10-28). 32 is 160 ms, beyond the stream's own buffer.
+CONFIG_LWIP_UDP_RECVMBOX_SIZE=32
 
 CONFIG_MDNS_MAX_SERVICES=4
 CONFIG_MDNS_PREDEF_NETIF_STA=y

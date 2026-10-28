@@ -174,7 +174,9 @@ static void rx_task(void *arg)
                 struct sockaddr_in addr = {.sin_family = AF_INET, .sin_port = htons(want),
                                            .sin_addr.s_addr = htonl(INADDR_ANY)};
                 struct timeval tv = {.tv_sec = 0, .tv_usec = 100000};
-                int rcvbuf = 32 * 1024;
+                /* Room for the socket's whole queue (CONFIG_LWIP_UDP_RECVMBOX_SIZE, 32
+                 * packets of up to 1.2 kB): bytes and packets both cap it, the lower wins. */
+                int rcvbuf = 48 * 1024;
                 setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
                 setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(rcvbuf));
                 if (sock < 0 || bind(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
@@ -456,7 +458,10 @@ esp_err_t oh_audio_start(void)
 
     s.up = true;
     xTaskCreatePinnedToCore(audio_task, "oh_audio", 4096, NULL, 19, NULL, 1);
-    xTaskCreatePinnedToCore(rx_task, "oh_audio_rx", 4096, NULL, 12, NULL, 0);
+    /* Just under lwIP's own task (18): a packet it hands over is read at once rather
+     * than queued behind MQTT, HTTP and the console's sACN — at 12 it was starved for
+     * 40-50 ms every couple of seconds, longer than the socket queue lasted. */
+    xTaskCreatePinnedToCore(rx_task, "oh_audio_rx", 4096, NULL, 17, NULL, 0);
     ESP_LOGI(TAG, "%u Hz, %u voices, %s", OH_MIX_RATE, OH_MIX_VOICES,
              s.pins->dac_mute >= 0 ? "line out + speaker" : "speaker");
     return ESP_OK;
