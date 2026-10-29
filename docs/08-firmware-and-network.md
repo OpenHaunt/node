@@ -297,6 +297,10 @@ A node should be able to play a stored sequence with no network present. An esca
 crashed should still be able to run its lights. This is a firmware feature that the hardware already supports
 and is worth designing in from the start rather than retrofitting.
 
+A console-authored show that a node runs on its own (one flow and its timelines, the OctoBanger case) is
+designed in [16 — A standalone show](16-standalone-show.md). It is a mode the console switches on, not a
+fallback when the server crashes, so the escape-room case above is still open.
+
 ## Firmware architecture
 
 ```
