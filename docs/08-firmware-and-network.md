@@ -1,4 +1,4 @@
-# 06 — Firmware & Network
+# 08 — Firmware & Network
 
 ## Design principle
 

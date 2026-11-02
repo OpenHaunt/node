@@ -6,7 +6,7 @@ rooms. One image for every node; the plug-on module — or, on a bare devkit, a
 JSON file — decides what the node is.
 
 The protocol is the one in OpenHaunt/node's
-[06 — Firmware & Network](https://github.com/OpenHaunt/node/blob/docs/wire-payloads/docs/06-firmware-and-network.md):
+[08 — Firmware & Network](../docs/08-firmware-and-network.md):
 mDNS `_openhaunt._tcp`, HTTP `/api/v1`, MQTT topics under `openhaunt/<sn>/`,
 sACN for the DMX gateway. It is tested against
 [the-pult](https://github.com/RuegerEvents/the-pult), which adopts and drives
@@ -20,7 +20,7 @@ hundred and twenty samples of a fade. Phases are timed against `openhaunt/clock`
 which the console publishes retained once a second for every node on the broker.
 A port that advertises nothing is driven exactly as before: absence is the default
 and nothing is negotiated. These three additions are ours and are being fed back into
-docs/06, the way task 11's assumptions were.
+docs/08, the way task 11's assumptions were.
 
 Two things worth knowing about it. A plain `set` always cancels whatever the port was
 tracing, which is what makes the protocol robust to reordering: the console stops an
@@ -36,8 +36,8 @@ so it does not start advertising until the module is re-applied — `oh vmod pre
 | `oh-base` | The OpenHaunt base board: ESP32-WROOM-32, RMII Ethernet (RTL8201), W25Q128 | Ethernet, Wi-Fi fallback | compiles; no hardware yet |
 | `esp32c6-devkitc-1` | ESP32-C6-DevKitC-1 | Wi-Fi | compiles; untested |
 | `esp32-1732s019` | Sunton ESP32-1732S019 (ESP32-S3, 1.9" ST7789) | Wi-Fi | tested end to end |
-| `oh-node-v0.1` | OpenHaunt Node V0.1 prototype (ESP32-S3-WROOM-1-N16R2, W5500, 12 V PoE) | Ethernet, Wi-Fi fallback | builds; not yet flashed |
-| `oh-node-v0.2` | OpenHaunt Node V0.2 prototype (same, 5 V PoE or USB power bank, line out) | Ethernet, Wi-Fi fallback | builds; not yet flashed |
+| `oh-node-v0.1` | OpenHaunt Node V0.1 prototype (ESP32-S3-WROOM-1-N16R2, W5500, 12 V PoE) | Ethernet, Wi-Fi fallback | tested on hardware |
+| `oh-node-v0.2` | OpenHaunt Node V0.2 prototype (same, 5 V PoE or USB power bank, line out) | Ethernet, Wi-Fi fallback | tested on hardware |
 
 Everything board-specific lives in `boards/<board>/sdkconfig.board` and the
 Kconfig menu *OpenHaunt board* (`components/oh_board/Kconfig`): pins, transport,
