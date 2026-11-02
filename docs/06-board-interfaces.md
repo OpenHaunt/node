@@ -70,8 +70,8 @@ in [02](02-system-architecture.md) exists.**
 
 | Pin | Signal | Source | Description |
 |---:|---|---|---|
-| 1 | `TCT` | pair 1/2 centre tap | Mode A, one polarity |
-| 2 | `RCT` | pair 3/6 centre tap | Mode A, other polarity |
+| 1 | `TCT` | pair 1/2 center tap | Mode A, one polarity |
+| 2 | `RCT` | pair 3/6 center tap | Mode A, other polarity |
 | 3 | `SP45` | pins 4 and 5, joined | Mode B, one polarity |
 | 4 | `SP78` | pins 7 and 8, joined | Mode B, other polarity |
 
@@ -92,7 +92,7 @@ The 960 mA figure catches people out. A pairset is two pairs, and the two conduc
 two pairs themselves, so each tap carries the whole pairset current rather than a quarter of the total.
 Within pair 1/2 that current then splits into 480 mA per wire.
 
-The mainboard transformer is rated **1000 mA per centre tap** and the etherCON 1.5 A per contact, so
+The mainboard transformer is rated **1000 mA per center tap** and the etherCON 1.5 A per contact, so
 neither caps this. The fitted power board decides the class. See D28.
 
 ### The two voltages, which are not the same requirement
@@ -302,7 +302,7 @@ carries its own SWD header.** See Q19 in [11 — Open Questions](11-open-questio
 Pins 3 and 5 carry **USB full-speed** from rev A. They are adjacent with a ground either side, routed as a
 **90 Ω differential pair** on both boards.
 
-**This is the interface that must not change.** The IO boards are the growing half of the catalogue, and a
+**This is the interface that must not change.** The IO boards are the growing half of the catalog, and a
 generation 2 mainboard has to run generation 1 IO boards unmodified. That is why the link is USB now rather
 than a UART with a migration path. See D20.
 

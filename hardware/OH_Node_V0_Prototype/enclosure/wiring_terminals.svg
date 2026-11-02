@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 830" width="1000" height="830" font-family="Helvetica, Arial, sans-serif">
+<rect width="1000" height="830" fill="#ffffff"/>
+<text x="12" y="28" font-size="20" font-weight="700" fill="#1f2328">OpenHaunt Node V0: terminal wiring</text>
+<text x="988" y="28" font-size="13" fill="#6e7781" text-anchor="end">Top view of the lid · same on V0.1 and V0.2</text>
+<line x1="12" y1="52" x2="38" y2="52" stroke="#d73a3f" stroke-width="4" stroke-linecap="round"/><text x="46" y="57" font-size="14" fill="#1f2328">+12 V</text>
+<line x1="116" y1="52" x2="142" y2="52" stroke="#6e7781" stroke-width="4" stroke-linecap="round"/><text x="150" y="57" font-size="14" fill="#1f2328">GND</text>
+<line x1="204" y1="52" x2="230" y2="52" stroke="#d99a00" stroke-width="4" stroke-linecap="round"/><text x="238" y="57" font-size="14" fill="#1f2328">PIR signal</text>
+<line x1="348" y1="52" x2="374" y2="52" stroke="#2f7ff0" stroke-width="4" stroke-linecap="round"/><text x="382" y="57" font-size="14" fill="#1f2328">WS2812 data</text>
+<line x1="500" y1="52" x2="526" y2="52" stroke="#8250df" stroke-width="4" stroke-linecap="round"/><text x="534" y="57" font-size="14" fill="#1f2328">relay contact</text>
+<rect x="12.5" y="64.5" width="635" height="485" rx="28" fill="#e6e9ee" stroke="#c9ced6" stroke-width="2"/>
+<rect x="22.5" y="74.5" width="615" height="465" rx="20" fill="#f6f8fa" stroke="#c9ced6"/>
+<text x="330" y="102" text-anchor="middle" font-size="14" fill="#6e7781">Top edge: USB-C · Ethernet · audio</text>
+<rect x="62.15" y="464.5" width="75" height="35" rx="17" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/>
+<rect x="188.75" y="464.5" width="75" height="35" rx="17" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/>
+<rect x="315.3" y="464.5" width="75" height="35" rx="17" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/>
+<rect x="442.5" y="464.5" width="75" height="35" rx="17" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/>
+<circle cx="456.3" cy="238.05" r="9" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/><text x="456.3" y="266.05" text-anchor="middle" font-size="12" fill="#6e7781">BOOT</text>
+<circle cx="513.4000000000001" cy="238.3" r="9" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5" stroke-dasharray="3 3"/><text x="513.4000000000001" y="266.3" text-anchor="middle" font-size="12" fill="#6e7781">RST</text><text x="513.4000000000001" y="280.3" text-anchor="middle" font-size="11" fill="#6e7781">(V0.2)</text>
+<rect x="557.0" y="188.5" width="28.5" height="23.5" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/><text x="571.25" y="179.5" text-anchor="middle" font-size="11" fill="#6e7781">Status</text>
+<rect x="562.9" y="221.0" width="18" height="18" fill="#f5c542" stroke="#c9ced6"/>
+<rect x="565.4" y="302.0" width="18" height="18" fill="#f5c542" stroke="#c9ced6"/>
+<rect x="586.75" y="226.5" width="34" height="76.0" rx="17" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/>
+<rect x="586.75" y="307.75" width="34" height="76.0" rx="17" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/>
+<rect x="586.75" y="389" width="34" height="51" rx="17" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/>
+<rect x="586.75" y="445.25" width="34" height="51.0" rx="17" fill="#ffffff" stroke="#c9ced6" stroke-width="1.5"/>
+<rect x="768" y="114" width="222" height="90" rx="8" fill="#f6f8fa" stroke="#c9ced6" stroke-width="1.5"/>
+<line x1="845" y1="122" x2="845" y2="196" stroke="#c9ced6"/>
+<text x="856" y="140" font-size="16" font-weight="700" fill="#1f2328">PIR 2</text>
+<text x="856" y="160" font-size="13" fill="#6e7781">contact to GND</text>
+<text x="856" y="178" font-size="13" fill="#6e7781">12 V, max. 200 mA</text>
+<text x="856" y="196" font-size="13" fill="#6e7781">LED beside it (V0.2)</text>
+<rect x="768" y="239" width="222" height="90" rx="8" fill="#f6f8fa" stroke="#c9ced6" stroke-width="1.5"/>
+<line x1="845" y1="247" x2="845" y2="321" stroke="#c9ced6"/>
+<text x="856" y="265" font-size="16" font-weight="700" fill="#1f2328">PIR 1</text>
+<text x="856" y="285" font-size="13" fill="#6e7781">contact to GND</text>
+<text x="856" y="303" font-size="13" fill="#6e7781">12 V, max. 200 mA</text>
+<text x="856" y="321" font-size="13" fill="#6e7781">LED beside it (V0.2)</text>
+<rect x="768" y="364" width="222" height="75" rx="8" fill="#f6f8fa" stroke="#c9ced6" stroke-width="1.5"/>
+<line x1="845" y1="372" x2="845" y2="431" stroke="#c9ced6"/>
+<text x="856" y="390" font-size="16" font-weight="700" fill="#1f2328">Strip 2</text>
+<text x="856" y="410" font-size="13" fill="#6e7781">WS2812</text>
+<text x="856" y="428" font-size="13" fill="#6e7781">+5 V from own PSU</text>
+<rect x="768" y="464" width="222" height="75" rx="8" fill="#f6f8fa" stroke="#c9ced6" stroke-width="1.5"/>
+<line x1="845" y1="472" x2="845" y2="531" stroke="#c9ced6"/>
+<text x="856" y="490" font-size="16" font-weight="700" fill="#1f2328">Strip 1</text>
+<text x="856" y="510" font-size="13" fill="#6e7781">WS2812</text>
+<text x="856" y="528" font-size="13" fill="#6e7781">+5 V from own PSU</text>
+<polyline points="603.75,239.5 700,239.5 740,134 770,134" fill="none" stroke="#d99a00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="239.5" r="9" fill="#d99a00" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="239.5" x2="608.75" y2="239.5" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="139" font-size="14" font-family="Menlo, monospace" fill="#1f2328">Signal</text>
+<polyline points="603.75,264.5 700,264.5 740,159 770,159" fill="none" stroke="#6e7781" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="264.5" r="9" fill="#6e7781" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="264.5" x2="608.75" y2="264.5" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="164" font-size="14" font-family="Menlo, monospace" fill="#1f2328">GND</text>
+<polyline points="603.75,289.5 700,289.5 740,184 770,184" fill="none" stroke="#d73a3f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="289.5" r="9" fill="#d73a3f" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="289.5" x2="608.75" y2="289.5" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="189" font-size="14" font-family="Menlo, monospace" fill="#1f2328">+12 V</text>
+<polyline points="603.75,320.75 700,320.75 740,259 770,259" fill="none" stroke="#d99a00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="320.75" r="9" fill="#d99a00" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="320.75" x2="608.75" y2="320.75" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="264" font-size="14" font-family="Menlo, monospace" fill="#1f2328">Signal</text>
+<polyline points="603.75,345.75 700,345.75 740,284 770,284" fill="none" stroke="#6e7781" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="345.75" r="9" fill="#6e7781" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="345.75" x2="608.75" y2="345.75" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="289" font-size="14" font-family="Menlo, monospace" fill="#1f2328">GND</text>
+<polyline points="603.75,370.75 700,370.75 740,309 770,309" fill="none" stroke="#d73a3f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="370.75" r="9" fill="#d73a3f" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="370.75" x2="608.75" y2="370.75" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="314" font-size="14" font-family="Menlo, monospace" fill="#1f2328">+12 V</text>
+<polyline points="603.75,402 700,402 740,384 770,384" fill="none" stroke="#6e7781" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="402" r="9" fill="#6e7781" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="402" x2="608.75" y2="402" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="389" font-size="14" font-family="Menlo, monospace" fill="#1f2328">GND</text>
+<polyline points="603.75,427 700,427 740,409 770,409" fill="none" stroke="#2f7ff0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="427" r="9" fill="#2f7ff0" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="427" x2="608.75" y2="427" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="414" font-size="14" font-family="Menlo, monospace" fill="#1f2328">Data</text>
+<polyline points="603.75,458.25 700,458.25 740,484 770,484" fill="none" stroke="#6e7781" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="458.25" r="9" fill="#6e7781" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="458.25" x2="608.75" y2="458.25" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="489" font-size="14" font-family="Menlo, monospace" fill="#1f2328">GND</text>
+<polyline points="603.75,483.25 700,483.25 740,509 770,509" fill="none" stroke="#2f7ff0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="603.75" cy="483.25" r="9" fill="#2f7ff0" stroke="#ffffff" stroke-width="2"/>
+<line x1="598.75" y1="483.25" x2="608.75" y2="483.25" stroke="#ffffff" stroke-width="2"/>
+<text x="778" y="514" font-size="14" font-family="Menlo, monospace" fill="#1f2328">Data</text>
+<rect x="135.95" y="328.25" width="18" height="18" fill="#e5484d" stroke="#c9ced6"/>
+<rect x="46.650000000000006" y="600" width="106" height="62" rx="8" fill="#f6f8fa" stroke="#c9ced6" stroke-width="1.5"/>
+<text x="99.65" y="652" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2328">Relay 1</text>
+<line x1="74.65" y1="482" x2="74.65" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="74.65" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="74.65" y1="477" x2="74.65" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="74.65" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">COM</text>
+<line x1="99.65" y1="482" x2="99.65" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="99.65" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="99.65" y1="477" x2="99.65" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="99.65" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">NO</text>
+<line x1="124.65" y1="482" x2="124.65" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="124.65" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="124.65" y1="477" x2="124.65" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="124.65" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">NC</text>
+<rect x="262.5" y="328.25" width="18" height="18" fill="#e5484d" stroke="#c9ced6"/>
+<rect x="173.25" y="600" width="106" height="62" rx="8" fill="#f6f8fa" stroke="#c9ced6" stroke-width="1.5"/>
+<text x="226.25" y="652" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2328">Relay 2</text>
+<line x1="201.25" y1="482" x2="201.25" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="201.25" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="201.25" y1="477" x2="201.25" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="201.25" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">COM</text>
+<line x1="226.25" y1="482" x2="226.25" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="226.25" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="226.25" y1="477" x2="226.25" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="226.25" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">NO</text>
+<line x1="251.25" y1="482" x2="251.25" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="251.25" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="251.25" y1="477" x2="251.25" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="251.25" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">NC</text>
+<rect x="389.0" y="328.25" width="18" height="18" fill="#e5484d" stroke="#c9ced6"/>
+<rect x="299.8" y="600" width="106" height="62" rx="8" fill="#f6f8fa" stroke="#c9ced6" stroke-width="1.5"/>
+<text x="352.8" y="652" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2328">Relay 3</text>
+<line x1="327.8" y1="482" x2="327.8" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="327.8" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="327.8" y1="477" x2="327.8" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="327.8" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">COM</text>
+<line x1="352.8" y1="482" x2="352.8" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="352.8" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="352.8" y1="477" x2="352.8" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="352.8" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">NO</text>
+<line x1="377.8" y1="482" x2="377.8" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="377.8" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="377.8" y1="477" x2="377.8" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="377.8" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">NC</text>
+<rect x="516.05" y="328.25" width="18" height="18" fill="#e5484d" stroke="#c9ced6"/>
+<rect x="427.0" y="600" width="106" height="62" rx="8" fill="#f6f8fa" stroke="#c9ced6" stroke-width="1.5"/>
+<text x="480.0" y="652" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2328">Relay 4</text>
+<line x1="455.0" y1="482" x2="455.0" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="455.0" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="455.0" y1="477" x2="455.0" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="455.0" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">COM</text>
+<line x1="480.0" y1="482" x2="480.0" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="480.0" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="480.0" y1="477" x2="480.0" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="480.0" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">NO</text>
+<line x1="505.0" y1="482" x2="505.0" y2="600" stroke="#8250df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="505.0" cy="482" r="9" fill="#8250df" stroke="#ffffff" stroke-width="2"/>
+<line x1="505.0" y1="477" x2="505.0" y2="487" stroke="#ffffff" stroke-width="2"/>
+<text x="505.0" y="618" text-anchor="middle" font-size="12" font-family="Menlo, monospace" fill="#1f2328">NC</text>
+<text x="144.95" y="361.25" text-anchor="middle" font-size="11" fill="#6e7781">LED (V0.2)</text>
+<text x="12" y="700" font-size="14" fill="#1f2328">• Terminal screws are under the windows in the lid; wires enter through the side walls.</text>
+<text x="12" y="720" font-size="14" fill="#1f2328">• Relays: COM to NO closes when the relay is on, COM to NC when it is off. Contacts are isolated from the board, max. 10 A each;</text>
+<text x="12" y="740" font-size="14" fill="#1f2328">•     neighbouring relays may switch different phases.</text>
+<text x="12" y="760" font-size="14" fill="#1f2328">• PIRs and strips are numbered from the bottom, relays from the left, on both revisions (firmware since 2026-10-27).</text>
+<text x="12" y="780" font-size="14" fill="#1f2328">• PIR output must switch to GND (contact or open collector). A sensor that drives 3.3 V on motion reads inverted.</text>
+<text x="12" y="800" font-size="14" fill="#1f2328">• WS2812 strips get 5 V from their own supply; connect its GND to the strip and to the terminal's GND.</text>
+</svg>

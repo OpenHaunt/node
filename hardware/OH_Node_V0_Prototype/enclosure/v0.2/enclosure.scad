@@ -17,6 +17,7 @@
 // 4 × M2.5 screws through hood posts and board into heat-set inserts in the base.
 
 part = "assembly";  // [assembly, base, hood, pin, base_placed, hood_placed, pin_placed, screws_placed]
+pin_i = 0;          // part="pin": which button, index into sws
 show_pcb = true;    // assembly only: needs pcb.stl from export_pcb.sh
 explode = 0;        // assembly only: lift hood by this much
 show_hardware = true;   // assembly only: screws and inserts
@@ -59,9 +60,12 @@ insert_depth = 6.7;  // blind hole, closed at the bottom: room below the insert 
 insert_od = 4.6;
 tap_d = 2.2;         // self-tapping alternative
 screw_d = 2.9;       // clearance through the hood post
-head_d = 5.0;        // seat is head_d + 0.4
+countersunk = true;  // DIN 965 M2.5 x 25 (Part-DB 285) in a 90° countersink; false = ISO 14580 cheese head
+head_d = 5.0;        // cheese head seat is head_d + 0.4
 head_k = 1.85;       // ISO 14580 M2.5 head height
-seat_depth = head_k + 0.15;   // head sits just below the lid surface
+seat_depth = head_k + 0.15;   // cheese head sits just below the lid surface
+csk_dk = 4.7;        // DIN 965 M2.5 head Ø, actual max.
+csk_d = csk_dk + 0.5;         // countersink Ø at the lid surface; the head top sits 0.25 below it
 boss_d = 7.5;        // insert_d + 2 × 1.75
 post_d = 6.0;        // hood clamp post at board
 post_d_top = 7.0;
@@ -73,10 +77,10 @@ tab_len = 16;        // from the outer wall
 tab_w = 20;
 tab_t = 4;
 tab_slot_d = 4.5;    // clearance for 4 mm wood screws or M4
-tab_slot_len = 6;    // slot along the tab, centre to centre
-tab_slot_x0 = 4.5;   // inner slot centre from the wall: room for a Ø8 screw head
+tab_slot_len = 6;    // slot along the tab, center to center
+tab_slot_x0 = 4.5;   // inner slot center from the wall: room for a Ø8 screw head
 gusset_w = 2.5;
-tab_y = [-18, -72];  // tab centres along both short sides
+tab_y = [-18, -72];  // tab centers along both short sides
 
 /* [Push buttons SW1 (BOOT), SW2 (RST)] */
 sws = [[85.26, -31.21], [96.68, -31.26]];
@@ -84,7 +88,7 @@ sw_labels = ["BOOT", "RST"];
 sw_top = 3.6;        // plunger top above board bottom
 pin_d = 4.0;
 pin_gap = 0.25;      // pin rest gap above plunger
-pin_protrude = 1.0;
+pin_protrude = [2.0, 1.0];   // per button; BOOT 1.0 until 2026-10-26
 guide_d = pin_d + 0.4;
 guide_bottom = 11;
 collar_d = 6.0;
@@ -95,8 +99,12 @@ labels = true;       // engraved into the lid top
 label_depth = 0.4;
 label_size = 3;
 
+/* [USB-C J11] */
+usb_w = 13.0;        // opening for the plug overmold: USB-C allows 12.35 x 6.5, some cables are wider
+usb_h = 8.0;
+
 /* [LED windows] */
-led_skin = 0.4;      // 0 = open hole
+led_skin = 0;        // 0 = open hole; 0.4 = skin that lets light through a light filament
 // D1/D2: one box with a divider
 led_box = [105.4, -26.0, 111.1, -21.3];   // x0, y0, x1, y1 outer
 led_div_x = 108.25;
@@ -107,7 +115,7 @@ status_box = 3.6;    // outer size, 0.8 walls
 
 /* [J12 expansion header] */
 j12_slot = true;     // lid slot for the cable of a plug-on 1×8 socket
-j12 = [117.43, -17.51];   // header centre
+j12 = [117.43, -17.51];   // header center
 j12_slot_size = [3.4, 21.2];
 
 /* [Vents] */
@@ -141,8 +149,7 @@ module box(x0, x1, y0, y1, z0, z1) {
 module cutouts(zb = z_split - 5) {
     yt = -gap - 0.1;                 // top wall, y from inner face outward
     yt1 = wall + 1;
-    // USB-C J11 centre x 12.41, z 3.25; opening sized for the plug overmold
-    usb_w = 10; usb_h = 6.5;
+    // USB-C J11 center x 12.41, z 3.25; opening sized for the plug overmold
     hull() {
         translate([12.41, yt, 3.25]) rotate([-90, 0, 0])
             linear_extrude(yt1 - yt) offset(r = 1.5) offset(delta = -1.5)
@@ -263,13 +270,17 @@ module hood() {
         // screw holes and head seats
         for (h = holes) translate([h[0], h[1], 0]) {
             cylinder(d = screw_d, h = 100);
-            translate([0, 0, z_top - seat_depth]) cylinder(d = head_d + 0.4, h = seat_depth + 1);
+            if (countersunk)
+                translate([0, 0, z_top - (csk_d - screw_d) / 2])
+                    cylinder(d1 = screw_d, d2 = csk_d + 2, h = (csk_d - screw_d) / 2 + 1);
+            else
+                translate([0, 0, z_top - seat_depth]) cylinder(d = head_d + 0.4, h = seat_depth + 1);
         }
         for (r = post_reliefs) box(r[0] - 0.3, r[1] + 0.3, r[2] - 0.3, r[3] + 0.3, pcb_t - 1, pcb_t + 0.8);
         // button guide bores
         for (s = sws) translate([s[0], s[1], 0]) cylinder(d = guide_d, h = 100);
-        // LED chambers, closed by a thin skin on top
-        led_top = z_top - led_skin - (led_skin == 0 ? 1 : 0);
+        // LED chambers, open or closed by a thin skin on top
+        led_top = led_skin == 0 ? z_top + 1 : z_top - led_skin;
         for (c = [[led_box[0] + 0.8, led_div_x - 0.4], [led_div_x + 0.4, led_box[2] - 0.8]])
             box(c[0], c[1], led_box[1] + 0.8, led_box[3] - 0.8, led_bottom - 1, led_top);
         for (l = status_leds) let(r = status_box / 2 - 0.8)
@@ -295,13 +306,14 @@ module vents_cut() {
 // --- push pin ----------------------------------------------------------------
 
 pin_bottom = sw_top + pin_gap;
-pin_len = z_top + pin_protrude - pin_bottom;
+function pin_len(i) = z_top + pin_protrude[i] - pin_bottom;
 
-module pin(s = sws[0]) {
-    // modelled in place; for printing it is turned top end down in print_pin()
+module pin(i = 0) {
+    // modeled in place; for printing it is turned top end down in print_pin()
+    s = sws[i];
     translate([s[0], s[1], pin_bottom]) {
         cylinder(d = 2.5, h = 1.01);
-        translate([0, 0, 1]) cylinder(d = pin_d, h = pin_len - 1);
+        translate([0, 0, 1]) cylinder(d = pin_d, h = pin_len(i) - 1);
         // collar with a 45° cone towards the top, so printed top end down it has no flat overhang;
         // the cone stops against the guide bore where it is guide_d wide, 0.5 below the guide
         translate([0, 0, guide_bottom - pin_bottom - 0.5 - (collar_d - guide_d) / 2 - collar_t]) {
@@ -316,19 +328,24 @@ module pin(s = sws[0]) {
 module print_hood() { translate([0, 0, z_top]) rotate([180, 0, 0]) hood(); }
 module print_base() { translate([0, 0, -(z_floor - floor_t)]) base(); }
 // top end on the bed; make_3mf.py gives the pins a brim, their footprint is only Ø4
-module print_pin() { translate([0, 0, z_top + pin_protrude]) rotate([180, 0, 0]) translate([-sws[0][0], -sws[0][1], 0]) pin(); }
+module print_pin(i) { translate([0, 0, z_top + pin_protrude[i]]) rotate([180, 0, 0]) translate([-sws[i][0], -sws[i][1], 0]) pin(i); }
 
 module pcb() { color("darkgreen", 0.9) import("pcb.stl", convexity = 10); }
 
 // --- hardware, assembly view only --------------------------------------------
-// ISO 14580 M2.5 x 25 (CNC Kitchen, head Ø4.5 x 1.85) on the hood seat,
+// DIN 965 M2.5 x 25 countersunk (length includes the head) in the lid countersink, or
+// ISO 14580 M2.5 x 25 (CNC Kitchen, head Ø4.5 x 1.85) on the flat seat;
 // CNC Kitchen M2.5 x 4.0 insert (Ø4.6) flush with the boss top.
 
 screw_l = 25;
 screw_head = [4.5, head_k];
+csk_k = (csk_dk - 2.5) / 2;   // 90° head, 1.1 high
 
 module screw() {
-    translate([0, 0, screw_seat]) {
+    if (countersunk) translate([0, 0, screw_seat]) {
+        translate([0, 0, -csk_k]) cylinder(d1 = 2.5, d2 = csk_dk, h = csk_k);
+        translate([0, 0, -screw_l]) cylinder(d = 2.5, h = screw_l - csk_k + 0.01);
+    } else translate([0, 0, screw_seat]) {
         difference() {
             cylinder(d = screw_head[0], h = screw_head[1]);
             translate([0, 0, screw_head[1] - 1]) cylinder(d = 1.8, h = 2, $fn = 6);
@@ -344,16 +361,20 @@ module insert() {
 }
 
 echo(str("Outer size: ", ow, " x ", oh, " x ", z_top - (z_floor - floor_t), " mm (without tabs)"));
-screw_seat = z_top - seat_depth;
-echo(str("Screw: M2.5, length ", screw_seat + insert_l - 1.5, "..", screw_seat + insert_depth - 0.3, " mm (at least insert length - 1.5 engaged / short of the bore bottom)"));
+// countersunk: head top; cheese head: head bottom
+screw_seat = countersunk ? z_top - (csk_d - csk_dk) / 2 : z_top - seat_depth;
+echo(str("Screw: M2.5, length ", screw_seat + insert_l - 1.5, "..", screw_seat + insert_depth - 0.3, " mm",
+    countersunk ? " including the head" : " under the head",
+    " (at least insert length - 1.5 engaged / short of the bore bottom)"));
+echo(str("Screw tip ", screw_seat - screw_l, " (insert -", insert_l, "..0, bore bottom -", insert_depth, ")"));
 echo(str("Floor under the insert bore: ", standoff + floor_t - insert_depth, " mm"));
 assert(!use_inserts || standoff + floor_t - insert_depth >= 0.8, "insert bore breaks through the floor");
-echo(str("Pin length: ", pin_len, " mm"));
+for (i = [0:len(sws) - 1]) echo(str("Pin ", sw_labels[i], " length: ", pin_len(i), " mm"));
 
 if (part == "assembly") {
     color("lightgray") base();
     color("steelblue", 0.6) translate([0, 0, explode]) hood();
-    color("orange") translate([0, 0, explode]) for (s = sws) pin(s);
+    color("orange") translate([0, 0, explode]) for (i = [0:len(sws) - 1]) pin(i);
     if (show_pcb) pcb();
     if (show_hardware) for (h = holes) translate([h[0], h[1], 0]) {
         color("silver") translate([0, 0, explode]) screw();
@@ -361,9 +382,9 @@ if (part == "assembly") {
     }
 } else if (part == "base") print_base();
 else if (part == "hood") print_hood();
-else if (part == "pin") print_pin();
+else if (part == "pin") print_pin(pin_i);
 // in assembly position, for check_collision.py
 else if (part == "base_placed") base();
 else if (part == "hood_placed") hood();
 else if (part == "screws_placed") for (h = holes) translate([h[0], h[1], 0]) screw();
-else if (part == "pin_placed") for (s = sws) pin(s);
+else if (part == "pin_placed") for (i = [0:len(sws) - 1]) pin(i);

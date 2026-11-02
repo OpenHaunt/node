@@ -12,7 +12,7 @@ properties I have come to dislike.
 
 **It leaks the host's constraints into the contract.** Half of [06](06-board-interfaces.md) in the old
 design was rules about ESP32 strapping pins: do not pull up pin 14, do not fight pin 16, GPIO12 is
-deliberately absent. Those rules exist because the connector exposed GPIOs whose boot behaviour a third
+deliberately absent. Those rules exist because the connector exposed GPIOs whose boot behavior a third
 party could break. A link that carries only a serial protocol cannot brick the host no matter what an IO
 board does with it.
 
@@ -37,7 +37,7 @@ That is real work, and it is written up honestly in [08 — Firmware & Network](
 |---|---|---|
 | Package | QFN-60, 7 × 7 mm | QFN-80, 10 × 10 mm |
 | GPIO | 30 | 48 |
-| Analogue inputs | 4 | 8 |
+| Analog inputs | 4 | 8 |
 | Internal flash | **2 MB** | **2 MB** |
 | Core | 2× Cortex-M33 at 150 MHz, or 2× Hazard3 RISC-V | same |
 | SRAM | 520 kB | same |
@@ -49,7 +49,7 @@ plus a Winbond W25Q16JVWI. In every other respect, pinout included, it is identi
 RP2350B, so a board can fall back to an external-flash RP2350 if 2 MB ever runs out.
 
 Choosing the RP2354 over the RP2350 plus a discrete flash chip removes a part, a footprint, four routed
-signals, and the QSPI layout constraints from every IO board in the catalogue. On boards this small that
+signals, and the QSPI layout constraints from every IO board in the catalog. On boards this small that
 matters more than the price difference.
 
 ### What it needs
@@ -69,7 +69,7 @@ matters more than the price difference.
 
 **This is deliberate and it cost the mainboard its internal ethernet MAC.** No shipping Espressif part has
 both an internal MAC and a USB host, so the mainboard moved to an ESP32-S3 with a W5500 over SPI (D32). The
-reason that trade was worth making is this interface: IO boards are the growing half of the catalogue, and
+reason that trade was worth making is this interface: IO boards are the growing half of the catalog, and
 they have to run unmodified on the next mainboard. A UART now and USB later would have meant two
 incompatible IO board families.
 

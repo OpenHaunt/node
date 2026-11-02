@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenHaunt node</title>
+<style>
+:root{color-scheme:light dark;--bg:#111;--fg:#eee;--mut:#999;--acc:#d84;--card:#1c1c1c;--line:#333;--ok:#4c4;--bad:#e55}
+@media(prefers-color-scheme:light){:root{--bg:#f4f4f4;--fg:#111;--mut:#666;--card:#fff;--line:#ddd}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+header{display:flex;align-items:baseline;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+header h1{font-size:18px;margin:0}header .sn{color:var(--mut);font-family:ui-monospace,monospace}
+nav{display:flex;gap:2px;padding:0 16px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--mut);padding:10px 12px;cursor:pointer;font:inherit}
+nav button.on{color:var(--fg);border-bottom-color:var(--acc)}
+main{padding:16px;max-width:820px;margin:0 auto}section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.card h2{font-size:14px;margin:0 0 10px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mut);font-weight:500}
+td.v{font-family:ui-monospace,monospace}label{display:block;margin:8px 0 4px;color:var(--mut);font-size:13px}
+input,select,textarea{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit}
+textarea{font-family:ui-monospace,monospace;font-size:13px;min-height:260px}
+button.b{padding:8px 14px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);cursor:pointer;font:inherit;margin:10px 6px 0 0}
+button.b.p{background:var(--acc);border-color:var(--acc);color:#000}button.b.d{border-color:var(--bad);color:var(--bad)}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1 1 200px}
+.msg{margin-top:10px;font-size:13px;min-height:1.2em}.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;background:var(--line)}
+.pill.ok{background:var(--ok);color:#000}.pill.bad{background:var(--bad);color:#000}
+progress{width:100%;height:10px}code{font-family:ui-monospace,monospace}
+.sw{display:inline-block;width:34px;height:20px;border-radius:10px;background:var(--line);position:relative;cursor:pointer;vertical-align:middle}
+.sw.on{background:var(--ok)}.sw:after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:8px;background:#fff;transition:left .1s}.sw.on:after{left:16px}
+.lbl{width:auto;min-width:9em;max-width:14em;padding:4px 6px}input[type=range]{padding:0}input[type=color]{padding:0;height:32px}
+.swatch{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid var(--line);vertical-align:-2px;margin-right:6px}
+</style>
+</head>
+<body>
+<header><h1 id="hName">OpenHaunt node</h1><span class="sn" id="hSn"></span><span class="pill" id="hNet">…</span></header>
+<nav>
+<button data-t="status" class="on">Status</button><button data-t="network">Network</button><button data-t="node">Node</button><button data-t="module">Module</button><button data-t="update">Update</button>
+</nav>
+<main>
+
+<section id="status" class="on">
+<div class="card"><h2>Node</h2><table id="tStatus"></table>
+<button class="b p" onclick="post('/api/v1/identify',{}).then(()=>flash(this,'blinking'))">Identify</button><button class="b" id="bDark" onclick="toggleDark()">Dark mode</button></div>
+<div class="card"><h2>Ports</h2><table id="tPorts"><tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr></table></div>
+<div class="card"><h2>Errors</h2><div id="errs" class="msg">none</div></div>
+</section>
+
+<section id="network">
+<div class="card"><h2>Wi-Fi</h2>
+<label>Network</label><div class="row"><select id="ssidList"><option value="">— scan for networks —</option></select><input id="ssid" placeholder="or type an SSID"></div>
+<label>Passphrase</label><input id="psk" type="password" placeholder="leave empty to keep the stored one">
+<button class="b" onclick="scan()">Scan</button><button class="b p" onclick="saveWifi()">Connect</button>
+<div class="msg" id="mWifi"></div></div>
+<div class="card"><h2>IP address</h2>
+<label>Mode</label><select id="ipMode" onchange="ipMode()"><option value="dhcp">DHCP</option><option value="static">Static</option></select>
+<div id="ipFields" style="display:none"><div class="row"><div><label>IP</label><input id="ip"></div><div><label>Netmask</label><input id="mask" value="255.255.255.0"></div></div>
+<div class="row"><div><label>Gateway</label><input id="gw"></div><div><label>DNS</label><input id="dns"></div></div></div>
+<button class="b p" onclick="saveIp()">Apply</button><div class="msg" id="mIp"></div></div>
+</section>
+
+<section id="node">
+<div class="card"><h2>Identity</h2><label>Friendly name (shown to controllers; empty = module name + serial)</label><input id="name">
+<button class="b p" onclick="saveName()">Save</button><div class="msg" id="mName"></div></div>
+<div class="card"><h2>MQTT</h2><label>Broker <code>host:port</code> — normally set by the controller that adopts this node</label><input id="broker" placeholder="10.0.0.5:1883">
+<button class="b p" onclick="saveBroker()">Save</button><div class="msg" id="mBroker"></div></div>
+<div class="card" id="dmxCard" style="display:none"><h2>DMX</h2><div class="row"><div><label>Protocol</label><select id="dmxProto"></select></div><div><label>Universe</label><input id="dmxUni" type="number" min="1" max="63999"></div></div>
+<button class="b p" onclick="saveDmx()">Save</button><div class="msg" id="mDmx"></div></div>
+<div class="card" id="pxCard" style="display:none"><h2>Strips</h2><div id="pxStrips"></div></div>
+</section>
+
+<section id="module">
+<div class="card"><h2>What this node is</h2>
+<p style="margin:0 0 8px">Source: <span class="pill" id="modSrc"></span>. A node describes itself; a controller learns its ports from here and carries no catalog.</p>
+<label>Load a catalog preset</label><div class="row"><select id="preset"></select><button class="b" style="margin:0" onclick="loadPreset()">Load into editor</button></div>
+<label>Module description with bindings (driver ↔ pin)</label><textarea id="modJson" spellcheck="false"></textarea>
+<div style="color:var(--mut);font-size:13px;margin-top:6px">Drivers on this build: <span id="drivers"></span></div>
+<button class="b p" onclick="applyModule()">Apply &amp; store</button><button class="b" onclick="clearModule()">Use EEPROM / none</button>
+<div class="msg" id="mMod"></div></div>
+</section>
+
+<section id="update">
+<div class="card"><h2>Firmware</h2><p style="margin:0 0 8px">Running <code id="fwCur"></code> on <code id="board"></code>. Upload an <code>openhaunt-node.bin</code>; the node reboots into it and falls back to the current image if the new one fails to come up.</p>
+<input type="file" id="fwFile" accept=".bin"><br><button class="b p" onclick="ota()">Upload &amp; flash</button>
+<progress id="otaProg" value="0" max="100" style="display:none"></progress><div class="msg" id="mOta"></div></div>
+<div class="card"><h2>Maintenance</h2>
+<button class="b" onclick="if(confirm('Reboot now?'))post('/api/v1/reboot',{}).then(()=>waitBack('mMaint'))">Reboot</button>
+<button class="b d" onclick="if(confirm('Erase Wi-Fi, broker, name and the virtual module, then reboot?'))post('/api/v1/reset',{}).then(()=>waitBack('mMaint'))">Factory reset</button>
+<div class="msg" id="mMaint"></div></div>
+</section>
+
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let info=null,status=null,cfg=null,mod=null;
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,main section').forEach(e=>e.classList.remove('on'));b.classList.add('on');$(b.dataset.t).classList.add('on');if(b.dataset.t==='module')loadModule();if(b.dataset.t==='node')loadPixels();});
+async function get(u){const r=await fetch(u);if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error||r.statusText);return r.json();}
+async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok||j.ok===false)throw new Error(j.error||r.statusText);return j;}
+async function put(u,b){const r=await fetch(u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j;}
+function msg(id,t,ok){const e=$(id);e.textContent=t;e.className='msg '+(ok?'ok':'bad');}
+function flash(btn,t){const o=btn.textContent;btn.textContent=t;setTimeout(()=>btn.textContent=o,1500);}
+function since(ts){if(!ts)return'';if(ts>1e12)return new Date(ts).toLocaleTimeString();return'+'+(ts/1000).toFixed(1)+'s';}
+function fmt(v,p){if('state'in v)return v.state?'on':'off';
+ if('value'in v){const n=Number(v.value);if(p&&p.unit==='percent'){const frac=p.maximum!=null&&p.maximum<=1;return Math.round(frac?n*100:n)+'%';}if(p&&p.unit==='degree-celsius')return n.toFixed(1)+' °C';return n.toFixed(3).replace(/\.?0+$/,'');}
+ if('text'in v)return JSON.stringify(v.text);if('r'in v)return`<span class="swatch" style="background:rgb(${v.r},${v.g},${v.b})"></span>rgb(${v.r},${v.g},${v.b})`;return'';}
+function toggleDark(){post('/api/v1/config',{dark:!status.dark}).then(refresh).catch(e=>msg('errs',e.message,false));}
+function drive(p,v){document.activeElement?.blur();post('/api/v1/state',{outputs:{[p]:v}}).then(refresh).catch(e=>msg('errs',e.message,false));}
+function control(p,st){const v=st||{};
+ if(p.dataType==='boolean')return`<span class="sw ${v.state?'on':''}" onclick="drive(${p.port},{state:${!v.state}})"></span>`;
+ if(p.dataType==='number'){const mn=p.minimum??0,mx=p.maximum??1,step=(mx-mn)/100;return`<input type="range" min="${mn}" max="${mx}" step="${step}" value="${v.value??mn}" onchange="drive(${p.port},{value:+this.value})">`;}
+ if(p.dataType==='color'){const h='#'+[v.r||0,v.g||0,v.b||0].map(x=>x.toString(16).padStart(2,'0')).join('');return`<input type="color" value="${h}" onchange="const c=this.value;drive(${p.port},{r:parseInt(c.substr(1,2),16),g:parseInt(c.substr(3,2),16),b:parseInt(c.substr(5,2),16)})">`;}
+ if(p.class==='pixel-effect'&&info.pixels){const cur=v.text||'';const opts=info.pixels.effects.includes(cur)?info.pixels.effects:[cur,...info.pixels.effects];
+  return`<select onchange="drive(${p.port},{text:this.value})">${opts.map(e=>`<option${e===cur?' selected':''}>${esc(e)}</option>`).join('')}</select>`;}
+ if(p.dataType==='string')return`<input value="${esc(v.text||'')}" onchange="drive(${p.port},{text:this.value})">`;return'';}
+function render(){if(!info||!status)return;
+ $('hName').textContent=info.name;$('hSn').textContent=info.sn;
+ const n=status.network;$('hNet').textContent=n.state==='up'?n.transport+' '+n.ip:n.state==='setup-ap'?'setup AP '+n.setupAp:n.state;$('hNet').className='pill '+(n.state==='up'?'ok':'bad');
+ const rows=[['Serial',info.sn],['Firmware',info.fw+' on '+status.board+(status.build?' · build '+status.build+' · '+new Date(status.buildTime).toLocaleString():'')],['Hostname',status.hostname+'.local'],['Network',n.transport+' '+n.ip+(n.ssid?' · '+n.ssid+' '+n.rssi+' dBm':'')+(n.setupAp?' · setup AP '+n.setupAp+' open':'')],
+  ['Module',info.module.type+' '+info.module.name+' rev '+info.module.rev+' ('+status.moduleSource+')'+(info.module.flags&64?' ⚠ mains':'')],['MQTT broker',cfg?.mqtt?.broker||'— not adopted'],
+  ['Uptime',Math.floor(status.uptime_s/3600)+'h '+Math.floor(status.uptime_s%3600/60)+'m '+status.uptime_s%60+'s'],['Clock',status.clockSynced?'NTP synced':'since boot (no NTP)'],
+  // A shape is timed against the console's clock, so a missing or large offset is
+  // the first thing to look at when a port is moving out of step with the console.
+  ['Console clock',status.clockLocked?(status.consoleOffsetMs>=0?'+':'')+status.consoleOffsetMs+' ms offset':'no sample yet — shapes run on this node\'s own clock'],
+  ['Free heap',(status.freeHeap/1024).toFixed(0)+' kB']];
+ if('chipTempC'in status)rows.push(['Chip temperature',status.chipTempC.toFixed(1)+' °C (the die, above ambient)']);
+ if('buttonPressed'in status)rows.push(['BOOT button',status.buttonPressed?'pressed':'released']);
+ rows.push(['LEDs',status.dark?'dark: indicators off, identify still blinks':'on']);
+ $('bDark').textContent=status.dark?'LEDs on':'Dark mode';
+ if(info.dmx)rows.push(['DMX',info.dmx.protocols.join(', ')+' · '+info.dmx.universes+' universe'+(cfg?.dmx?' · universe '+cfg.dmx.universe:'')]);
+ $('tStatus').innerHTML=rows.map(r=>`<tr><th>${r[0]}</th><td class="v">${esc(r[1])}</td></tr>`).join('');
+ const st={};status.ports.forEach(p=>st[p.port]=p);
+ // Rebuilding the table while a control in it has focus closes an open select and drops a
+ // half-typed value; the next refresh after it loses focus catches up.
+ const a=document.activeElement;if(!(a&&a!==document.body&&$('tPorts').contains(a)))$('tPorts').innerHTML='<tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr>'+(info.ports.length?info.ports.map(p=>`<tr><td>${p.port}</td><td><input class="lbl" value="${esc(p.label||'')}" placeholder="${esc(p.name)}" title="What you call it. The module calls it ${esc(p.name)}." onchange="saveLabel('ports',${p.port},this)" onkeydown="if(event.key==='Enter')this.blur()">${p.label?' <span style="color:var(--mut);font-size:12px">'+esc(p.name)+'</span>':''}${p.class?' <span class="pill">'+p.class+'</span>':''}</td><td>${p.access==='readonly'?'in':'out'} ${p.dataType}${p.unit?' '+p.unit:''}</td><td class="v">${st[p.port]?fmt(st[p.port],p)+' <span style="color:var(--mut)">'+since(st[p.port].ts)+'</span>':''}${status.effects&&status.effects[p.port]?' <span class="pill">'+esc(status.effects[p.port])+'</span>':''}</td><td>${p.access==='readwrite'?control(p,st[p.port]):''}</td></tr>`).join(''):'<tr><td colspan=5 style="color:var(--mut)">No ports: this node describes nothing and will not be adopted. Pick a module.</td></tr>');
+ $('errs').textContent=status.errors.length?status.errors.join(', '):'none';$('errs').className='msg '+(status.errors.length?'bad':'ok');
+ $('fwCur').textContent=info.fw+(info.build?' '+info.build:'');$('board').textContent=status.board;$('modSrc').textContent=status.moduleSource;
+ if(info.dmx){$('dmxCard').style.display='';$('dmxProto').innerHTML=info.dmx.protocols.map(p=>`<option>${p}</option>`).join('');}}
+async function refresh(){try{[info,status]=await Promise.all([get('/api/v1/info'),get('/api/v1/status')]);render();}catch(e){$('hNet').textContent='unreachable';$('hNet').className='pill bad';}}
+async function loadCfg(){cfg=await get('/api/v1/config');$('name').value=cfg.name;$('broker').value=cfg.mqtt.broker;$('ssid').value=cfg.wifi.ssid;$('psk').placeholder=cfg.wifi.pskSet?'leave empty to keep the stored one':'';
+ $('ipMode').value=cfg.network.mode;$('ip').value=cfg.network.ip;$('mask').value=cfg.network.netmask||'255.255.255.0';$('gw').value=cfg.network.gateway;$('dns').value=cfg.network.dns;ipMode();
+ if(cfg.dmx){$('dmxProto').value=cfg.dmx.protocol;$('dmxUni').value=cfg.dmx.universe;}render();}
+function ipMode(){$('ipFields').style.display=$('ipMode').value==='static'?'':'none';}
+async function scan(){msg('mWifi','scanning…',true);try{const l=await get('/api/v1/wifi/scan');$('ssidList').innerHTML='<option value="">— pick a network —</option>'+l.map(a=>`<option value="${esc(a.ssid)}">${esc(a.ssid)} (${a.rssi} dBm${a.open?', open':''})</option>`).join('');msg('mWifi',l.length+' networks',true);}catch(e){msg('mWifi',e.message,false);}}
+$('ssidList').onchange=()=>{$('ssid').value=$('ssidList').value;};
+async function saveWifi(){const w={ssid:$('ssid').value};if($('psk').value)w.psk=$('psk').value;try{await post('/api/v1/config',{wifi:w});msg('mWifi','saved — connecting to '+w.ssid+'. If you are on the setup AP, the node will leave it once connected.',true);$('psk').value='';}catch(e){msg('mWifi',e.message,false);}}
+async function saveIp(){const n={mode:$('ipMode').value,ip:$('ip').value,netmask:$('mask').value,gateway:$('gw').value,dns:$('dns').value};try{await post('/api/v1/config',{network:n});msg('mIp','applied',true);}catch(e){msg('mIp',e.message,false);}}
+// A label is what you call a port or a strip; its name stays the module's, which is what a console keys it by. Empty clears it.
+async function saveLabel(kind,n,el){try{await post('/api/v1/config',{labels:{[kind]:{[n]:el.value.trim()}}});el.style.borderColor='var(--ok)';setTimeout(()=>el.style.borderColor='',800);refresh();}catch(e){el.style.borderColor='var(--bad)';alert(e.message);}}
+function headLabel(h){const x=(info&&info.heads||[]).find(e=>e.head===h);return x&&x.label||'';}
+async function saveName(){try{await post('/api/v1/config',{name:$('name').value});msg('mName','saved',true);refresh();}catch(e){msg('mName',e.message,false);}}
+async function saveBroker(){try{await post('/api/v1/config',{mqtt:{broker:$('broker').value}});msg('mBroker','saved',true);loadCfg();}catch(e){msg('mBroker',e.message,false);}}
+async function saveDmx(){try{await post('/api/v1/config',{dmx:{protocol:$('dmxProto').value,universe:+$('dmxUni').value}});msg('mDmx','saved',true);loadCfg();}catch(e){msg('mDmx',e.message,false);}}
+async function loadModule(){try{mod=await get('/api/v1/module');$('modSrc').textContent=mod.source;$('modJson').value=JSON.stringify(mod.module,null,2);$('preset').innerHTML=mod.presets.map(p=>`<option>${p}</option>`).join('');$('drivers').textContent=mod.drivers.join(', ');}catch(e){msg('mMod',e.message,false);}}
+async function loadPreset(){try{await post('/api/v1/module',{preset:$('preset').value});msg('mMod','preset applied and stored',true);await loadModule();refresh();}catch(e){msg('mMod',e.message,false);}}
+async function applyModule(){let j;try{j=JSON.parse($('modJson').value);}catch(e){return msg('mMod','not JSON: '+e.message,false);}try{await post('/api/v1/module',j);msg('mMod','applied and stored; controllers will see the new description on the next resolve',true);await loadModule();refresh();}catch(e){msg('mMod',e.message,false);}}
+async function clearModule(){try{await post('/api/v1/module',{clear:true});msg('mMod','virtual module cleared',true);await loadModule();refresh();}catch(e){msg('mMod',e.message,false);}}
+// Strips (doc 14): one form per output, built when the Node tab opens and after a save, not on
+// the 2 s refresh, so it does not overwrite what is being typed. A node with a stored virtual
+// module has no pixels object and gets no card.
+async function loadPixels(){let px;try{px=await get('/api/v1/pixels');}catch(e){$('pxCard').style.display='none';return;}
+ $('pxCard').style.display='';
+ $('pxStrips').innerHTML=px.strips.map(s=>{const o=s.output,st=s.status||{};
+  return`<div style="margin-bottom:14px"><input class="lbl" style="font-weight:600" value="${esc(headLabel(s.head))}" placeholder="Strip ${s.head}" title="What you call this strip" onchange="saveLabel('heads',${s.head},this)" onkeydown="if(event.key==='Enter')this.blur()"> <span style="color:var(--mut);font-size:13px">output ${o} · ${s.mode==='sacn'?(st.sources||0)+' sACN source'+(st.sources===1?'':'s')+' · '+(st.fps||0).toFixed(1)+' fps':'driven by ports'} · up to ${s.max_fps} fps at this length</span>
+  <div class="row"><div><label>Pixels (1–${px.max_count})</label><input id="pxCount${o}" type="number" min="1" max="${px.max_count}" value="${s.count}"></div>
+  <div><label>Color order</label><select id="pxOrder${o}">${px.orders.map(x=>`<option${x===s.order?' selected':''}>${x}</option>`).join('')}</select></div>
+  <div><label>Mode</label><select id="pxMode${o}" onchange="pxMode(${o})"><option value="effect"${s.mode==='effect'?' selected':''}>effect (ports)</option><option value="sacn"${s.mode==='sacn'?' selected':''}>sACN</option></select></div></div>
+  <div class="row" id="pxSacn${o}"><div><label>Universe</label><input id="pxUni${o}" type="number" min="1" max="63999" value="${s.universe||1}"></div><div><label>Start address</label><input id="pxAddr${o}" type="number" min="1" max="512" value="${s.address}"></div></div>
+  <button class="b p" onclick="savePixels(${o})">Save</button><div class="msg" id="mPx${o}"></div></div>`;}).join('');
+ px.strips.forEach(s=>pxMode(s.output));}
+function pxMode(o){$('pxSacn'+o).style.display=$('pxMode'+o).value==='sacn'?'':'none';}
+async function savePixels(o){const b={count:+$('pxCount'+o).value,order:$('pxOrder'+o).value,mode:$('pxMode'+o).value};
+ if(b.mode==='sacn'){b.universe=+$('pxUni'+o).value;b.address=+$('pxAddr'+o).value;}
+ try{await put('/api/v1/pixels/'+o,b);await loadPixels();msg('mPx'+o,'saved',true);refresh();}catch(e){msg('mPx'+o,e.message,false);}}
+function waitBack(id){msg(id,'rebooting…',true);const t0=Date.now();const iv=setInterval(async()=>{try{const i=await get('/api/v1/info');clearInterval(iv);msg(id,'back, firmware '+i.fw+(i.build?' '+i.build:''),true);info=i;refresh();}catch(e){if(Date.now()-t0>90000){clearInterval(iv);msg(id,'not back after 90 s — check the LED or the console',false);}}},2000);}
+function ota(){const f=$('fwFile').files[0];if(!f)return msg('mOta','pick a .bin first',false);const x=new XMLHttpRequest();$('otaProg').style.display='';$('otaProg').value=0;
+ x.upload.onprogress=e=>{if(e.lengthComputable)$('otaProg').value=e.loaded/e.total*100;};
+ x.onload=()=>{let j={};try{j=JSON.parse(x.responseText);}catch(e){}if(x.status===200&&j.ok!==false){msg('mOta','flashed '+(j.version||'')+' — rebooting',true);waitBack('mOta');}else msg('mOta',j.error||('HTTP '+x.status),false);};
+ x.onerror=()=>msg('mOta','upload failed',false);x.open('POST','/api/v1/ota');x.setRequestHeader('Content-Type','application/octet-stream');x.send(f);msg('mOta','uploading '+(f.size/1024).toFixed(0)+' kB…',true);}
+// Live state from GET /api/v1/events (server-sent events): a sensor shows the moment it
+// trips. The browser reconnects by itself; a node without the stream (older firmware, or
+// it refused) falls back to polling every 2 s and tries the stream again after a while.
+let es=null,poll=null;
+function startPoll(){if(!poll)poll=setInterval(refresh,2000);}
+function stopPoll(){if(poll){clearInterval(poll);poll=null;}}
+function live(){if(!window.EventSource)return startPoll();es=new EventSource('/api/v1/events');
+ es.addEventListener('status',e=>{status=JSON.parse(e.data);stopPoll();render();});
+ es.addEventListener('ports',e=>{if(status){status.ports=JSON.parse(e.data);render();}});
+ es.addEventListener('module',()=>refresh());
+ es.onerror=()=>{if(es.readyState===EventSource.CLOSED){es=null;startPoll();setTimeout(live,30000);}else{$('hNet').textContent='reconnecting…';$('hNet').className='pill bad';}};}
+refresh();loadCfg();live();
+</script>
+</body>
+</html>

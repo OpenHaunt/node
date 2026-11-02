@@ -38,10 +38,10 @@ Part-DB descriptions use whatever the distributor import produced. The same capa
 `MOhms`. Values in the KiCad `value` field use yet another convention: `0R`, `150R`, `49R9`, `1M`,
 `10K`, but also bare `10` and `110` on a few older entries.
 
-**Normalise numerically when searching**, or search several spellings. A regex for `22 ?nF` misses
+**Normalize numerically when searching**, or search several spellings. A regex for `22 ?nF` misses
 `0.022 µF` and vice versa. This has already caused one duplicate lookup.
 
-### Before creating a new Part-DB entry, copy the conventions from a neighbour
+### Before creating a new Part-DB entry, copy the conventions from a neighbor
 
 Query an existing part of the same kind through the kicad-api and reuse its prefix, value style, symbol and
 footprint. Guessing produces entries that look fine and then sort differently, search differently, or place

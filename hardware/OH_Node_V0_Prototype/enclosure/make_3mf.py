@@ -1,23 +1,37 @@
-import sys, zipfile, xml.etree.ElementTree as ET, trimesh
-# Usage: make_3mf.py <out.3mf> <base.stl> <hood.stl> <pin.stl> <pin count>
-# One 3MF per enclosure for PrusaSlicer: every part its own named object, laid out on the
-# 360 × 360 Prusa XL bed. The STLs come from `part="base"` etc. and are already oriented.
+import os, sys, zipfile, xml.etree.ElementTree as ET, trimesh
+# Usage: make_3mf.py <out.3mf> <base.stl> <hood.stl> <pin.stl>[,<pin.stl>...] [<base.stl> <hood.stl> <pins>]...
+# One 3MF for PrusaSlicer: every part its own named object, laid out on the 360 × 360 Prusa XL
+# bed, one row per enclosure. The STLs come from `part="base"` etc. and are already oriented.
+# Objects are named after the STL file: base.stl gives "base", "v0.1 base.stl" gives "v0.1 base".
 # PrusaSlicer's own per-object settings (Metadata/Slic3r_PE_model.config) give the pins a brim:
-# they stand 18.65 mm tall on a Ø4 end.
-BRIM = {"pin": 4}   # object name prefix → brim width in mm
-out, base, hood, pin, n_pins = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5])
+# they stand about 20 mm tall on a Ø4 end.
+BRIM = {"pin": 4}   # part → brim width in mm
+out, args = sys.argv[1], sys.argv[2:]
+assert args and len(args) % 3 == 0, "arguments come in groups of <base.stl> <hood.stl> <pin.stl>[,<pin.stl>...]"
+name = lambda f: os.path.splitext(os.path.basename(f))[0]
 GAP = 10
 scene = trimesh.Scene()
-x = GAP
-for name, f in [("base", base), ("hood", hood)]:
-    m = trimesh.load(f)
-    m.apply_translation([x - m.bounds[0][0], GAP - m.bounds[0][1], -m.bounds[0][2]])
-    scene.add_geometry(m, geom_name=name, node_name=name)
-    x = m.bounds[1][0] + GAP
-for i in range(n_pins):
-    m = trimesh.load(pin)
-    m.apply_translation([x - m.bounds[0][0], GAP + i * (m.extents[1] + GAP) - m.bounds[0][1], -m.bounds[0][2]])
-    scene.add_geometry(m, geom_name=f"pin {i + 1}", node_name=f"pin {i + 1}")
+kind = {}   # object name → base, hood or pin
+y = GAP
+for base, hood, pins in zip(args[0::3], args[1::3], args[2::3]):
+    x = GAP
+    row = y
+    for k, f in [("base", base), ("hood", hood)]:
+        m = trimesh.load(f)
+        m.apply_translation([x - m.bounds[0][0], row - m.bounds[0][1], -m.bounds[0][2]])
+        scene.add_geometry(m, geom_name=name(f), node_name=name(f))
+        kind[name(f)] = k
+        x = m.bounds[1][0] + GAP
+        y = max(y, m.bounds[1][1] + GAP)
+    py = row
+    for pin in pins.split(","):
+        m = trimesh.load(pin)
+        m.apply_translation([x - m.bounds[0][0], py - m.bounds[0][1], -m.bounds[0][2]])
+        n = name(pin)
+        scene.add_geometry(m, geom_name=n, node_name=n)
+        py = m.bounds[1][1] + GAP
+        kind[n] = "pin"
+        y = max(y, m.bounds[1][1] + GAP)
 scene.export(out)
 
 ns = {"m": "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"}
@@ -26,7 +40,7 @@ with zipfile.ZipFile(out) as z:
 config = ET.Element("config")
 for obj in model.iterfind("m:resources/m:object", ns):
     name = obj.get("name")
-    brim = next((w for prefix, w in BRIM.items() if name.startswith(prefix)), None)
+    brim = BRIM.get(kind.get(name))
     if brim is None: continue
     n = len(obj.findall("m:mesh/m:triangles/m:triangle", ns))
     o = ET.SubElement(config, "object", id=obj.get("id"), instances_count="1")

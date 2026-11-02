@@ -41,7 +41,7 @@
 
 #----------------------------------------------------------------------------------------------------
 # Isolation barrier, Domain 1 to Domain 2 (V0 single board).
-# Domain 1 = the magjack centre taps V1..V4, the bridges, the TVS and the Ag9905 input: net class "PoE".
+# Domain 1 = the magjack center taps V1..V4, the bridges, the TVS and the Ag9905 input: net class "PoE".
 # The data pairs are isolated inside the magjack and carry no PoE current, so they are Domain 2 here.
 # Take the actual figure from IEC 60664-1 for the pollution degree in use - see docs/09.
 
@@ -51,7 +51,7 @@
 
 #----------------------------------------------------------------------------------------------------
 # Mains on the relay contacts, net class "MAINS" (docs/09: basic ~3 mm, reinforced 6-8 mm at 230 V).
-# MAINS to MAINS between different relays: 4.0 mm (rule "mains_between_relays" below), so neighbouring
+# MAINS to MAINS between different relays: 4.0 mm (rule "mains_between_relays" below), so neighboring
 # relays may switch different phases (400 V). Net class clearance stays 3.0 mm.
 # MAINS to everything else is reinforced insulation to SELV: 6.4 mm here. Raise to 8 mm if the enclosure
 # or pollution degree asks for it.
@@ -126,7 +126,7 @@
    (condition "A.Type == 'Track' && A.NetClass != '100R' && A.NetClass != '90R'"))
 
 #----------------------------------------------------------------------------------------------------
-# Clock nets: 3W spacing (centre-to-centre 3 x 0.2 mm, i.e. 0.4 mm edge gap) to other signal tracks.
+# Clock nets: 3W spacing (center-to-center 3 x 0.2 mm, i.e. 0.4 mm edge gap) to other signal tracks.
 # Layout review 2026-10-05. Track to track only, GND exempt. U1's 0.5 mm pin fan-out cannot meet it; it is
 # fenced off by the rule area "clk_fanout_U1" (F.Cu, no keepout) instead of DRC exclusions, which KiCad
 # drops whenever it reports a different track pair from the same spot.

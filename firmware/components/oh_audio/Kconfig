@@ -1,0 +1,29 @@
+menu "OpenHaunt audio"
+    config OH_AUDIO
+        bool "Audio output: stored clips and an RTP stream (OpenHaunt/node doc 13)"
+        default y if OH_BOARD_OH_NODE_V0
+        default n
+        depends on SPIRAM
+        help
+            Needs the board's I2S pins (OpenHaunt board menu), PSRAM for the
+            stream's buffer and the clip readers, and a FAT partition named
+            "clips" in the partition table.
+
+    config OH_AUDIO_AMP_ALWAYS_ON
+        bool "Keep the speaker amplifier on while nothing plays"
+        depends on OH_AUDIO
+        default y if OH_BOARD_OH_NODE_V0_1
+        default n
+        help
+            A MAX98357A in shutdown leaves its outputs high-impedance. V0.1 wires
+            them to a 3.5 mm jack that usually feeds another amplifier, whose input
+            then floats and hums. On, the amplifier stays powered and is fed
+            silence, which holds the line at zero. Off, it is powered just ahead
+            of a sound and dropped two seconds after, which V0.2's power-bank
+            budget wants.
+
+    config OH_AUDIO_CLIPS_PARTITION
+        string "Partition label of the clip store"
+        depends on OH_AUDIO
+        default "clips"
+endmenu

@@ -55,3 +55,6 @@ analysis/
 
 # JLC order files are kept so a tag can pin the exact uploaded set (overrides *.zip above)
 !**/production/jlc_final/*.zip
+
+# Sliced print files: regenerated from the enclosure 3MFs in PrusaSlicer
+*.bgcode

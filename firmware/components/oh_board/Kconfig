@@ -1,0 +1,409 @@
+menu "OpenHaunt board"
+
+    choice OH_BOARD
+        prompt "Board"
+        default OH_BOARD_ESP32C6_DEVKITC_1
+        help
+            Which hardware this image runs on. Selects the transport, the
+            status LED, the display and every pin below. Normally set by
+            boards/<board>/sdkconfig.board rather than here.
+
+        config OH_BOARD_OH_BASE
+            bool "OpenHaunt base board (ESP32, RMII Ethernet, W25Q128)"
+            depends on IDF_TARGET_ESP32
+        config OH_BOARD_ESP32C6_DEVKITC_1
+            bool "ESP32-C6-DevKitC-1 (Wi-Fi, WS2812 status LED)"
+            depends on IDF_TARGET_ESP32C6
+        config OH_BOARD_ESP32_1732S019
+            bool "ESP32-1732S019 (ESP32-S3, Wi-Fi, ST7789 display)"
+            depends on IDF_TARGET_ESP32S3
+        config OH_BOARD_OH_NODE_V0_1
+            bool "OpenHaunt Node V0.1 prototype (ESP32-S3, W5500, 12 V PoE)"
+            depends on IDF_TARGET_ESP32S3
+        config OH_BOARD_OH_NODE_V0_2
+            bool "OpenHaunt Node V0.2 prototype (ESP32-S3, W5500, 5 V PoE or USB, line out)"
+            depends on IDF_TARGET_ESP32S3
+    endchoice
+
+    config OH_BOARD_OH_NODE_V0
+        bool
+        default y if OH_BOARD_OH_NODE_V0_1 || OH_BOARD_OH_NODE_V0_2
+
+    config OH_BOARD_NAME
+        string
+        default "oh-base" if OH_BOARD_OH_BASE
+        default "esp32c6-devkitc-1" if OH_BOARD_ESP32C6_DEVKITC_1
+        default "esp32-1732s019" if OH_BOARD_ESP32_1732S019
+        default "oh-node-v0.1" if OH_BOARD_OH_NODE_V0_1
+        default "oh-node-v0.2" if OH_BOARD_OH_NODE_V0_2
+
+    choice OH_TRANSPORT
+        prompt "Network transport"
+        default OH_TRANSPORT_ETH_RMII if OH_BOARD_OH_BASE
+        default OH_TRANSPORT_ETH_W5500 if OH_BOARD_OH_NODE_V0
+        default OH_TRANSPORT_WIFI_STA
+        config OH_TRANSPORT_ETH_RMII
+            bool "Ethernet, internal EMAC + RMII PHY"
+            depends on ETH_USE_ESP32_EMAC
+        config OH_TRANSPORT_ETH_W5500
+            bool "Ethernet, W5500 over SPI"
+            depends on ETH_SPI_ETHERNET_W5500
+        config OH_TRANSPORT_WIFI_STA
+            bool "Wi-Fi station"
+    endchoice
+
+    config OH_TRANSPORT_ETH
+        bool
+        default y if OH_TRANSPORT_ETH_RMII || OH_TRANSPORT_ETH_W5500
+
+    menu "Module bus pins"
+        config OH_PIN_I2C_SDA
+            int "I2C SDA (module bus + ID EEPROM)"
+            default 32 if OH_BOARD_OH_BASE
+            default 6 if OH_BOARD_ESP32C6_DEVKITC_1
+            default 4 if OH_BOARD_ESP32_1732S019
+            default 21 if OH_BOARD_OH_NODE_V0
+            default -1
+        config OH_PIN_I2C_SCL
+            int "I2C SCL"
+            default 33 if OH_BOARD_OH_BASE
+            default 7 if OH_BOARD_ESP32C6_DEVKITC_1
+            default 5 if OH_BOARD_ESP32_1732S019
+            default 47 if OH_BOARD_OH_NODE_V0
+            default -1
+        config OH_PIN_MOD_INT
+            int "MOD_INT (open drain, active low), -1 = none"
+            default 36 if OH_BOARD_OH_BASE
+            default 5 if OH_BOARD_ESP32C6_DEVKITC_1
+            default 6 if OH_BOARD_ESP32_1732S019
+            default -1
+        config OH_PIN_MOD_FAST0
+            int "MOD_FAST0 (RMT-capable timed output), -1 = none"
+            default 2 if OH_BOARD_OH_BASE
+            default 4 if OH_BOARD_ESP32C6_DEVKITC_1
+            default 7 if OH_BOARD_ESP32_1732S019
+            default 17 if OH_BOARD_OH_NODE_V0
+            default -1
+        config OH_PIN_MOD_NRESET
+            int "MOD_nRESET (held low through boot), -1 = none"
+            default 15 if OH_BOARD_OH_BASE
+            default -1
+        config OH_PIN_MOD_UART_TX
+            int "MOD_UART_TX, -1 = none"
+            default 17 if OH_BOARD_OH_BASE
+            default -1
+        config OH_PIN_MOD_UART_RX
+            int "MOD_UART_RX, -1 = none"
+            default 35 if OH_BOARD_OH_BASE
+            default -1
+        config OH_PIN_MOD_UART_DE
+            int "MOD_UART_DE, -1 = none"
+            default 4 if OH_BOARD_OH_BASE
+            default -1
+        config OH_I2C_FREQ_HZ
+            int "I2C bus frequency"
+            default 100000
+    endmenu
+
+    menu "Board peripherals"
+        config OH_PIN_BUTTON
+            int "Config / BOOT button, -1 = none"
+            default 39 if OH_BOARD_OH_BASE
+            default 9 if OH_BOARD_ESP32C6_DEVKITC_1
+            default 0 if OH_BOARD_ESP32_1732S019
+            default 0 if OH_BOARD_OH_NODE_V0
+            default -1
+        config OH_BUTTON_ACTIVE_LOW
+            bool "Button is active low"
+            default y
+
+        choice OH_STATUS_LED_KIND
+            prompt "Status LED"
+            default OH_STATUS_LED_NONE if OH_BOARD_OH_BASE
+            default OH_STATUS_LED_WS2812 if OH_BOARD_ESP32C6_DEVKITC_1
+            default OH_STATUS_LED_MONO_GPIO
+            config OH_STATUS_LED_NONE
+                bool "None"
+            config OH_STATUS_LED_MONO_GPIO
+                bool "Single LED on a GPIO"
+            config OH_STATUS_LED_WS2812
+                bool "WS2812 RGB LED"
+        endchoice
+        config OH_PIN_STATUS_LED
+            int "Status LED GPIO"
+            depends on !OH_STATUS_LED_NONE
+            default 8 if OH_BOARD_ESP32C6_DEVKITC_1
+            default 18 if OH_BOARD_ESP32_1732S019
+            default 36 if OH_BOARD_OH_NODE_V0
+            default -1
+        config OH_STATUS_LED_ACTIVE_LOW
+            bool "Mono LED is active low"
+            depends on OH_STATUS_LED_MONO_GPIO
+            default n
+        config OH_PIN_ERROR_LED
+            int "Separate error LED GPIO (high = on), -1 = faults show on the status LED"
+            default 35 if OH_BOARD_OH_NODE_V0
+            default -1
+
+        config OH_PRESET_INPUT_GPIOS
+            string "GPIOs the 'input' preset binds, comma-separated"
+            default "39" if OH_BOARD_OH_BASE
+            default "9,10,11,15" if OH_BOARD_ESP32C6_DEVKITC_1
+            default "0,2,3,8" if OH_BOARD_ESP32_1732S019
+            default "0" if OH_BOARD_OH_NODE_V0
+            default ""
+            help
+                Free pins a virtual contact-input module may use on this board,
+                first one first. The BOOT button is a convenient first entry.
+        config OH_PRESET_OUTPUT_GPIOS
+            string "GPIOs the 'contact' and 'relay' presets bind, comma-separated"
+            default "" if OH_BOARD_OH_BASE
+            default "18,19,20,21" if OH_BOARD_ESP32C6_DEVKITC_1
+            default "21,16,17,15" if OH_BOARD_ESP32_1732S019
+            default "4,5,6,7" if OH_BOARD_OH_NODE_V0
+            default ""
+    endmenu
+
+    menu "Built-in I/O"
+        depends on OH_BOARD_OH_NODE_V0
+        comment "The V0 prototype has its I/O on the board and no module connector."
+        config OH_PIN_RELAYS
+            string "Relay coil GPIOs, relay 1 first"
+            default "4,5,6,7"
+        config OH_PIN_SENSORS
+            string "Sensor terminal GPIOs, terminal 1 first"
+            default "16,15" if OH_BOARD_OH_NODE_V0_1
+            default "15,16"
+            help
+                Terminal 1 is the lower one on the right edge on both revisions,
+                like strip 1. V0.2 routes it (J10, silkscreen "PIR1") to GPIO15,
+                V0.1 to GPIO16.
+        config OH_SENSOR_CONTACT_READS_LOW
+            bool "A contact closed to GND on a sensor terminal reads low at the GPIO"
+            default y if OH_BOARD_OH_NODE_V0_1
+            default n
+            help
+                V0.1 pulls the GPIO up through the terminal: a closed contact
+                reads low. V0.2 has a transistor stage: a closed contact reads
+                high and an open terminal low. The built-in module inverts as
+                this says, so the port reads true for a closed contact on both.
+        config OH_PIN_STRIPS
+            string "WS2812 data GPIOs, strip 1 first"
+            default "17,18" if OH_BOARD_OH_NODE_V0_1
+            default "17,38"
+        config OH_STRIP_PIXELS
+            int "Pixels each strip output drives"
+            default 60
+            help
+                At most 64 per strip without RMT DMA. The ESP32-S3 has one DMA
+                channel for RMT and two strips cannot both have it.
+        config OH_PIN_RELAY_LEDS
+            string "Relay indicator LED GPIOs, relay 1 first (empty = none)"
+            default "1,8,37,3" if OH_BOARD_OH_NODE_V0_2
+            default ""
+        config OH_PIN_SENSOR_LEDS
+            string "Sensor indicator LED GPIOs, terminal 1 first (empty = none)"
+            default "46,45" if OH_BOARD_OH_NODE_V0_2
+            default ""
+        config OH_PIN_I2S_DOUT
+            int "I2S data out (amplifier DIN)"
+            default 40
+        config OH_PIN_I2S_BCLK
+            int "I2S BCLK"
+            default 41
+        config OH_PIN_I2S_WS
+            int "I2S LRCLK"
+            default 42
+        config OH_PIN_AMP_EN
+            int "MAX98357A SD_MODE (high = on), -1 = none"
+            default 48
+        config OH_PIN_DAC_MUTE
+            int "PCM5102A XSMT (low = muted), -1 = none"
+            default 39 if OH_BOARD_OH_NODE_V0_2
+            default -1
+    endmenu
+
+    menu "Ethernet (RMII)"
+        depends on OH_TRANSPORT_ETH_RMII
+        config OH_ETH_OSC_EN_GPIO
+            int "50 MHz oscillator enable GPIO, -1 = always on"
+            default 16
+        config OH_ETH_MDC_GPIO
+            int "MDC"
+            default 23
+        config OH_ETH_MDIO_GPIO
+            int "MDIO"
+            default 18
+        config OH_ETH_PHY_ADDR
+            int "PHY address, -1 = auto-detect"
+            default -1
+        config OH_ETH_PHY_RESET_GPIO
+            int "PHY reset GPIO, -1 = none"
+            default -1
+    endmenu
+
+    menu "Ethernet (W5500)"
+        depends on OH_TRANSPORT_ETH_W5500
+        config OH_W5500_SPI_HOST
+            int "SPI host (1 = SPI2, 2 = SPI3)"
+            default 1
+        config OH_W5500_SCLK_GPIO
+            int "SCLK"
+            default 9
+        config OH_W5500_MOSI_GPIO
+            int "MOSI"
+            default 10
+        config OH_W5500_MISO_GPIO
+            int "MISO"
+            default 11
+        config OH_W5500_CS_GPIO
+            int "SCSn"
+            default 12
+        config OH_W5500_INT_GPIO
+            int "INTn, -1 = poll"
+            default 13
+        config OH_W5500_RST_GPIO
+            int "RSTn, -1 = none"
+            default 14
+        config OH_W5500_CLOCK_MHZ
+            int "SPI clock in MHz"
+            default 20
+            help
+                The V0 pins go through the GPIO matrix rather than the direct
+                FSPI pins, so this starts at 20 MHz. Raise it once a board has
+                proved it.
+    endmenu
+
+    config OH_ETH_WIFI_FALLBACK
+        bool "Start Wi-Fi (station, then setup AP) when the Ethernet link stays down"
+        depends on OH_TRANSPORT_ETH
+        default y
+
+    menu "Wi-Fi"
+        config OH_WIFI_SSID
+            string "Default SSID (used only when NVS has no credentials)"
+            default ""
+        config OH_WIFI_PSK
+            string "Default passphrase"
+            default ""
+        config OH_WIFI_SOFTAP_FALLBACK
+            bool "Open a setup access point when the station cannot connect"
+            default y
+        config OH_WIFI_STA_TIMEOUT_S
+            int "Seconds to wait for the station before opening the setup AP"
+            default 30
+        config OH_WIFI_REOPEN_AP_S
+            int "Seconds a lost station connection stays lost before the AP reopens, 0 = never"
+            default 60
+    endmenu
+
+    menu "External data flash (W25Q128)"
+        config OH_EXT_FLASH
+            bool "External SPI flash with LittleFS"
+            default y if OH_BOARD_OH_BASE
+            default n
+        config OH_EXT_FLASH_SCLK
+            int "SCLK"
+            depends on OH_EXT_FLASH
+            default 14
+        config OH_EXT_FLASH_MOSI
+            int "MOSI"
+            depends on OH_EXT_FLASH
+            default 13
+        config OH_EXT_FLASH_MISO
+            int "MISO"
+            depends on OH_EXT_FLASH
+            default 34
+        config OH_EXT_FLASH_CS
+            int "CS"
+            depends on OH_EXT_FLASH
+            default 5
+    endmenu
+
+    menu "Display"
+        config OH_DISPLAY
+            bool "Status display (ST7789)"
+            default y if OH_BOARD_ESP32_1732S019
+            default n
+        choice OH_DISPLAY_BUS
+            prompt "Panel bus"
+            depends on OH_DISPLAY
+            default OH_DISPLAY_BUS_SPI
+            config OH_DISPLAY_BUS_SPI
+                bool "SPI (ESP32-1732S019, common variant)"
+            config OH_DISPLAY_BUS_I80
+                bool "8-bit parallel i80 (ESP32-1732S019 parallel variant)"
+        endchoice
+        config OH_DISPLAY_WIDTH
+            int "Panel width (portrait)"
+            depends on OH_DISPLAY
+            default 170
+        config OH_DISPLAY_HEIGHT
+            int "Panel height (portrait)"
+            depends on OH_DISPLAY
+            default 320
+        config OH_DISPLAY_X_GAP
+            int "Column offset of the visible area"
+            depends on OH_DISPLAY
+            default 35
+        config OH_DISPLAY_INVERT
+            bool "Invert colors"
+            depends on OH_DISPLAY
+            default y
+        config OH_DISPLAY_BGR
+            bool "BGR element order"
+            depends on OH_DISPLAY
+            default y
+        config OH_DISPLAY_BL_GPIO
+            int "Backlight GPIO"
+            depends on OH_DISPLAY
+            default 14 if OH_DISPLAY_BUS_SPI
+            default 38
+        config OH_DISPLAY_RST_GPIO
+            int "Reset GPIO"
+            depends on OH_DISPLAY
+            default 1 if OH_DISPLAY_BUS_SPI
+            default 5
+        config OH_DISPLAY_DC_GPIO
+            int "DC GPIO"
+            depends on OH_DISPLAY
+            default 11 if OH_DISPLAY_BUS_SPI
+            default 7
+        config OH_DISPLAY_SPI_SCLK
+            int "SPI SCLK"
+            depends on OH_DISPLAY_BUS_SPI
+            default 12
+        config OH_DISPLAY_SPI_MOSI
+            int "SPI MOSI"
+            depends on OH_DISPLAY_BUS_SPI
+            default 13
+        config OH_DISPLAY_SPI_CS
+            int "SPI CS"
+            depends on OH_DISPLAY_BUS_SPI
+            default 10
+        config OH_DISPLAY_I80_WR
+            int "i80 WR"
+            depends on OH_DISPLAY_BUS_I80
+            default 8
+        config OH_DISPLAY_I80_RD
+            int "i80 RD (held high)"
+            depends on OH_DISPLAY_BUS_I80
+            default 9
+        config OH_DISPLAY_I80_DATA
+            string "i80 D0..D7, comma-separated"
+            depends on OH_DISPLAY_BUS_I80
+            default "39,40,41,42,45,46,47,48"
+    endmenu
+
+    config OH_POWER_BUDGET_MW
+        int "Module power budget in mW"
+        default 10400
+        help
+            What is left of the PoE budget after the base board. A module whose
+            descriptor declares more is not enabled.
+
+    config OH_DRIVER_DMX
+        bool "Build the DMX gateway driver (0x0001)"
+        default n
+
+endmenu

@@ -67,7 +67,7 @@ against. The default is to hold, and `CONFIG` is how a board or an installation 
 
 ### Firmware update for both processors
 
-One artefact, two images. The ESP32 image and the RP2354 image ship together and are version-locked,
+One artifact, two images. The ESP32 image and the RP2354 image ship together and are version-locked,
 because the link protocol is a compatibility surface between them and letting them drift independently
 would be a support problem nobody wants.
 
@@ -128,6 +128,25 @@ each one has left.
 DHCP by default, with a static fallback configurable through the web UI. mDNS hostnames mean the DHCP lease
 churn that plagues seasonal installations stops mattering.
 
+The router and the switch get the node's name as well, so a client list or a port table is readable
+without a lookup:
+
+- **DHCP hostname** (option 12): the friendly name folded into a DNS label (`Coffin Room DMX` →
+  `coffin-room-dmx`), renewed at once on a rename. Without a user-given name it is `openhaunt-<sn>`.
+  UniFi and most consumer routers label a client by this, and UniFi's port view borrows that label.
+- **LLDP**, on Ethernet: the friendly name as System Name, module and firmware as System Description,
+  the IP as management address, every 30 s with a TTL of 120 s. Managed switches (Cisco, Netgear AV,
+  Luminex, Yamaha) list it in their neighbour table. The node also reads the switch's LLDP, and
+  `/status` reports the switch and port it is plugged into.
+
+- **mDNS**: the same folded name as a second hostname, `coffin-room-dmx.local` beside
+  `openhaunt-<sn>.local`. It follows renames and address changes; a node without a name has only the
+  second one.
+
+`openhaunt-<sn>.local` and the service instance `openhaunt-<sn>._openhaunt._tcp` never change: a
+bookmark or script should survive a rename, and the-pult reads the serial out of the instance name when
+a node goes away. The alias is not probed, so two nodes given the same name both answer to it.
+
 ## Control interfaces
 
 Four, each for a different job. Resisting the urge to do everything over one protocol is deliberate.
@@ -140,6 +159,7 @@ with `curl`.
 ```
 GET  /api/v1/info              node identity, both firmware versions, both board descriptors
 GET  /api/v1/state             current state of all IO board channels
+GET  /api/v1/events            the same, live: server-sent events for the web UI
 POST /api/v1/state             set outputs
 GET  /api/v1/power             per-rail voltage, current, power, and the budget
 GET  /api/v1/config            network, name, protocol settings
@@ -151,6 +171,15 @@ POST /api/v1/ota               firmware bundle upload, both processors
 `/api/v1/identify` matters more than it looks. Locating one node among forty in a dark maze is otherwise a
 genuine problem, and the Halo light ring around the etherCON is the right indicator for it because it is on
 the outside of the box, at the connector, where the installer is already looking.
+
+**Ports and heads can be named.** `POST /api/v1/config` takes
+`{"labels": {"ports": {"4": "Ausgang PIR"}, "heads": {"1": "LED Streifen Tor"}}}` as a partial merge:
+an empty string clears a label, and a body naming a port or head the node does not have, or a label over
+31 bytes, is refused whole. `/api/v1/info` then carries `label` beside `name` on that port or head, and
+only where one is set. **The label never replaces `name`.** `name` is the module's word for the port and
+what a console keys it by, so renaming it would orphan everything patched against the port. Labels are
+kept in NVS by number, not tied to a module, and are part of the `desc` checksum, so a console learns of
+a rename the way it learns of any other change to the description.
 
 `/api/v1/power` is new and exists because the metering is new. It is also the answer to "why did that node
 not come up", which on a PoE installation is usually a switch budget question rather than a node fault.
@@ -164,13 +193,42 @@ openhaunt/<serial>/status          online / offline (retained, LWT)
 openhaunt/<serial>/input/<n>       edge events, with timestamp
 openhaunt/<serial>/output/<n>/set  command topic
 openhaunt/<serial>/health          uptime, temperature, PoE class, errors
+openhaunt/<serial>/net             every address the node is on, preferred first (retained)
 openhaunt/<serial>/power           per-rail V/I/W, budget headroom, eFuse trips
 ```
+
+`net` is `{"addresses":[{"transport":"ethernet","ip":"…"},{"transport":"wifi","ip":"…"}]}`, the path the
+node prefers first, republished whenever a path comes or goes. A node with no second path lists one entry.
+A console sending the node anything by unicast (an RTP stream above all, docs/13) moves on it at once
+rather than waiting for mDNS. Not every node has two paths: only a V0 stands Wi-Fi by beside its cable
+(D38).
 
 Last Will and Testament gives free failure detection: if a node drops off, the broker announces it and the
 show software can react rather than silently losing an effect.
 
 Node-RED's MQTT integration makes this the natural path for show logic.
+
+### Audio
+
+A node with an audio output plays clips stored on its flash, and an RTP stream, each started at a
+stated show time. The `audio` object in `/api/v1/info`, `/api/v1/audio/clips` and
+`openhaunt/<serial>/audio/*` are specified in [13 — Audio](13-audio.md).
+
+### Pixel strips, and heads
+
+A port may name the **head** it belongs to, so one node can be several fixtures (two strips, each
+with its own color and dimmer). A strip output runs in `effect` mode (the node draws it from
+nine ports) or `sacn` mode (it maps universes onto its pixels), set with `PUT /api/v1/pixels/<n>`.
+The `heads` list, the `pixels` object, the endpoint and the mDNS `desc` key are specified in
+[14 — Pixel strips, and heads](14-pixels.md).
+
+### Brokers, and a console that fails over
+
+A node can be told an ordered list of brokers, leader first, in `mqtt.brokers` and on the retained
+`openhaunt/brokers`. When the broker it is on goes, it walks the list on its own, so a console
+whose leading machine dies keeps its nodes without having to find them again. The list, the walk,
+and the rule that only the leading station's broker accepts a node are specified in
+[15 — Brokers, and a console that fails over](15-brokers.md).
 
 ### 3. Art-Net / sACN — DMX
 
@@ -221,7 +279,7 @@ preferred. Generation 2 returns to an internal MAC and the problem disappears. S
 
 - **sACN with a correct IGMP join.** Each universe has its own multicast group; a switch with IGMP snooping
   forwards only the universes the node subscribed to. Load stays at 0.2 Mbit/s regardless of rig size.
-  **With the W5500 this is no longer an optimisation but the only way a large rig works at all.**
+  **With the W5500 this is no longer an optimization but the only way a large rig works at all.**
 - **Art-Net unicast** via ArtPoll/ArtPollReply discovery, so consoles target nodes directly.
 
 ## Latency
@@ -267,6 +325,10 @@ A node should be able to play a stored sequence with no network present. An esca
 crashed should still be able to run its lights. This is a firmware feature that the hardware already supports
 and is worth designing in from the start rather than retrofitting.
 
+A console-authored show that a node runs on its own (one flow and its timelines, the OctoBanger case) is
+designed in [16 — A standalone show](16-standalone-show.md). It is a mode the console switches on, not a
+fallback when the server crashes, so the escape-room case above is still open.
+
 ## Firmware architecture
 
 ```
@@ -299,7 +361,7 @@ RP2354, IO board        │
 ```
 
 **One firmware bundle for all nodes.** The two descriptors select the drivers at runtime, so distribution,
-OTA and version management stay a single artefact even with two processors and a growing catalogue of
+OTA and version management stay a single artifact even with two processors and a growing catalog of
 boards. That is a real operational simplification once a venue has dozens of nodes, and it is worth
 protecting: resist any temptation to ship board-specific ESP32 builds.
 
@@ -310,9 +372,9 @@ updated separately, which is what keeps the app partitions viable.
 
 **Never ship without a working rollback path.** A node in a maze ceiling is not conveniently reachable.
 
-### Fault behaviour
+### Fault behavior
 
-| Condition | Behaviour |
+| Condition | Behavior |
 |---|---|
 | No power board, or a bad descriptor | Run on the unconditional 5 V, join network, report fault, enable nothing |
 | No IO board detected | Join network, advertise `io=0x0000`, report fault |

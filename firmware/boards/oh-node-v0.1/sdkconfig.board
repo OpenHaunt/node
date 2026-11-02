@@ -1,0 +1,23 @@
+# OpenHaunt Node V0.1 prototype: ESP32-S3-WROOM-1-N16R2 (16 MB flash, 2 MB quad
+# PSRAM), W5500 Ethernet on SPI with Wi-Fi as the fallback, I/O on the board.
+# See OpenHaunt/node docs/12-v0-prototype.md for the pin plan.
+CONFIG_IDF_TARGET="esp32s3"
+CONFIG_OH_BOARD_OH_NODE_V0_1=y
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions/esp32s3-16mb.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions/esp32s3-16mb.csv"
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_QUAD=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_ETH_USE_SPI_ETHERNET=y
+CONFIG_ETH_SPI_ETHERNET_W5500=y
+CONFIG_OH_TRANSPORT_ETH_W5500=y
+CONFIG_OH_STATUS_LED_MONO_GPIO=y
+# The USB-C socket is the S3's own USB Serial/JTAG; UART0 is on test points.
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+# Audio (OpenHaunt/node doc 13): clips live on the "clips" FAT partition, named by
+# their sha256, which needs long file names.
+CONFIG_OH_AUDIO=y
+CONFIG_FATFS_LFN_HEAP=y
+CONFIG_FATFS_MAX_LFN=255

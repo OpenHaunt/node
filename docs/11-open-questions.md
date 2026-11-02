@@ -15,7 +15,7 @@ answered and are kept in place, marked RESOLVED or CLOSED, so their numbering st
 ### Q1 — LAN magnetics — RESOLVED
 
 **Würth 7490220122.** WE-LAN 1000BASE-T with 4PPoE, explicitly *"Compliant with IEEE 802.3bt for 4PPoE"*,
-**1000 mA per centre tap**, **350 µH**, 1500 V RMS, −40 to +105 °C, 24-pin SMD 17.55 × 14.7 × 8.8 mm,
+**1000 mA per center tap**, **350 µH**, 1500 V RMS, −40 to +105 °C, 24-pin SMD 17.55 × 14.7 × 8.8 mm,
 $6.98, 18,748 in stock. Covers Type 4's 960 mA, so the mainboard sets no power ceiling. See D28.
 
 **Two layout constraints it brings**, both settled. The bias rating applies to **pins 13–24 only** (`MCTx`,
@@ -33,7 +33,7 @@ UI, discovery through mDNS.
 
 The ESP32-S3 chosen in D32 has Wi-Fi and BLE on board anyway. They stay unused, cost nothing extra, and the
 module approval covers them. **BLE remains available** if a maintenance channel is ever wanted — being able
-to configure a node four metres up without a laptop is exactly what Wi-Fi was supposed to provide, without
+to configure a node four meters up without a laptop is exactly what Wi-Fi was supposed to provide, without
 the show-network traffic.
 
 Where wireless does belong is a battery or DC-powered power board. See D34.
@@ -66,7 +66,7 @@ what SPI ethernet can absorb, so sACN becomes a requirement.
 `PWR-AF` inherits the AP63205, a 2 A part, and it is fine there (the AP63203 is gone since D36; the mainboard uses an AMS1117). `PWR-AT` and
 `PWR-BT` need different parts: higher current, and a 24 V input rather than 12 V.
 
-The problem is that the right current per rail follows from the IO board catalogue, which is mostly still
+The problem is that the right current per rail follows from the IO board catalog, which is mostly still
 at concept level. **Decide the worst-case per-rail draw the range intends to support before selecting**,
 rather than sizing for 71 W on every rail, which would be expensive and thermally silly.
 
@@ -99,8 +99,8 @@ LAN8720AI shows 23,356 in stock at DigiKey in industrial grade while the RTL8201
 **The connector contains no LEDs.** The ring is a light guide; two LEDs go on the mainboard, left and
 right, per Detail X on Neutrik's drawing.
 
-**They are addressable RGB, not single colour.** Two **`IN-PI15TAT5R5G5B`**, 1.5 × 1.5 mm and **0.65 mm
-high** against Neutrik's 0.80 mm limit, cascaded on one data line from a single GPIO. Full colour on both
+**They are addressable RGB, not single color.** Two **`IN-PI15TAT5R5G5B`**, 1.5 × 1.5 mm and **0.65 mm
+high** against Neutrik's 0.80 mm limit, cascaded on one data line from a single GPIO. Full color on both
 ring halves, which turns a bare "is it alive" indicator into a real status display.
 
 **They need a level shifter.** Supply is 3.7 to 5.5 V, and a 3.3 V GPIO does not reliably clear the input
@@ -128,7 +128,7 @@ by the other two. Edge to edge, all three lie flat and can couple straight into 
 the mounting screws that take the connector strain are also the thermal path.
 
 **But the enclosure is now 3D-printed, and that removes the floor as a heatsink.** PLA is around
-0.13 W/mK against aluminium's ~200. The conducted path this section assumed does not exist in plastic, and
+0.13 W/mK against aluminum's ~200. The conducted path this section assumed does not exist in plastic, and
 ~8 W on a `PWR-BT4` board has to leave a closed box some other way.
 
 Three consequences, none of them blocking but all of them real:
@@ -187,7 +187,7 @@ Putting the IO board across the back of both gives each board a direct connectio
 exchanges. Both original goals survive, the passthrough disappears, and nothing has to be stacked.
 
 **What it introduced:** a ground triangle instead of a chain, and a fixed spacing between J3 and J4 that
-every IO board and every power board variant has to honour. Both are recorded in D35 and `06`.
+every IO board and every power board variant has to honor. Both are recorded in D35 and `06`.
 
 **A stacked power board was considered and rejected** — thermally it discards D31's main argument, and
 T1's 8.8 mm exceeds what a paired WR-PHD socket and header give (about 7.9 mm), so it would also have
@@ -248,13 +248,13 @@ industrial (EN IEC 61000-6-2 / -6-4)? Determines whether surge appears at the DM
 whether the PPTC and series resistor footprints get populated. **Settle with the test lab, do not assume.**
 
 Two emissions sources arrived with the three-board design and have not been assessed: switched-mode rails
-travelling between three coplanar boards on 2.54 mm headers, and a 71 W PD module sat on a board with four
+traveling between three coplanar boards on 2.54 mm headers, and a 71 W PD module sat on a board with four
 regulators and four eFuses, with the longest conductor in the product attached to it.
 
-### Q17 — Licence and openness
+### Q17 — License and openness
 
 Not decided. The repository is currently private. Options range from fully open hardware (CERN-OHL) with an
-open firmware licence, through open documentation with closed hardware files, to entirely proprietary.
+open firmware license, through open documentation with closed hardware files, to entirely proprietary.
 
 **D19 sharpened this.** A published third-party IO board interface is now a much safer thing to offer than
 it was, because a serial link cannot brick the host the way an exposed GPIO could. The haunt and escape

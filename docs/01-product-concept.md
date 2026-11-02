@@ -59,12 +59,12 @@ maintainability and remote diagnostics more valuable than fast setup.
 Consequences:
 
 - **Remote status and health reporting** matter more than in a seasonal maze.
-- **Deterministic reset behaviour** — the room must return to a known state between games, and after a power
+- **Deterministic reset behavior** — the room must return to a known state between games, and after a power
   cycle.
 
 ### Adjacent uses
 
-Small theatre, museum installations, themed retail, film and photo studio props. All of these have the same
+Small theater, museum installations, themed retail, film and photo studio props. All of these have the same
 shape: many small networked effects, no dedicated control infrastructure, and a strong preference for
 something that just appears on the network.
 
@@ -147,7 +147,7 @@ The cost is a second firmware image and a second update path. That is real work,
 | etherCON and all magnetics | PoE detection and classification | Application I/O of every kind |
 | Every impedance-controlled trace | The isolation barrier | All outward-facing connectors except the etherCON |
 | ESP32-S3, W5500, external flash | 24 V / 12 V / 5 V | Any additional isolation barrier |
-| mDNS, web UI, OTA, protocol stacks | Per-rail eFuse and metering | Local timing and failsafe behaviour |
+| mDNS, web UI, OTA, protocol stacks | Per-rail eFuse and metering | Local timing and failsafe behavior |
 | Status display on the Halo ring | Descriptor EEPROM | Self-description over the link |
 
 **DMX is an IO board, not a mainboard function.** This was deliberated and settled early: although the

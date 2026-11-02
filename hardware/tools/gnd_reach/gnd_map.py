@@ -1,6 +1,6 @@
 # GND pour analysis for the outer copper layers.
 #
-# - Reach: every GND pixel (zone fill, GND tracks, GND pads) is coloured by the distance *through copper* to the
+# - Reach: every GND pixel (zone fill, GND tracks, GND pads) is colored by the distance *through copper* to the
 #   nearest GND via or plated GND hole. Inner layers are assumed to be solid GND planes, so a via is a plane
 #   connection. Long reach = a pour finger that only connects at one end ("antenna").
 # - Thin: parts of the GND zone fill where a 0.6 mm disc does not fit (necks, slivers, fingers).
@@ -51,7 +51,7 @@ for L,lay in D['layers'].items():
     # thin pour: zone pixels where a disk of diameter 0.6 mm does not fit
     rr=int(0.3*R); disk=(np.add.outer(np.arange(-rr,rr+1)**2,np.arange(-rr,rr+1)**2)<=rr*rr)
     thin=zone&~ndi.binary_opening(zone,structure=disk)
-    # colour image
+    # color image
     img=np.zeros((H,W,3),np.uint8); img[:]=(18,18,18)
     img[other]=(70,70,70)
     def ramp(d):

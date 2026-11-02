@@ -11,7 +11,7 @@ mainboard schematic; the schematic was completed the same evening. This is the a
 | PoE | 2 × MB10S-50MIL bridges (since 2026-10-01; were 4 × V6K100DUHM3/H), SMAJ58A, AG9912-MTB, C2 100 µ/25 V polymer (FP-025ME101M-SAR) + C3, C4 22 µ/25 V | **12 V** (since 2026-10-05; was AG9905-MTB, 5 V), 12 W to 70 °C, 9 W at 85 °C, 1.0 A. Class 0, min load 100 mA. Output caps per the datasheet: ≥ 100 µF / 25 V at the module. The MB10S is Silvertel's own Fig. 14 choice; ~0.2 W more loss than the Schottky pairs |
 | 5 V | AP63205WU-7 (U7), L2 4.7 µH SWPA6045S4R7MT, C35 22 µ in, C36 + C37 22 µ out, C38 100 n bootstrap | 12 V → 5 V, 2 A, fixed output (FB to +5V), EN tied to VIN, spread spectrum. Values from table 3 of the AP63205 datasheet. Feeds every former +5V load |
 | 3.3 V | AMS1117-3.3, C34 22 µ in, C5 10 µ + C25 22 µ out | C34 (CL21A226MAQNNNE, 0805, ≈ 10–14 µF at 5 V) on the +5V trunk about 3 mm from U3 pin 3; the datasheet recommends 10 µF at the input |
-| Relays | 4 × Omron G2RL-1-E DC5, 2 × DMN2004DWK-7, 4 × 1N4148WS | 1 K gate series, 10 K pull-down on the GPIO side of the 1 K, so the gate sees the full 3.3 V. DMN2004DWK since 2026-10-04: VGS(th) ≤ 1.0 V, RDS(on) ≤ 0.7 Ω at 2.5 V; the DMN601DWK (VGS(th) up to 2.5 V, RDS(on) only specified at 5 V) was marginal for the 80 mA coil. Würth 691137710003 screw terminal per relay, pins 1–3: COM / NO / NC. **Max. 10 A per channel**: the 2.5 mm tracks run on all four layers; the two outer layers alone carry about 12 A at 20 K rise; relay and terminal could do 16 A. Relay circuits are at least 4 mm apart (DRC rule `mains_between_relays`, 4.8 mm measured), so neighbouring relays may switch different phases. G2RL since 2026-09-30: 5 kV coil–contact, 8 mm / 8 mm, for 230 V outdoors; the G5LE was basic insulation only |
+| Relays | 4 × Omron G2RL-1-E DC5, 2 × DMN2004DWK-7, 4 × 1N4148WS | 1 K gate series, 10 K pull-down on the GPIO side of the 1 K, so the gate sees the full 3.3 V. DMN2004DWK since 2026-10-04: VGS(th) ≤ 1.0 V, RDS(on) ≤ 0.7 Ω at 2.5 V; the DMN601DWK (VGS(th) up to 2.5 V, RDS(on) only specified at 5 V) was marginal for the 80 mA coil. Würth 691137710003 screw terminal per relay, pins 1–3: COM / NO / NC. **Max. 10 A per channel**: the 2.5 mm tracks run on all four layers; the two outer layers alone carry about 12 A at 20 K rise; relay and terminal could do 16 A. Relay circuits are at least 4 mm apart (DRC rule `mains_between_relays`, 4.8 mm measured), so neighboring relays may switch different phases. G2RL since 2026-09-30: 5 kV coil–contact, 8 mm / 8 mm, for 230 V outdoors; the G5LE was basic insulation only |
 | PIR | 2 × Würth 691137710003: **12 V**, GND, signal | 12 V through a PPTC per terminal (F1/F2, 0805L020/30XR, 200 mA hold). Signal: 10 K pull-up to +3V3 at the terminal (R35/R37), 10 K series to the GPIO (R34/R36). Works with a contact to GND (NO or NC, polarity in firmware) and with an active 3.3 V output; a 12 V level on the signal pin injects only ~0.8 mA. Changed 2026-10-05 from 5 V, 1 K series, 100 K pull-down, which a contact to GND could not drive. Inputs read contacts and sinking (open-collector/NPN) outputs. A sensor that drives +12 V onto the signal pin and floats when idle always reads high: the 10 K pull-up holds the floating state high too |
 | WS2812 | 2 × 74AHCT1G125 + 150 R, 10 K pull-down on each buffer input (R20, R49) | Würth 691137710002: data, GND. No 5 V on the terminal. The pull-downs hold the AHCT inputs low while GPIO17/18 float in reset, boot and download mode, so a strip shows no random pixels at power-up (added 2026-10-05) |
 | Audio | MAX98357A, CUI SJ1-3523N, C21 100 µ 1206 bulk at U6 | Jack carries the bridged speaker output: tip OUTP, ring open, sleeve OUTN. Not line-out, and the sleeve is not ground; see "Line out" below. No WAGO terminal in parallel (D37 listed one); a speaker needs a 3.5 mm plug |
@@ -60,9 +60,25 @@ V0.2 (2026-10-17) uses the spares and GPIO39, and swaps GPIO18 and GPIO38:
 | 38 | `WS_OUT2` (U5), moved from GPIO18 for routing |
 | 18 | header GPIO on J12 pin 5, in place of GPIO38 (ADC2_CH7, digital use only while WiFi runs) |
 
+The firmware numbers the sensors by position, like the strips: sensor 1 is the lower terminal
+(J10) on both revisions, which is GPIO15 and "PIR1" on V0.2 but GPIO16 on V0.1. So a harness fits
+either board (2026-10-27).
+
 `WS_OUT1` stays on GPIO17. Firmware: the second WS2812 output is GPIO38 on V0.2 and GPIO18 on V0.1.
 
 J12 in V0.2: 3V3, 5V, 12V, GPIO2, GPIO18, SCL, SDA, GND (pins 1–8).
+
+## Firmware
+
+`firmware/` builds `oh-node-v0.1` and `oh-node-v0.2` (`scripts/build.sh <board>`). A V0 node
+describes its on-board I/O as module type `0x0F01` "Node V0" (source `board`): relays on ports 0–3,
+the sensor terminals on 4–5, and each strip as a head of its own (head 1 on ports 6–14, head 2 on
+15–23, or no ports at all in `sacn` mode: see [14 — Pixel strips, and heads](14-pixels.md)),
+identical on both revisions so the console makes one fixture type per head. The revision only changes the bindings: the sensor polarity
+(a contact closed to GND reads *true* on both, so V0.1 inverts and V0.2 does not) and the second strip
+pin. Ethernet (W5500, 20 MHz, the S3's own Ethernet MAC) comes first, and with credentials Wi-Fi stands by
+beside it (D38). Details and the reasons are in the firmware README, "The V0 prototype", and what has run on
+a V0.2 so far in its "Status".
 
 ## Power budget
 
@@ -119,7 +135,8 @@ CC1/CC2 makes it switch on. A 500 mA PC port browns out once relays and amplifie
 nothing flows back into the host or the module. When PoE drops, the mux switches to USB within 5 µs (fast
 switchover, CP2 above VREF); +5V dips by roughly 1 A × 5 µs / 130 µF ≈ 0.04 V below the 4.57 V threshold,
 estimated from the datasheet's VOUT,MIN formula. With CP2 on GND, as first drawn, it was up to 100 µs and
-~0.8 V, enough to brown out the S3.
+~0.8 V, enough to brown out the S3. On a built V0.2 (2026-10-26), plugging PoE in and pulling it again with
+USB attached, with a stream playing, reset nothing in either direction.
 
 **Short on a sensor cable.** The boost cannot disconnect its output, so the short draws from +5V through L2
 and D21 (9 A surge rating) until the terminal's PPTC trips. +5V may dip long enough to reset the S3.
@@ -135,7 +152,7 @@ table where they differ; the open list is `hardware/ToDo.md`.
 | Block | Parts | Notes |
 |---|---|---|
 | PIR | per input: MMBT3904 (Q3/Q4, Part-DB 619), 1N4148WS (D18/D19), 10K pull-up (R35/R37), 10K base (R34/R36), 100K base–GND (R57/R59), 10K collector pull-up to +3V3 (R58/R60) | 12 V tolerant, nothing flows back into 3V3. Pull-up from +3V3 through R35 and the diode to the terminal; the diode blocks a 12 V level. Terminal → 10K → base, 100K to GND, collector to the GPIO. Contact to GND: transistor off, GPIO high. Open terminal or a 3.3–12 V level: GPIO low. **Logic is inverted against V0.1** (firmware). A series-R-plus-clamp cannot do both: a contact to GND reads ~1.65 V, or 12 V feeds mA into 3V3 through the clamp diode. 12 V through F1/F2 as before. J8 → Q3 → `PIR2` (GPIO16), J10 → Q4 → `PIR1` (GPIO15), swapped to match the board labels |
-| Status LEDs | relays D3/D4/D14/D15 KT-0603R, PIRs D16/D17 KT-0805Y (Part-DB 620), each with 1K (R51–R56) | One GPIO per LED, low-side (GPIO → 1K → LED → GND), high = on. No LED ground switch; dark mode is firmware. GPIO3/45/46 are strapping pins: with low-side LEDs and no pull-ups they keep their default level. Relay LEDs sit at the same offset (12.8 mm) from each relay |
+| Status LEDs | relays D3/D4/D14/D15 KT-0603R, PIRs D16/D17 KT-0805Y (Part-DB 620), each with 1K (R51–R56) | One GPIO per LED, low-side (GPIO → 1K → LED → GND), high = on. No LED ground switch; dark mode is firmware: BOOT toggles it (firmware README, "The V0 prototype"). GPIO3/45/46 are strapping pins: with low-side LEDs and no pull-ups they keep their default level. Relay LEDs sit at the same offset (12.8 mm) from each relay |
 | Audio | PCM5102APWR (U9, Part-DB 618) line out on a Kycon STX-3000 (J1, Part-DB 617); MAX98357A (U6) on Würth 691137710002 (J13, Part-DB 585) | Both on the same I2S lines (GPIO40/41/42), so both get the same stream. PCM5102A in hardware mode: FMT, FLT, DEMP, SCK on GND (I2S, internal PLL from BCK), `XSMT` on GPIO39 with R61 10K to GND (muted until the firmware releases it). Output RC 470 Ω (R62/R63) / 2.2 nF (C46/C47) per channel. AVDD and CPVDD on `/AVDD` behind L3 BLM15AG601SN1D from +3V3, against WiFi bursts on the rail, with C40/C43 (CPVDD) and C41/C49 (AVDD); DVDD stays on +3V3 with C42/C50. Jack: tip = L, ring = R, sleeve = GND. Speaker: J13 pin 1 OUTP, pin 2 OUTN. SD_MODE through R69 47K from GPIO48, R70 10K to GND: ~0.53 V, the (L+R)/2 window of 0.355–0.65 V (datasheet Table 5, internal 100 kΩ ± 8 %), so the speaker plays a mono mix. GPIO48 low or floating = amplifier off. Neither chip has a volume control: volume is set by scaling the samples and applies to both outputs; XSMT and AMP_EN mute each output on its own |
 | Buttons | SW1 BOOT on IO0, SW2 RST on EN, XKB TS-1187A (Part-DB 587) | Reset button no longer deferred |
 | PoE thermal | 25 VIN− vias in the footprint, VIN− zone on all four layers inside the isolation ring | Fig. 12 of the Ag9900 datasheet. −VDC is the GND pour with vias at x 78. No separate +VDC plane |
@@ -144,8 +161,14 @@ table where they differ; the open list is `hardware/ToDo.md`.
 = the contact at the plug's end. CUI uses the same symbol on the SJ1-3523N and labels the end contact tip
 and the middle spring ring; Kycon's STX-3501-3N, same symbol, puts the end-contact pin at the back of the
 jack where the tip sits. So pin 2 = ring, pin 3 = tip. The footprint first had it the other way round and
-was fixed on 2026-10-17. Pins 2 and 3 sit at the same depth, so the drawing's symbol is the only evidence;
-confirm with a plug and a meter.
+was fixed on 2026-10-17. Pins 2 and 3 sit at the same depth, so the drawing's symbol is the only evidence.
+Confirmed on a built V0.2 on 2026-10-26: a 440 Hz tone on the left channel only and 880 Hz on the right
+only came out left and right in headphones; on 2026-10-27 so did a spoken "left" and "right", one per
+channel, and with the channels swapped in firmware they came out of the wrong sides.
+Not checked with a plug and a meter; the two listening tests, one each way round in firmware, stand in for
+it. A swap back to the first pad names on 2026-10-26 (29feacd, with `OH_AUDIO_SWAP_LR` in firmware) was
+wrong and was reverted on 2026-10-27, in this repo and in `LRV:Jack_3.5mm_Kycon_STX-3000_Horizontal`,
+which has R at (−4.25, −5.3) and T at (1.25, −5.3), as the boards were built.
 
 **GND stitching.** 162 GND vias added on 2026-10-17 with a script that checks clearance on all four layers,
 keepouts and hole spacing: next to SMD GND pads more than 1 mm from a via, beside signal vias that had no
@@ -175,7 +198,7 @@ COM 3/6, NO 4/5, each contact on two pins. Symbol pins: A1/A2 coil, 12 NC, 11 CO
 
 ## Before layout
 
-- Domain 1 is the magjack centre taps, the bridges, the TVS and the module input. Keep the 1500 V
+- Domain 1 is the magjack center taps, the bridges, the TVS and the module input. Keep the 1500 V
   clearance to everything else.
 - Keep-out under the module (Ag9905, now Ag9912) per Figure 17 of the datasheet.
 - Check the Ag9900 3D model offset once in the viewer; it came from the CSE file.
@@ -231,6 +254,6 @@ pegs) instead of the SJ1-3523N (12 mm wide), which was taken for V0 without a co
 `AudioJack3` symbol, PCB edge marked 1.9 mm behind the front face so the bushing can pass through a panel.
 3D model from SamacSys (Kycon offers none), placed by its own geometry: board plane at the 0.5 mm standoff,
 not SamacSys's z offset, which sinks it 0.5 mm into the board. The model's kinked pins sit 0.15 mm off the
-drawing's slot centres, inside the slots. Part-DB entry still to be created (DigiKey 2092-STX-3000-ND).
+drawing's slot centers, inside the slots. Part-DB entry still to be created (DigiKey 2092-STX-3000-ND).
 *Built in V0.2 as described ("V0.2 board changes"); Part-DB 617. The T and R pad names were swapped in the
 first version of the footprint and fixed on 2026-10-17.*
