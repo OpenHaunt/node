@@ -362,6 +362,17 @@ a V0.2 on the bench. `/status` and `/info` name the build as well: `build` is th
 built from (`-dirty` with uncommitted changes) and `buildTime` when, in UTC, since `fw` stays the
 same from one build to the next.
 
+On the cable, `/status` names the switch port at the other end: `network.switch` carries the
+switch's LLDP System Name, the port, its management IP and how long ago it was heard (`null`
+with none heard since the link came up). The node sends LLDP of its own every 30 s and at once
+on a rename or link up, with the friendly name as System Name. The friendly name also becomes
+the DHCP hostname (`network.dhcpHostname`, `Coffin Room DMX` → `coffin-room-dmx`, umlauts
+spelled out), renewed at once so the router's client list follows a rename; without a name it
+stays `openhaunt-<sn>`. mDNS answers to that name too (`coffin-room-dmx.local`), beside
+`openhaunt-<sn>.local`, which stays, as do the service instance and the setup AP's SSID. A Mac
+keeps answering an old alias from its cache for up to two minutes after a rename. The W5500 has no MAC filter slot for LLDP's group address, so the V0 boards
+receive it in promiscuous mode and drop unicast for other hosts before lwIP sees it.
+
 Still written only from the schematic, the datasheets and the ESP-IDF documentation: the
 sensor polarity on real terminals, the strips on GPIO17/18/38 (both modes, the DMA split, RGBW,
 the sACN receiver with several multicast joins, the frame rates), the speaker amplifier, and

@@ -128,6 +128,25 @@ each one has left.
 DHCP by default, with a static fallback configurable through the web UI. mDNS hostnames mean the DHCP lease
 churn that plagues seasonal installations stops mattering.
 
+The router and the switch get the node's name as well, so a client list or a port table is readable
+without a lookup:
+
+- **DHCP hostname** (option 12): the friendly name folded into a DNS label (`Coffin Room DMX` →
+  `coffin-room-dmx`), renewed at once on a rename. Without a user-given name it is `openhaunt-<sn>`.
+  UniFi and most consumer routers label a client by this, and UniFi's port view borrows that label.
+- **LLDP**, on Ethernet: the friendly name as System Name, module and firmware as System Description,
+  the IP as management address, every 30 s with a TTL of 120 s. Managed switches (Cisco, Netgear AV,
+  Luminex, Yamaha) list it in their neighbour table. The node also reads the switch's LLDP, and
+  `/status` reports the switch and port it is plugged into.
+
+- **mDNS**: the same folded name as a second hostname, `coffin-room-dmx.local` beside
+  `openhaunt-<sn>.local`. It follows renames and address changes; a node without a name has only the
+  second one.
+
+`openhaunt-<sn>.local` and the service instance `openhaunt-<sn>._openhaunt._tcp` never change: a
+bookmark or script should survive a rename, and the-pult reads the serial out of the instance name when
+a node goes away. The alias is not probed, so two nodes given the same name both answer to it.
+
 ## Control interfaces
 
 Four, each for a different job. Resisting the urge to do everything over one protocol is deliberate.

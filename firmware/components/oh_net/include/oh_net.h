@@ -10,6 +10,7 @@
 
 #include "cJSON.h"
 #include "esp_err.h"
+#include "oh_lldp.h"
 #include "oh_module.h"
 
 #ifdef __cplusplus
@@ -44,6 +45,19 @@ void oh_net_ssid(char *out, size_t cap);
 int oh_net_rssi(void);
 void oh_net_ap_ssid(char *out, size_t cap);
 
+/* The friendly name as the router should see it: folded into DHCP option 12
+ * (oh_hostname.h) and renewed at once. "" (no name of the user's) is
+ * openhaunt-<sn>. Callable before oh_net_init, which then starts with it. */
+void oh_net_set_dhcp_name(const char *name);
+void oh_net_dhcp_hostname(char *out, size_t cap);
+
+/* LLDP's System Name and Description, sent on the cable every 30 s and at once
+ * when either changes. Nothing on a node without Ethernet. */
+void oh_net_set_lldp(const char *name, const char *desc);
+/* The switch on the other end of the cable, as its LLDP last said, and how many
+ * seconds ago. False with none heard since the link came up, or its TTL run out. */
+bool oh_net_lldp_neighbor(oh_lldp_neighbor_t *out, uint32_t *age_s);
+
 /* Re-read Wi-Fi credentials / IP settings from oh_config and apply them. */
 esp_err_t oh_net_apply_wifi(void);
 esp_err_t oh_net_apply_ip(void);
@@ -53,6 +67,11 @@ cJSON *oh_net_wifi_scan(void);
 
 /* mDNS: `_openhaunt._tcp` on port 80, instance and hostname openhaunt-<sn>. */
 esp_err_t oh_mdns_start(const char *sn);
+/* A second hostname beside openhaunt-<sn> ("" for none): the friendly name, as
+ * oh_net_set_dhcp_name folds it. Set before oh_mdns_start, it is applied there. */
+void oh_mdns_set_alias(const char *alias);
+/* Hand the alias the node's current addresses; oh_net calls it on every change. */
+void oh_mdns_refresh_alias(void);
 /* `desc` is the description's checksum (doc 14): a console fetches /api/v1/info
  * again when it changes. */
 esp_err_t oh_mdns_update(const oh_module_t *module, const char *name, const char *fw, const char *sn,

@@ -440,6 +440,27 @@ static cJSON *status_json(void)
         cJSON_AddStringToObject(a, "ip", addrs[i].ip);
         cJSON_AddItemToArray(list, a);
     }
+    /* What the router's client list calls the node: the friendly name folded into
+     * a DHCP hostname, or openhaunt-<sn> without one. */
+    char dhcp_host[33];
+    oh_net_dhcp_hostname(dhcp_host, sizeof(dhcp_host));
+    cJSON_AddStringToObject(net, "dhcpHostname", dhcp_host);
+    /* The switch port on the other end of the cable, from its LLDP: which switch,
+     * which port, so tracing a cable starts at the right end. null with none. */
+    oh_lldp_neighbor_t nb;
+    uint32_t nb_age;
+    if (oh_net_lldp_neighbor(&nb, &nb_age)) {
+        cJSON *sw = cJSON_AddObjectToObject(net, "switch");
+        cJSON_AddStringToObject(sw, "name", nb.system_name);
+        cJSON_AddStringToObject(sw, "port", nb.port_desc[0] ? nb.port_desc : nb.port_id);
+        cJSON_AddStringToObject(sw, "portId", nb.port_id);
+        cJSON_AddStringToObject(sw, "chassisId", nb.chassis_id);
+        cJSON_AddStringToObject(sw, "description", nb.system_desc);
+        cJSON_AddStringToObject(sw, "ip", nb.mgmt_ipv4);
+        cJSON_AddNumberToObject(sw, "age_s", nb_age);
+    } else {
+        cJSON_AddNullToObject(net, "switch");
+    }
 
     cJSON_AddStringToObject(o, "moduleSource", oh_app_module_source());
     /* The BOOT button, live, and the dark mode it toggles. */

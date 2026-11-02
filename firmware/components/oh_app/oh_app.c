@@ -339,6 +339,13 @@ const char *oh_app_module_source(void)
     }
 }
 
+static void set_dhcp_name(void)
+{
+    oh_config_t cfg;
+    oh_config_get(&cfg);
+    oh_net_set_dhcp_name(cfg.name);
+}
+
 void oh_app_announce(void)
 {
     char name[OH_NAME_MAX];
@@ -364,10 +371,18 @@ void oh_app_announce(void)
     }
     oh_node_lock();
     esp_err_t err = oh_mdns_update(oh_node_module(), name, oh_app_fw(), s_sn, desc);
+    char lldp_desc[128]; /* cut to OH_LLDP_STR on the way in */
+    snprintf(lldp_desc, sizeof(lldp_desc), "OpenHaunt node, %s, fw %s", oh_node_module()->module.name,
+             oh_app_fw());
     oh_node_unlock();
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
         ESP_LOGW(TAG, "mdns txt: %s", esp_err_to_name(err));
     }
+    /* The switch's neighbour table gets the name as the console shows it, the
+     * default "<module> <sn>" included; the router's client list only a name
+     * someone gave, and openhaunt-<sn> until then. */
+    oh_net_set_lldp(name, lldp_desc);
+    set_dhcp_name();
 }
 
 /* ── Reacting to config ───────────────────────────────────────────────── */
@@ -436,6 +451,8 @@ esp_err_t oh_app_init(void)
 
 esp_err_t oh_app_start_network(void)
 {
+    /* Before init, so the first DISCOVER already carries it. */
+    set_dhcp_name();
     esp_err_t err = oh_net_init(s_hostname);
     if (err != ESP_OK) {
         return err;

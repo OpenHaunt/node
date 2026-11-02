@@ -9,13 +9,22 @@
  * is given the chip's Ethernet MAC from efuse; without that every node would
  * come up as the driver's placeholder address and the switch would see one
  * host moving between ports.
+ *
+ * Both say who they are to the switch over LLDP and listen to what it says back
+ * (oh_lldp.h): a frame every 30 s, and one at once when the name changes or the
+ * cable goes in.
  */
+#include <string.h>
+
 #include "driver/gpio.h"
 #include "esp_eth.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_netif.h"
+#include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
+#include "oh_lldp.h"
 #include "oh_node.h"
 #include "sdkconfig.h"
 #ifdef CONFIG_OH_TRANSPORT_ETH_RMII
@@ -30,6 +39,160 @@
 
 static const char *TAG = "oh_eth";
 static esp_eth_handle_t s_eth;
+static esp_netif_t *s_netif;
+
+/* ── LLDP ─────────────────────────────────────────────────────────────── */
+
+#define LLDP_INTERVAL_S 30
+/* 802.1AB's default: four intervals, so a switch forgets the node two minutes
+ * after it goes quiet. */
+#define LLDP_TTL_S 120
+
+static struct {
+    portMUX_TYPE lock;
+    char name[OH_LLDP_STR];
+    char desc[OH_LLDP_STR];
+    esp_timer_handle_t timer;
+    uint8_t mac[6];
+    /* Our MAC filter could not take the LLDP group address (the W5500 has none
+     * for anything but IP multicast), so the chip takes every frame and
+     * eth_input drops the unicast ones meant for someone else. */
+    bool promiscuous;
+    oh_lldp_neighbor_t neighbor;
+    int64_t heard_us; /* 0: nothing heard since the link came up */
+} s_lldp = {.lock = portMUX_INITIALIZER_UNLOCKED};
+
+static void lldp_send(void)
+{
+    oh_lldp_self_t self = {.port_desc = "ethernet", .ttl_s = LLDP_TTL_S};
+    char name[OH_LLDP_STR], desc[OH_LLDP_STR];
+    portENTER_CRITICAL(&s_lldp.lock);
+    memcpy(name, s_lldp.name, sizeof(name));
+    memcpy(desc, s_lldp.desc, sizeof(desc));
+    portEXIT_CRITICAL(&s_lldp.lock);
+    if (!name[0]) {
+        return; /* not told yet: oh_app_announce comes right after init */
+    }
+    memcpy(self.mac, s_lldp.mac, 6);
+    self.system_name = name;
+    self.system_desc = desc;
+    esp_netif_ip_info_t ip;
+    if (s_netif && esp_netif_get_ip_info(s_netif, &ip) == ESP_OK) {
+        self.ipv4 = ip.ip.addr;
+    }
+    uint8_t frame[OH_LLDP_FRAME_MAX];
+    const size_t n = oh_lldp_build(&self, frame, sizeof(frame));
+    if (n == 0) {
+        return;
+    }
+    /* Refused while the link is down, which is fine: link up sends again. */
+    esp_eth_transmit(s_eth, frame, n);
+}
+
+static void on_lldp_timer(void *arg)
+{
+    (void)arg;
+    lldp_send();
+}
+
+void oh_eth_lldp_set(const char *name, const char *desc)
+{
+    bool changed;
+    portENTER_CRITICAL(&s_lldp.lock);
+    changed = strncmp(s_lldp.name, name, sizeof(s_lldp.name) - 1) != 0 ||
+              strncmp(s_lldp.desc, desc, sizeof(s_lldp.desc) - 1) != 0;
+    strlcpy(s_lldp.name, name, sizeof(s_lldp.name));
+    strlcpy(s_lldp.desc, desc, sizeof(s_lldp.desc));
+    portEXIT_CRITICAL(&s_lldp.lock);
+    if (changed && s_eth) {
+        lldp_send();
+    }
+}
+
+bool oh_eth_lldp_neighbor(oh_lldp_neighbor_t *out, uint32_t *age_s)
+{
+    const int64_t now = esp_timer_get_time();
+    portENTER_CRITICAL(&s_lldp.lock);
+    const int64_t heard = s_lldp.heard_us;
+    const bool fresh = heard && now - heard < (int64_t)s_lldp.neighbor.ttl_s * 1000000;
+    if (fresh) {
+        *out = s_lldp.neighbor;
+    }
+    portEXIT_CRITICAL(&s_lldp.lock);
+    if (fresh && age_s) {
+        *age_s = (uint32_t)((now - heard) / 1000000);
+    }
+    return fresh;
+}
+
+static void lldp_forget(void)
+{
+    portENTER_CRITICAL(&s_lldp.lock);
+    s_lldp.heard_us = 0;
+    portEXIT_CRITICAL(&s_lldp.lock);
+}
+
+/*
+ * Every received frame passes here before lwIP, which would drop LLDP anyway.
+ * Runs in the driver's receive task and owns `buffer`: whatever is not handed to
+ * esp_netif_receive is freed.
+ */
+static esp_err_t eth_input(esp_eth_handle_t eth, uint8_t *buffer, uint32_t length, void *priv)
+{
+    (void)eth;
+    if (length >= 14) {
+        const uint16_t type = (uint16_t)(buffer[12] << 8 | buffer[13]);
+        const bool tagged_lldp = type == 0x8100 && length >= 18 &&
+                                 (uint16_t)(buffer[16] << 8 | buffer[17]) == OH_LLDP_ETHERTYPE;
+        if (type == OH_LLDP_ETHERTYPE || tagged_lldp) {
+            oh_lldp_neighbor_t nb;
+            if (oh_lldp_parse(buffer, length, &nb)) {
+                portENTER_CRITICAL(&s_lldp.lock);
+                s_lldp.neighbor = nb;
+                /* TTL 0 is a switch saying it is going away. */
+                s_lldp.heard_us = nb.ttl_s ? esp_timer_get_time() : 0;
+                portEXIT_CRITICAL(&s_lldp.lock);
+            }
+            free(buffer);
+            return ESP_OK;
+        }
+        if (s_lldp.promiscuous && !(buffer[0] & 1) && memcmp(buffer, s_lldp.mac, 6) != 0) {
+            free(buffer);
+            return ESP_OK;
+        }
+    }
+    return esp_netif_receive((esp_netif_t *)priv, buffer, length, NULL);
+}
+
+static void lldp_start(void)
+{
+    esp_eth_ioctl(s_eth, ETH_CMD_G_MAC_ADDR, s_lldp.mac);
+    uint8_t group[6];
+    memcpy(group, OH_LLDP_MULTICAST, 6);
+#ifdef CONFIG_OH_TRANSPORT_ETH_W5500
+    /* Its driver refuses anything but IP multicast, and logs two errors saying so. */
+    const bool filtered = false;
+#else
+    const bool filtered = esp_eth_ioctl(s_eth, ETH_CMD_ADD_MAC_FILTER, group) == ESP_OK;
+#endif
+    if (!filtered) {
+        bool on = true;
+        esp_err_t err = esp_eth_ioctl(s_eth, ETH_CMD_S_PROMISCUOUS, &on);
+        s_lldp.promiscuous = err == ESP_OK;
+        if (err != ESP_OK) {
+            ESP_LOGW(TAG, "LLDP: cannot receive the group address (%s); sending only", esp_err_to_name(err));
+        } else {
+            ESP_LOGI(TAG, "LLDP: receiving in promiscuous mode, foreign unicast dropped before lwIP");
+        }
+    }
+    /* After esp_netif_attach, which set the glue's own input path: this one
+     * replaces it and passes everything that is not LLDP on to the same netif.
+     * (The glue's version also feeds the L2 TAP, which this project leaves off.) */
+    ESP_ERROR_CHECK(esp_eth_update_input_path(s_eth, eth_input, s_netif));
+    esp_timer_create_args_t t = {.callback = on_lldp_timer, .name = "lldp"};
+    ESP_ERROR_CHECK(esp_timer_create(&t, &s_lldp.timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(s_lldp.timer, (uint64_t)LLDP_INTERVAL_S * 1000000));
+}
 
 static void eth_event(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
@@ -39,9 +202,13 @@ static void eth_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     switch (id) {
     case ETHERNET_EVENT_CONNECTED:
         ESP_LOGI(TAG, "link up");
+        /* The switch learns the name now rather than up to 30 s from now. */
+        lldp_send();
         break;
     case ETHERNET_EVENT_DISCONNECTED:
         ESP_LOGW(TAG, "link down");
+        /* The cable may come back in another port. */
+        lldp_forget();
         oh_node_post(OH_EVENT_NET_DOWN, NULL, 0);
         break;
     default:
@@ -165,8 +332,11 @@ esp_err_t oh_eth_init(const char *hostname, esp_netif_t **netif_out)
     esp_netif_t *netif = esp_netif_new(&netif_cfg);
     ESP_ERROR_CHECK(esp_netif_attach(netif, esp_eth_new_netif_glue(s_eth)));
     esp_netif_set_hostname(netif, hostname);
+    s_netif = netif;
     ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, eth_event, NULL));
     *netif_out = netif;
+    /* Before the driver runs: the input path is swapped without a lock. */
+    lldp_start();
     return esp_eth_start(s_eth);
 }
 

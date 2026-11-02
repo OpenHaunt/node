@@ -6,12 +6,16 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
+#include "esp_netif_net_stack.h"
 #include "esp_netif_sntp.h"
 #include "esp_timer.h"
 #include "dhcpserver/dhcpserver.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
+#include "lwip/dhcp.h"
+#include "lwip/netif.h"
 #include "oh_config.h"
+#include "oh_hostname.h"
 #include "oh_node.h"
 #include "sdkconfig.h"
 
@@ -21,7 +25,8 @@ esp_err_t oh_captive_dns_start(void);
 void oh_captive_dns_stop(void);
 
 static struct {
-    char hostname[32];
+    char hostname[32];      /* openhaunt-<sn>: the setup AP's SSID, and DHCP's without a name */
+    char dhcp_name[33];     /* from the friendly name, "" for none */
     esp_netif_t *sta;
     esp_netif_t *ap;
     esp_netif_t *eth;
@@ -88,7 +93,15 @@ static esp_netif_t *active_netif(void)
 static void refresh_state(void)
 {
     set_state(active_netif() ? OH_NET_UP : (s.ap_up ? OH_NET_SETUP_AP : OH_NET_DOWN));
+    oh_mdns_refresh_alias();
     oh_node_post(OH_EVENT_NET_CHANGED, NULL, 0);
+}
+
+/* What DHCP option 12 says: the friendly name when there is one, so the router's
+ * client list and the switch port view that borrows it name the node. */
+static const char *dhcp_hostname(void)
+{
+    return s.dhcp_name[0] ? s.dhcp_name : s.hostname;
 }
 
 /* ── SNTP ─────────────────────────────────────────────────────────────── */
@@ -325,7 +338,7 @@ static esp_err_t wifi_init(void)
 {
     s.sta = esp_netif_create_default_wifi_sta();
     s.ap = esp_netif_create_default_wifi_ap();
-    esp_netif_set_hostname(s.sta, s.hostname);
+    esp_netif_set_hostname(s.sta, dhcp_hostname());
     wifi_init_config_t init = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&init));
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event, NULL));
@@ -504,7 +517,7 @@ esp_err_t oh_net_init(const char *hostname)
     }
 #endif
     extern esp_err_t oh_eth_init(const char *hostname, esp_netif_t **netif);
-    err = oh_eth_init(s.hostname, &s.eth);
+    err = oh_eth_init(dhcp_hostname(), &s.eth);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "ethernet init failed: %s", esp_err_to_name(err));
     } else {
@@ -542,6 +555,72 @@ esp_err_t oh_net_apply_ip(void)
         apply_static_ip(s.eth);
     }
     return ESP_OK;
+}
+
+/* In the TCP/IP task. A renew carries the new hostname, keeps the address and
+ * does not drop a connection, so a router hears the name now rather than at half
+ * the lease. Unbound (or static), the next DISCOVER carries it anyway. */
+static esp_err_t renew(void *ctx)
+{
+    struct netif *n = esp_netif_get_netif_impl((esp_netif_t *)ctx);
+    if (n && dhcp_supplied_address(n)) {
+        dhcp_renew(n);
+    }
+    return ESP_OK;
+}
+
+void oh_net_set_dhcp_name(const char *name)
+{
+    char next[sizeof(s.dhcp_name)];
+    oh_hostname_from_name(name, next, sizeof(next));
+    if (strcmp(next, s.dhcp_name) == 0) {
+        return;
+    }
+    strcpy(s.dhcp_name, next);
+    ESP_LOGI(TAG, "DHCP hostname %s", dhcp_hostname());
+    oh_mdns_set_alias(s.dhcp_name);
+    esp_netif_t *const nifs[] = {s.eth, s.sta};
+    for (size_t i = 0; i < 2; i++) {
+        if (!nifs[i]) {
+            continue; /* not up yet: it takes the name when it is created */
+        }
+        esp_netif_set_hostname(nifs[i], dhcp_hostname());
+        esp_netif_dhcp_status_t st;
+        if (esp_netif_dhcpc_get_status(nifs[i], &st) == ESP_OK && st == ESP_NETIF_DHCP_STARTED) {
+            esp_netif_tcpip_exec(renew, nifs[i]);
+        }
+    }
+}
+
+void oh_net_dhcp_hostname(char *out, size_t cap)
+{
+    snprintf(out, cap, "%s", dhcp_hostname());
+}
+
+#ifdef CONFIG_OH_TRANSPORT_ETH
+void oh_eth_lldp_set(const char *name, const char *desc);
+bool oh_eth_lldp_neighbor(oh_lldp_neighbor_t *out, uint32_t *age_s);
+#endif
+
+void oh_net_set_lldp(const char *name, const char *desc)
+{
+#ifdef CONFIG_OH_TRANSPORT_ETH
+    oh_eth_lldp_set(name, desc);
+#else
+    (void)name;
+    (void)desc;
+#endif
+}
+
+bool oh_net_lldp_neighbor(oh_lldp_neighbor_t *out, uint32_t *age_s)
+{
+#ifdef CONFIG_OH_TRANSPORT_ETH
+    return s.eth && s.eth_link && oh_eth_lldp_neighbor(out, age_s);
+#else
+    (void)out;
+    (void)age_s;
+    return false;
+#endif
 }
 
 oh_net_state_t oh_net_state(void)
