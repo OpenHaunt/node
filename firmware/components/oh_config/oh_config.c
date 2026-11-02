@@ -20,7 +20,14 @@ static const char *TAG = "oh_config";
 #define VMOD_MAX 4096
 
 static oh_config_t s_cfg;
+/* Beside s_cfg rather than in it: a kilobyte that oh_config_get would copy every time
+ * anybody asks for the broker. */
+static oh_labels_t s_labels;
 static SemaphoreHandle_t s_lock;
+
+/* Stored as the JSON /config takes, under "labels", and read back through the same
+ * validation (without a module to check against: the module may not be bound yet). */
+#define LABELS_JSON_MAX 2048
 
 static void lock(void)
 {
@@ -109,6 +116,18 @@ esp_err_t oh_config_init(void)
         uint8_t dark = 0;
         nvs_get_u8(h, "dark", &dark);
         s_cfg.dark = dark != 0;
+        char *labels = malloc(LABELS_JSON_MAX);
+        if (labels) {
+            nvs_read_str(h, "labels", labels, LABELS_JSON_MAX);
+            cJSON *json = labels[0] ? cJSON_Parse(labels) : NULL;
+            char err[OH_ERR_MAX];
+            bool changed;
+            if (json && !oh_labels_merge(&s_labels, json, NULL, err, &changed)) {
+                ESP_LOGW(TAG, "stored labels ignored: %s", err);
+            }
+            cJSON_Delete(json);
+            free(labels);
+        }
         nvs_close(h);
     }
     if (!s_cfg.wifi_ssid[0] && CONFIG_OH_WIFI_SSID[0]) {
@@ -118,6 +137,33 @@ esp_err_t oh_config_init(void)
     ESP_LOGI(TAG, "name \"%s\" broker \"%s\" dmx %s/%u wifi \"%s\" %s", s_cfg.name, s_cfg.mqtt_broker,
              s_cfg.dmx_protocol, s_cfg.dmx_universe, s_cfg.wifi_ssid, s_cfg.static_ip ? "static" : "dhcp");
     return ESP_OK;
+}
+
+void oh_config_labels(oh_labels_t *out)
+{
+    lock();
+    *out = s_labels;
+    unlock();
+}
+
+static void announce(uint32_t mask);
+
+/* Persist and announce the whole set. */
+static esp_err_t set_labels(const oh_labels_t *labels)
+{
+    cJSON *json = oh_labels_to_json(labels);
+    char *text = json ? cJSON_PrintUnformatted(json) : NULL;
+    cJSON_Delete(json);
+    if (!text) {
+        return ESP_ERR_NO_MEM;
+    }
+    lock();
+    s_labels = *labels;
+    unlock();
+    esp_err_t err = nvs_write_str("labels", labels->n ? text : "");
+    free(text);
+    announce(OH_CFG_LABELS);
+    return err;
 }
 
 void oh_config_get(oh_config_t *out)
@@ -317,6 +363,8 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
     bool has_name = false, has_broker = false, has_dmx = false, has_wifi = false, has_net = false, static_ip = false;
     bool has_dark = false, dark = false;
     uint16_t universe = 0;
+    oh_labels_t *labels = NULL;
+    bool labels_changed = false;
 
     const cJSON *item = cJSON_GetObjectItemCaseSensitive(body, "name");
     if (item) {
@@ -430,6 +478,20 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
         has_dark = true;
     }
 
+    item = cJSON_GetObjectItemCaseSensitive(body, "labels");
+    if (item) {
+        labels = malloc(sizeof(*labels));
+        if (!labels) {
+            snprintf(err, OH_ERR_MAX, "out of memory");
+            return ESP_ERR_NO_MEM;
+        }
+        oh_config_labels(labels);
+        if (!oh_labels_merge(labels, item, module, err, &labels_changed)) {
+            free(labels);
+            return ESP_ERR_INVALID_ARG;
+        }
+    }
+
     /* Pass 2: apply, each setter persisting and announcing only on change. */
     oh_config_t before;
     oh_config_get(&before);
@@ -459,6 +521,13 @@ esp_err_t oh_config_apply_json(const cJSON *body, const oh_module_t *module, cha
                      strcmp(before.gateway, gw) || strcmp(before.dns, dns))
                         ? OH_CFG_NETWORK
                         : 0;
+    }
+    if (labels) {
+        if (labels_changed) {
+            set_labels(labels);
+            *changed |= OH_CFG_LABELS;
+        }
+        free(labels);
     }
     if (*changed) {
         ESP_LOGI(TAG, "config changed: mask 0x%02lx", (unsigned long)*changed);
@@ -490,6 +559,12 @@ cJSON *oh_config_to_json(void)
     cJSON_AddStringToObject(net, "gateway", c.gateway);
     cJSON_AddStringToObject(net, "dns", c.dns);
     cJSON_AddBoolToObject(o, "dark", c.dark);
+    oh_labels_t *labels = malloc(sizeof(*labels));
+    if (labels) {
+        oh_config_labels(labels);
+        cJSON_AddItemToObject(o, "labels", oh_labels_to_json(labels));
+        free(labels);
+    }
     return o;
 }
 

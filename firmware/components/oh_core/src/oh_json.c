@@ -129,6 +129,10 @@ cJSON *oh_json_info(const oh_module_t *m, const oh_node_identity_t *id)
     if (m->n_heads) {
         cJSON_AddItemToObject(o, "heads", oh_json_heads(m));
     }
+    /* Beside `name`, never in it: the name is what a console keys a port by. In the
+     * `desc` checksum too, so a console learns of a rename the way it learns of
+     * anything else the node says about itself. */
+    oh_labels_annotate(id->labels, o);
     /* Present only on a node that forwards a universe: its absence is what
      * tells a controller there is none to allocate. */
     if (m->has_dmx) {

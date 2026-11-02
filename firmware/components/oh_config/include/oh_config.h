@@ -10,6 +10,7 @@
 #include "cJSON.h"
 #include "esp_err.h"
 #include "oh_brokers.h"
+#include "oh_labels.h"
 #include "oh_module.h"
 #include "oh_pixel.h"
 
@@ -23,6 +24,7 @@ extern "C" {
 #define OH_CFG_WIFI (1u << 3)
 #define OH_CFG_NETWORK (1u << 4)
 #define OH_CFG_DARK (1u << 5)
+#define OH_CFG_LABELS (1u << 6)
 
 typedef struct {
     char name[OH_NAME_MAX];   /* "" = default "<module name> <sn>" */
@@ -61,6 +63,9 @@ bool oh_config_has_wifi(void);
 /* Dark mode: the node's indicator LEDs stay off (the BOOT button toggles it on V0). */
 esp_err_t oh_config_set_dark(bool dark);
 bool oh_config_dark(void);
+
+/* What somebody called the ports and heads (`labels` in /config), a copy. */
+void oh_config_labels(oh_labels_t *out);
 
 /* The friendly name as the TXT record and /info carry it. */
 void oh_config_node_name(const oh_module_t *module, const char *sn, char *out, size_t cap);

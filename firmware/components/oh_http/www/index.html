@@ -29,7 +29,7 @@ button.b.p{background:var(--acc);border-color:var(--acc);color:#000}button.b.d{b
 progress{width:100%;height:10px}code{font-family:ui-monospace,monospace}
 .sw{display:inline-block;width:34px;height:20px;border-radius:10px;background:var(--line);position:relative;cursor:pointer;vertical-align:middle}
 .sw.on{background:var(--ok)}.sw:after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:8px;background:#fff;transition:left .1s}.sw.on:after{left:16px}
-input[type=range]{padding:0}input[type=color]{padding:0;height:32px}
+.lbl{width:auto;min-width:9em;max-width:14em;padding:4px 6px}input[type=range]{padding:0}input[type=color]{padding:0;height:32px}
 .swatch{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid var(--line);vertical-align:-2px;margin-right:6px}
 </style>
 </head>
@@ -133,7 +133,7 @@ function render(){if(!info||!status)return;
  const st={};status.ports.forEach(p=>st[p.port]=p);
  // Rebuilding the table while a control in it has focus closes an open select and drops a
  // half-typed value; the next refresh after it loses focus catches up.
- const a=document.activeElement;if(!(a&&a!==document.body&&$('tPorts').contains(a)))$('tPorts').innerHTML='<tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr>'+(info.ports.length?info.ports.map(p=>`<tr><td>${p.port}</td><td>${esc(p.name)}${p.class?' <span class="pill">'+p.class+'</span>':''}</td><td>${p.access==='readonly'?'in':'out'} ${p.dataType}${p.unit?' '+p.unit:''}</td><td class="v">${st[p.port]?fmt(st[p.port],p)+' <span style="color:var(--mut)">'+since(st[p.port].ts)+'</span>':''}${status.effects&&status.effects[p.port]?' <span class="pill">'+esc(status.effects[p.port])+'</span>':''}</td><td>${p.access==='readwrite'?control(p,st[p.port]):''}</td></tr>`).join(''):'<tr><td colspan=5 style="color:var(--mut)">No ports: this node describes nothing and will not be adopted. Pick a module.</td></tr>');
+ const a=document.activeElement;if(!(a&&a!==document.body&&$('tPorts').contains(a)))$('tPorts').innerHTML='<tr><th>#</th><th>Name</th><th>Type</th><th>Value</th><th>Drive</th></tr>'+(info.ports.length?info.ports.map(p=>`<tr><td>${p.port}</td><td><input class="lbl" value="${esc(p.label||'')}" placeholder="${esc(p.name)}" title="What you call it. The module calls it ${esc(p.name)}." onchange="saveLabel('ports',${p.port},this)" onkeydown="if(event.key==='Enter')this.blur()">${p.label?' <span style="color:var(--mut);font-size:12px">'+esc(p.name)+'</span>':''}${p.class?' <span class="pill">'+p.class+'</span>':''}</td><td>${p.access==='readonly'?'in':'out'} ${p.dataType}${p.unit?' '+p.unit:''}</td><td class="v">${st[p.port]?fmt(st[p.port],p)+' <span style="color:var(--mut)">'+since(st[p.port].ts)+'</span>':''}${status.effects&&status.effects[p.port]?' <span class="pill">'+esc(status.effects[p.port])+'</span>':''}</td><td>${p.access==='readwrite'?control(p,st[p.port]):''}</td></tr>`).join(''):'<tr><td colspan=5 style="color:var(--mut)">No ports: this node describes nothing and will not be adopted. Pick a module.</td></tr>');
  $('errs').textContent=status.errors.length?status.errors.join(', '):'none';$('errs').className='msg '+(status.errors.length?'bad':'ok');
  $('fwCur').textContent=info.fw+(info.build?' '+info.build:'');$('board').textContent=status.board;$('modSrc').textContent=status.moduleSource;
  if(info.dmx){$('dmxCard').style.display='';$('dmxProto').innerHTML=info.dmx.protocols.map(p=>`<option>${p}</option>`).join('');}}
@@ -146,6 +146,9 @@ async function scan(){msg('mWifi','scanning…',true);try{const l=await get('/ap
 $('ssidList').onchange=()=>{$('ssid').value=$('ssidList').value;};
 async function saveWifi(){const w={ssid:$('ssid').value};if($('psk').value)w.psk=$('psk').value;try{await post('/api/v1/config',{wifi:w});msg('mWifi','saved — connecting to '+w.ssid+'. If you are on the setup AP, the node will leave it once connected.',true);$('psk').value='';}catch(e){msg('mWifi',e.message,false);}}
 async function saveIp(){const n={mode:$('ipMode').value,ip:$('ip').value,netmask:$('mask').value,gateway:$('gw').value,dns:$('dns').value};try{await post('/api/v1/config',{network:n});msg('mIp','applied',true);}catch(e){msg('mIp',e.message,false);}}
+// A label is what you call a port or a strip; its name stays the module's, which is what a console keys it by. Empty clears it.
+async function saveLabel(kind,n,el){try{await post('/api/v1/config',{labels:{[kind]:{[n]:el.value.trim()}}});el.style.borderColor='var(--ok)';setTimeout(()=>el.style.borderColor='',800);refresh();}catch(e){el.style.borderColor='var(--bad)';alert(e.message);}}
+function headLabel(h){const x=(info&&info.heads||[]).find(e=>e.head===h);return x&&x.label||'';}
 async function saveName(){try{await post('/api/v1/config',{name:$('name').value});msg('mName','saved',true);refresh();}catch(e){msg('mName',e.message,false);}}
 async function saveBroker(){try{await post('/api/v1/config',{mqtt:{broker:$('broker').value}});msg('mBroker','saved',true);loadCfg();}catch(e){msg('mBroker',e.message,false);}}
 async function saveDmx(){try{await post('/api/v1/config',{dmx:{protocol:$('dmxProto').value,universe:+$('dmxUni').value}});msg('mDmx','saved',true);loadCfg();}catch(e){msg('mDmx',e.message,false);}}
@@ -159,7 +162,7 @@ async function clearModule(){try{await post('/api/v1/module',{clear:true});msg('
 async function loadPixels(){let px;try{px=await get('/api/v1/pixels');}catch(e){$('pxCard').style.display='none';return;}
  $('pxCard').style.display='';
  $('pxStrips').innerHTML=px.strips.map(s=>{const o=s.output,st=s.status||{};
-  return`<div style="margin-bottom:14px"><b>Strip ${s.head}</b> <span style="color:var(--mut);font-size:13px">output ${o} · ${s.mode==='sacn'?(st.sources||0)+' sACN source'+(st.sources===1?'':'s')+' · '+(st.fps||0).toFixed(1)+' fps':'driven by ports'} · up to ${s.max_fps} fps at this length</span>
+  return`<div style="margin-bottom:14px"><input class="lbl" style="font-weight:600" value="${esc(headLabel(s.head))}" placeholder="Strip ${s.head}" title="What you call this strip" onchange="saveLabel('heads',${s.head},this)" onkeydown="if(event.key==='Enter')this.blur()"> <span style="color:var(--mut);font-size:13px">output ${o} · ${s.mode==='sacn'?(st.sources||0)+' sACN source'+(st.sources===1?'':'s')+' · '+(st.fps||0).toFixed(1)+' fps':'driven by ports'} · up to ${s.max_fps} fps at this length</span>
   <div class="row"><div><label>Pixels (1–${px.max_count})</label><input id="pxCount${o}" type="number" min="1" max="${px.max_count}" value="${s.count}"></div>
   <div><label>Color order</label><select id="pxOrder${o}">${px.orders.map(x=>`<option${x===s.order?' selected':''}>${x}</option>`).join('')}</select></div>
   <div><label>Mode</label><select id="pxMode${o}" onchange="pxMode(${o})"><option value="effect"${s.mode==='effect'?' selected':''}>effect (ports)</option><option value="sacn"${s.mode==='sacn'?' selected':''}>sACN</option></select></div></div>

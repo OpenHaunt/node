@@ -98,10 +98,15 @@ static esp_err_t get_info(httpd_req_t *req)
 {
     char name[OH_NAME_MAX];
     oh_app_node_name(name, sizeof(name));
-    oh_node_identity_t id = {.sn = oh_app_sn(), .fw = oh_app_fw(), .name = name};
+    oh_labels_t *labels = malloc(sizeof(*labels));
+    if (labels) {
+        oh_config_labels(labels);
+    }
+    oh_node_identity_t id = {.sn = oh_app_sn(), .fw = oh_app_fw(), .name = name, .labels = labels};
     oh_node_lock();
     cJSON *info = oh_json_info(oh_node_module(), &id);
     oh_node_unlock();
+    free(labels);
     /* Here rather than in oh_json_info, which also feeds the TXT record's `desc`
      * checksum: a rebuild is not a change to what the node is. */
     cJSON_AddStringToObject(info, "build", oh_app_build_id());
@@ -181,7 +186,8 @@ static esp_err_t get_config(httpd_req_t *req)
 
 static esp_err_t post_config(httpd_req_t *req)
 {
-    cJSON *body = read_json(req, 2048);
+    /* Room for a label on every port and head beside everything else. */
+    cJSON *body = read_json(req, 4096);
     if (!body) {
         return ESP_FAIL;
     }
@@ -850,6 +856,10 @@ static void sse_on_event(void *arg, esp_event_base_t base, int32_t id, void *dat
         break;
     case OH_EVENT_MODULE_BOUND:
         bits = SSE_MODULE | SSE_STATUS;
+        break;
+    case OH_EVENT_CONFIG_CHANGED:
+        /* A port renamed is the description changed: the page reads /info again. */
+        bits = (data && (*(const uint32_t *)data & OH_CFG_LABELS)) ? SSE_MODULE | SSE_STATUS : SSE_STATUS;
         break;
     case OH_EVENT_IDENTIFY:
         return;

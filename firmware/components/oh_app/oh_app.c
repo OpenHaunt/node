@@ -355,10 +355,16 @@ void oh_app_announce(void)
      * changes mode, without polling. The identity is left out: it is in the TXT
      * record already and is not the description. */
     char desc[8] = "";
-    oh_node_identity_t id = {.sn = "", .fw = "", .name = ""};
+    /* The labels are in it: a console asks /info again when they change. */
+    oh_labels_t *labels = malloc(sizeof(*labels));
+    if (labels) {
+        oh_config_labels(labels);
+    }
+    oh_node_identity_t id = {.sn = "", .fw = "", .name = "", .labels = labels};
     oh_node_lock();
     cJSON *info = oh_json_info(oh_node_module(), &id);
     oh_node_unlock();
+    free(labels);
     cJSON *pixels = oh_app_pixels_json(false);
     if (pixels) {
         cJSON_AddItemToObject(info, "pixels", pixels);
@@ -393,7 +399,7 @@ static void on_config_changed(void *arg, esp_event_base_t base, int32_t id, void
     (void)base;
     (void)id;
     uint32_t mask = *(uint32_t *)data;
-    if (mask & OH_CFG_NAME) {
+    if (mask & (OH_CFG_NAME | OH_CFG_LABELS)) {
         oh_app_announce();
     }
     if (mask & OH_CFG_WIFI) {

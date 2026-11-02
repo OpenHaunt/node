@@ -172,6 +172,15 @@ POST /api/v1/ota               firmware bundle upload, both processors
 genuine problem, and the Halo light ring around the etherCON is the right indicator for it because it is on
 the outside of the box, at the connector, where the installer is already looking.
 
+**Ports and heads can be named.** `POST /api/v1/config` takes
+`{"labels": {"ports": {"4": "Ausgang PIR"}, "heads": {"1": "LED Streifen Tor"}}}` as a partial merge:
+an empty string clears a label, and a body naming a port or head the node does not have, or a label over
+31 bytes, is refused whole. `/api/v1/info` then carries `label` beside `name` on that port or head, and
+only where one is set. **The label never replaces `name`.** `name` is the module's word for the port and
+what a console keys it by, so renaming it would orphan everything patched against the port. Labels are
+kept in NVS by number, not tied to a module, and are part of the `desc` checksum, so a console learns of
+a rename the way it learns of any other change to the description.
+
 `/api/v1/power` is new and exists because the metering is new. It is also the answer to "why did that node
 not come up", which on a PoE installation is usually a switch budget question rather than a node fault.
 

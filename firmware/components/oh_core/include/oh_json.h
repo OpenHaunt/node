@@ -7,6 +7,7 @@
 
 #include "cJSON.h"
 #include "oh_effect.h"
+#include "oh_labels.h"
 #include "oh_module.h"
 
 #ifdef __cplusplus
@@ -17,6 +18,7 @@ typedef struct {
     const char *sn;   /* node serial, 8 hex */
     const char *fw;   /* firmware version */
     const char *name; /* resolved friendly name */
+    const oh_labels_t *labels; /* what somebody called its ports and heads; NULL for none */
 } oh_node_identity_t;
 
 cJSON *oh_json_port_desc(const oh_port_desc_t *p);
